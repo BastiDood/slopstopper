@@ -1,0 +1,32 @@
+{
+	"type": "module",
+	"private": true,
+	"devEngines": {
+		"packageManager": {
+			"name": "pnpm",
+			"version": "^12.15.0",
+			"onFail": "download"
+		},
+		"runtime": {
+			"name": "node",
+			"version": "^26.12.1",
+			"onFail": "download"
+		}
+	},
+	"scripts": {
+		"fmt": "oxfmt --check .",
+		"fmt:fix": "oxfmt .",
+		"lint": "oxlint --type-aware --deny-warnings .",
+		"lint:fix": "oxlint --type-aware --deny-warnings --fix .",
+		"check": "tsc"
+	},
+	"devDependencies": {
+		"@bastidood/oxlint-config": "workspace:*",
+		"@bastidood/tsconfig": "workspace:*",
+		"@typescript/native": "catalog:",
+		"oxfmt": "^0.74.0",
+		"oxlint": "catalog:",
+		"oxlint-tsgolint": "^7.0.2005",
+		"typescript": "catalog:"
+	}
+}

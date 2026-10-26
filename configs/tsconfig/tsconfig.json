@@ -1,0 +1,24 @@
+{
+	"compilerOptions": {
+		"target": "esnext",
+		"lib": ["ESNext"],
+		"moduleDetection": "force",
+		"verbatimModuleSyntax": true,
+		"erasableSyntaxOnly": true,
+		"strict": true,
+		"allowUnreachableCode": false,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noUncheckedSideEffectImports": true,
+		"module": "preserve",
+		"moduleResolution": "bundler",
+		"noEmit": true,
+		"exactOptionalPropertyTypes": true,
+		"noFallthroughCasesInSwitch": true,
+		"allowUnusedLabels": false,
+		"allowImportingTsExtensions": true,
+		"skipLibCheck": true
+	}
+}

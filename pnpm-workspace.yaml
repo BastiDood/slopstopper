@@ -1,0 +1,21 @@
+packages:
+  - configs/*
+  - plugins/*
+
+catalog:
+  '@typescript/native': npm:typescript@^7.0.2
+  oxlint: ^1.89.0
+  tsdown: ^0.23.2
+  typescript: npm:@typescript/typescript6@^6.0.2
+
+autoDedupe: true
+
+catalogPrune: true
+
+engineStrict: true
+
+minimumReleaseAgeStrict: true
+
+saveTypes: true
+
+trustPolicy: no-downgrade
