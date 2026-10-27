@@ -2,6 +2,11 @@
 	"name": "@bastidood/eslint-config-astro",
 	"version": "0.1.0",
 	"description": "Astro rules and type-aware parsing for ESLint, composed with @bastidood/eslint-config.",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/BastiDood/slopstopper.git",
+		"directory": "configs/eslint-astro"
+	},
 	"type": "module",
 	"imports": {
 		"#*": "./src/*"
