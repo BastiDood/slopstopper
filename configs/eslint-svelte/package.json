@@ -26,18 +26,17 @@
 	},
 	"dependencies": {
 		"eslint-plugin-svelte": "^3.23.1",
-		"svelte-eslint-parser": "^1.10.0",
 		"typescript-eslint": "^8.72.0"
 	},
 	"devDependencies": {
 		"@bastidood/tsconfig": "workspace:*",
 		"@typescript/native": "catalog:",
 		"eslint": "^10.13.0",
-		"svelte": "^5.57.2",
 		"tsdown": "catalog:",
 		"typescript": "catalog:"
 	},
 	"peerDependencies": {
+		"@bastidood/eslint-config": "workspace:^",
 		"eslint": "^10.0.0",
 		"svelte": "^5.0.0",
 		"typescript": ">=4.8.4 <6.1.0"

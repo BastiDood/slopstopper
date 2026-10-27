@@ -36,9 +36,6 @@
 		"prepack": "tsdown",
 		"check": "tsc"
 	},
-	"dependencies": {
-		"oxlint-plugin-eslint": "^1.89.0"
-	},
 	"devDependencies": {
 		"@bastidood/tsconfig": "workspace:*",
 		"@typescript/native": "catalog:",
@@ -48,6 +45,7 @@
 	},
 	"peerDependencies": {
 		"oxlint": "^1.89.0",
+		"oxlint-plugin-eslint": "^1.89.0",
 		"oxlint-tsgolint": "^7.0.2005"
 	}
 }
