@@ -6,6 +6,7 @@
 		"module": "nodenext",
 		"noEmit": true,
 		"allowImportingTsExtensions": true,
-		"erasableSyntaxOnly": true
+		"erasableSyntaxOnly": true,
+		"incremental": true
 	}
 }

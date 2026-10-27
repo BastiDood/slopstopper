@@ -5,6 +5,7 @@
 		"lib": ["ESNext"],
 		"module": "nodenext",
 		"noEmit": true,
-		"allowImportingTsExtensions": true
+		"allowImportingTsExtensions": true,
+		"incremental": true
 	}
 }

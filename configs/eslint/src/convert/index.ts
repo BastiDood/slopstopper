@@ -61,7 +61,10 @@ function namespacesOf(plugin: string) {
 	}
 }
 
-/** Whether ESLint can run a rule, given its ESLint name. */
+/**
+ * Whether ESLint can run a rule, given its ESLint name. The conversion prunes unsupported rules: Oxlint-only rules,
+ * rules without a shipped ESLint plugin, and rules that an ESLint 10 plugin renamed or removed.
+ */
 function isSupportedInEslint(eslintName: string) {
 	switch (eslintName) {
 		// `eslint-plugin-unicorn` renamed this rule to `unicorn/no-for-each`.

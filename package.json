@@ -18,7 +18,7 @@
 		"fmt:fix": "oxfmt .",
 		"lint": "oxlint",
 		"lint:fix": "oxlint --fix",
-		"check": "tsc",
+		"check": "tsc --build",
 		"test": "vitest run"
 	},
 	"devDependencies": {

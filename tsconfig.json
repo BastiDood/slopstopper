@@ -1,11 +1,11 @@
 {
-	"extends": "@bastidood/tsconfig",
-	"include": ["*.ts"],
-	"compilerOptions": {
-		"lib": ["ESNext"],
-		"module": "nodenext",
-		"noEmit": true,
-		"allowImportingTsExtensions": true,
-		"erasableSyntaxOnly": true
-	}
+	"files": [],
+	"references": [
+		{ "path": "./tsconfig.root.json" },
+		{ "path": "./configs/eslint" },
+		{ "path": "./configs/eslint-astro" },
+		{ "path": "./configs/eslint-svelte" },
+		{ "path": "./configs/oxfmt" },
+		{ "path": "./configs/oxlint" }
+	]
 }

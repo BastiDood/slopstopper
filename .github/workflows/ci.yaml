@@ -25,7 +25,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install pnpm, Node.js, and Dependencies
+      - name: Install Dependencies
         uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
         with:
           cache: true
@@ -39,7 +39,7 @@ jobs:
             run: pnpm lint
 
           - name: Run Type Checks
-            run: pnpm --recursive --include-workspace-root --if-present run check
+            run: pnpm check
 
           - name: Build Packages
             run: pnpm --recursive --if-present run build

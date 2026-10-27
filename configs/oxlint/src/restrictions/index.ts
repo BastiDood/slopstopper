@@ -44,8 +44,9 @@ interface ImportOptions {
 }
 
 /**
- * Restriction lists accumulated across entry points. Each list is stored as the final rule entry with its
- * severity in front, so emitting a rule never copies the list.
+ * Restriction lists accumulated across entry points for the list-valued `no-restricted-*` rules, which Oxlint and
+ * ESLint replace instead of merge. Each list is stored as the final rule entry with its severity in front, so
+ * emitting a rule never copies the list.
  */
 export class RestrictionLists {
 	readonly #imports: ImportOptions = { paths: [], patterns: [] };
