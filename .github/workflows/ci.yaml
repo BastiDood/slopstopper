@@ -42,7 +42,7 @@ jobs:
             run: pnpm check
 
           - name: Build Packages
-            run: pnpm --recursive --if-present run build
+            run: pnpm --recursive --if-present run prepack
 
           - name: Run Unit Tests
             run: pnpm test

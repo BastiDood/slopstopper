@@ -33,7 +33,7 @@
 		}
 	},
 	"scripts": {
-		"build": "tsdown",
+		"prepack": "tsdown",
 		"check": "tsc"
 	},
 	"dependencies": {
