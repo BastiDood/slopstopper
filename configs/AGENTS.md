@@ -1,6 +1,6 @@
 # Configuration Packages
 
-- The consumer owns every project-specific detail: `files`, globals, env, paths, the TypeScript project root, ignore patterns, and Tailwind stylesheets. Never impose these from a package.
+- The consumer owns every project-specific detail: `files`, globals, env, paths, ignore patterns, and Tailwind stylesheets. Never impose these from a package.
 - Each package exports `compose` from its root and one subpath per entry. Never add a barrel.
 - An entry is a `SCREAMING_CASE` constant. Use a factory with a single positional argument only when the consumer must supply a value.
 - Development `exports` point at the TypeScript sources and `publishConfig.exports` point at the build output. Keep both in sync when adding an entry.

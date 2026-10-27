@@ -7,30 +7,23 @@ export interface AstroEntry {
 	readonly extraFileExtensions: string[];
 }
 
-/**
- * `eslint-plugin-astro` rules with type-aware parsing of `.astro` components.
- *
- * @param tsconfigRootDir Directory that contains the project's `tsconfig.json`, usually `import.meta.dirname`.
- */
-export function astro(tsconfigRootDir: string): AstroEntry {
-	return {
-		configs: [
-			astroConfigs.recommended,
-			{
-				name: '@bastidood/eslint-config-astro/parser',
-				// `eslint-plugin-astro` parses these files with `astro-eslint-parser`.
-				files: ['**/*.astro'],
-				languageOptions: {
-					parserOptions: {
-						parser: tseslint.parser,
-						// `astro-eslint-parser` supports `project` but not `projectService`.
-						projectService: false,
-						project: true,
-						tsconfigRootDir,
-					},
+/** `eslint-plugin-astro` rules with type-aware parsing of `.astro` components. */
+export const ASTRO: AstroEntry = {
+	configs: [
+		astroConfigs.recommended,
+		{
+			name: '@bastidood/eslint-config-astro/parser',
+			// `eslint-plugin-astro` parses these files with `astro-eslint-parser`.
+			files: ['**/*.astro'],
+			languageOptions: {
+				parserOptions: {
+					parser: tseslint.parser,
+					// `astro-eslint-parser` supports `project` but not `projectService`.
+					projectService: false,
+					project: true,
 				},
 			},
-		],
-		extraFileExtensions: ['.astro'],
-	};
-}
+		},
+	],
+	extraFileExtensions: ['.astro'],
+};

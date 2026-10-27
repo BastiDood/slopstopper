@@ -33,24 +33,21 @@ for (const { files, rules } of OVERRIDES) {
 const PLUGIN_DEFINITIONS = { '@typescript-eslint': TYPESCRIPT_ESLINT, import: importX };
 
 /**
- * ESLint core, `import`, and type-aware `@typescript-eslint` rules, generated from the Oxlint `core` entry point.
- *
- * @param tsconfigRootDir Directory that contains the project's `tsconfig.json`, usually `import.meta.dirname`.
+ * ESLint core, `import`, and type-aware `@typescript-eslint` rules, generated from the Oxlint `core` entry point. The
+ * TypeScript project service finds the `tsconfig.json` nearest each file, searching up to the working directory.
  */
-export function core(tsconfigRootDir: string): Entry {
-	return {
-		configs: [
-			{
-				name: '@bastidood/eslint-config/core',
-				languageOptions: {
-					parser: tseslint.parser,
-					parserOptions: { projectService: true, tsconfigRootDir },
-				},
-				plugins: PLUGIN_DEFINITIONS,
-				rules: RULES,
+export const CORE: Entry = {
+	configs: [
+		{
+			name: '@bastidood/eslint-config/core',
+			languageOptions: {
+				parser: tseslint.parser,
+				parserOptions: { projectService: true },
 			},
-			OVERRIDE_CONFIGS,
-		],
-		restrictions: OXLINT_CORE.restrictions,
-	};
-}
+			plugins: PLUGIN_DEFINITIONS,
+			rules: RULES,
+		},
+		OVERRIDE_CONFIGS,
+	],
+	restrictions: OXLINT_CORE.restrictions,
+};

@@ -2,7 +2,7 @@ import { type ESLint, Linter } from 'eslint';
 import { expect, test } from 'vitest';
 
 import { compose } from './compose/index.ts';
-import { core } from './core.ts';
+import { CORE } from './core.ts';
 import { PROMISE } from './promise.ts';
 import { UNICORN } from './unicorn.ts';
 
@@ -11,7 +11,7 @@ const PLUGINS: Record<string, ESLint.Plugin> = {};
 const SYNTAX_RULES: Linter.RulesRecord = {};
 const TYPE_AWARE_RULE_NAMES: string[] = [];
 
-for (const config of compose(core('.'), UNICORN, PROMISE)) {
+for (const config of compose(CORE, UNICORN, PROMISE)) {
 	Object.assign(PLUGINS, config.plugins);
 	const { rules } = config;
 	if (typeof rules === 'undefined') continue;
