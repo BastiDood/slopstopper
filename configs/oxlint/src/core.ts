@@ -5,7 +5,7 @@ export const CORE = {
 	config: {
 		plugins: ['import', 'oxc', 'node', 'typescript'],
 		jsPlugins: [{ name: 'eslint-js', specifier: 'oxlint-plugin-eslint' }],
-		categories: { correctness: 'error', suspicious: 'error' },
+		categories: { correctness: 'error', perf: 'error', suspicious: 'error' },
 		overrides: [
 			{
 				files: ['**/*.js', '**/*.mjs', '**/*.cjs'],

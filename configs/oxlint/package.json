@@ -19,6 +19,7 @@
 		"./unicorn": "./src/unicorn.ts",
 		"./promise": "./src/promise.ts",
 		"./react": "./src/react.ts",
+		"./react-compiler": "./src/react-compiler.ts",
 		"./jsx-a11y": "./src/jsx-a11y.ts",
 		"./tanstack-react-query": "./src/tanstack-react-query.ts"
 	},
@@ -34,6 +35,7 @@
 			"./unicorn": "./dist/unicorn.mjs",
 			"./promise": "./dist/promise.mjs",
 			"./react": "./dist/react.mjs",
+			"./react-compiler": "./dist/react-compiler.mjs",
 			"./jsx-a11y": "./dist/jsx-a11y.mjs",
 			"./tanstack-react-query": "./dist/tanstack-react-query.mjs"
 		}

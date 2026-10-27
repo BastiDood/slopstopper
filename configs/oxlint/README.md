@@ -29,15 +29,16 @@ Combine entry points with `compose`, not `extends`, so that `no-restricted-*` li
 
 ## Entry Points
 
-| Entry point                                     | Contents                                                     |
-| ----------------------------------------------- | ------------------------------------------------------------ |
-| `@bastidood/oxlint-config`                      | `compose`                                                    |
-| `@bastidood/oxlint-config/core`                 | ESLint core, `import`, `oxc`, `node`, and `typescript` rules |
-| `@bastidood/oxlint-config/unicorn`              | `unicorn` rules                                              |
-| `@bastidood/oxlint-config/promise`              | `promise` rules                                              |
-| `@bastidood/oxlint-config/react`                | React rules; bans `useEffect`                                |
-| `@bastidood/oxlint-config/jsx-a11y`             | JSX accessibility rules                                      |
-| `@bastidood/oxlint-config/tanstack-react-query` | Bans `useQueryClient`                                        |
+| Entry point                                     | Contents                                                                               |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `@bastidood/oxlint-config`                      | `compose`                                                                              |
+| `@bastidood/oxlint-config/core`                 | ESLint core, `import`, `oxc`, `node`, and `typescript` rules                           |
+| `@bastidood/oxlint-config/unicorn`              | `unicorn` rules                                                                        |
+| `@bastidood/oxlint-config/promise`              | `promise` rules                                                                        |
+| `@bastidood/oxlint-config/react`                | React rules; bans effect hooks                                                         |
+| `@bastidood/oxlint-config/react-compiler`       | Turns off memoization rules made obsolete by the React Compiler; compose after `REACT` |
+| `@bastidood/oxlint-config/jsx-a11y`             | JSX accessibility rules                                                                |
+| `@bastidood/oxlint-config/tanstack-react-query` | Bans `useQueryClient`                                                                  |
 
 ## Limitations
 
