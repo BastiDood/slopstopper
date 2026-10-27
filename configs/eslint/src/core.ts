@@ -3,8 +3,8 @@ import type { ESLint, Linter } from 'eslint';
 import { importX } from 'eslint-plugin-import-x';
 import tseslint from 'typescript-eslint';
 
-import type { Entry } from '#compose/index.ts';
-import { writeCategoryRules, writeEslintRules, writeExtensionRules } from '#convert/index.ts';
+import type { Entry } from './compose/index.ts';
+import { writeCategoryRules, writeEslintRules, writeExtensionRules } from './convert/index.ts';
 
 const {
 	categories: CATEGORIES,

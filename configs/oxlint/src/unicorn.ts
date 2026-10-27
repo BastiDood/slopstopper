@@ -1,4 +1,4 @@
-import type { Entry } from '#compose/index.ts';
+import type { Entry } from './compose/index.ts';
 
 export const UNICORN = {
 	config: {

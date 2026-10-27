@@ -7,7 +7,7 @@
 		"#*": "./src/*"
 	},
 	"exports": {
-		"./compose": "./src/compose/index.ts",
+		".": "./src/compose/index.ts",
 		"./restrictions": "./src/restrictions/index.ts",
 		"./core": "./src/core.ts",
 		"./unicorn": "./src/unicorn.ts",
@@ -22,7 +22,7 @@
 	"publishConfig": {
 		"access": "public",
 		"exports": {
-			"./compose": "./dist/compose/index.mjs",
+			".": "./dist/compose/index.mjs",
 			"./restrictions": "./dist/restrictions/index.mjs",
 			"./core": "./dist/core.mjs",
 			"./unicorn": "./dist/unicorn.mjs",

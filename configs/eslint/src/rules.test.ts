@@ -1,10 +1,10 @@
 import { type ESLint, Linter } from 'eslint';
 import { expect, test } from 'vitest';
 
-import { compose } from '#compose/index.ts';
-import { core } from '#core.ts';
-import { PROMISE } from '#promise.ts';
-import { UNICORN } from '#unicorn.ts';
+import { compose } from './compose/index.ts';
+import { core } from './core.ts';
+import { PROMISE } from './promise.ts';
+import { UNICORN } from './unicorn.ts';
 
 const TYPESCRIPT_PREFIX = '@typescript-eslint/';
 const PLUGINS: Record<string, ESLint.Plugin> = {};

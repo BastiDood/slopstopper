@@ -3,8 +3,8 @@ import { UNICORN as OXLINT_UNICORN } from '@bastidood/oxlint-config/unicorn';
 import type { Linter } from 'eslint';
 import unicornPlugin from 'eslint-plugin-unicorn';
 
-import type { Entry } from '#compose/index.ts';
-import { writeCategoryRules, writeEslintRules } from '#convert/index.ts';
+import type { Entry } from './compose/index.ts';
+import { writeCategoryRules, writeEslintRules } from './convert/index.ts';
 
 const RULES: Linter.RulesRecord = {};
 writeCategoryRules(RULES, OXLINT_CORE.config.categories, OXLINT_UNICORN.config.plugins);

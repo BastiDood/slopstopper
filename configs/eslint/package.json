@@ -3,11 +3,8 @@
 	"version": "0.0.0",
 	"description": "Strict baseline ESLint configuration generated from @bastidood/oxlint-config.",
 	"type": "module",
-	"imports": {
-		"#*": "./src/*"
-	},
 	"exports": {
-		"./compose": "./src/compose/index.ts",
+		".": "./src/compose/index.ts",
 		"./core": "./src/core.ts",
 		"./unicorn": "./src/unicorn.ts",
 		"./promise": "./src/promise.ts"
@@ -18,7 +15,7 @@
 	"publishConfig": {
 		"access": "public",
 		"exports": {
-			"./compose": "./dist/compose/index.mjs",
+			".": "./dist/compose/index.mjs",
 			"./core": "./dist/core.mjs",
 			"./unicorn": "./dist/unicorn.mjs",
 			"./promise": "./dist/promise.mjs"

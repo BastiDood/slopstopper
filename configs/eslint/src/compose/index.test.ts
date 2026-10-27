@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { compose } from '#compose/index.ts';
+import { compose } from './index.ts';
 
 const BASE = {
 	configs: [{ name: 'base', rules: { eqeqeq: 'error' as const } }],

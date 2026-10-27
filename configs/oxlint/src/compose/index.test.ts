@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import { compose } from '#compose/index.ts';
+import { compose } from './index.ts';
 
 const PARENT_IMPORTS = {
 	config: { plugins: ['typescript' as const], rules: { eqeqeq: 'error' as const } },

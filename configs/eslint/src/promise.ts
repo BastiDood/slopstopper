@@ -3,8 +3,8 @@ import { PROMISE as OXLINT_PROMISE } from '@bastidood/oxlint-config/promise';
 import type { Linter } from 'eslint';
 import promisePlugin from 'eslint-plugin-promise';
 
-import type { Entry } from '#compose/index.ts';
-import { writeCategoryRules, writeEslintRules } from '#convert/index.ts';
+import type { Entry } from './compose/index.ts';
+import { writeCategoryRules, writeEslintRules } from './convert/index.ts';
 
 const RULES: Linter.RulesRecord = {};
 writeCategoryRules(RULES, OXLINT_CORE.config.categories, OXLINT_PROMISE.config.plugins);

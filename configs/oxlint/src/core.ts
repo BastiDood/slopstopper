@@ -1,4 +1,4 @@
-import type { Entry } from '#compose/index.ts';
+import type { Entry } from './compose/index.ts';
 
 /** ESLint core, `import`, `oxc`, `node`, and type-aware `typescript` rules. Rules that the TypeScript compiler already reports are off. */
 export const CORE = {

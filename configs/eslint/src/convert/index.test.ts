@@ -6,7 +6,7 @@ import {
 	writeCategoryRules,
 	writeEslintRules,
 	writeExtensionRules,
-} from '#convert/index.ts';
+} from './index.ts';
 
 describe('toEslintRuleName', () => {
 	test('renames Oxlint plugin scopes to their ESLint namespaces', () => {

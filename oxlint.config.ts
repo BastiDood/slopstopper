@@ -1,4 +1,4 @@
-import { compose } from '@bastidood/oxlint-config/compose';
+import { compose } from '@bastidood/oxlint-config';
 import { CORE } from '@bastidood/oxlint-config/core';
 import { PROMISE } from '@bastidood/oxlint-config/promise';
 import { UNICORN } from '@bastidood/oxlint-config/unicorn';
