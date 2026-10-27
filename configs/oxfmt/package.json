@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/oxfmt-config",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Shared Oxfmt formatting style, including Svelte and Astro components.",
 	"type": "module",
 	"exports": {

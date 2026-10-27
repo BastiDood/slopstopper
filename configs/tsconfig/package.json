@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/tsconfig",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Strict TypeScript compiler options.",
 	"exports": {
 		".": "./tsconfig.json"

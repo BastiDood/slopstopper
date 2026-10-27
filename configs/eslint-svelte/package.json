@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/eslint-config-svelte",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Svelte rules and type-aware parsing for ESLint, composed with @bastidood/eslint-config.",
 	"type": "module",
 	"imports": {

@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/oxlint-config",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Strict baseline Oxlint configuration for type-aware TypeScript projects.",
 	"type": "module",
 	"imports": {

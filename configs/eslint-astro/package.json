@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/eslint-config-astro",
-	"version": "0.0.0",
+	"version": "0.1.0",
 	"description": "Astro rules and type-aware parsing for ESLint, composed with @bastidood/eslint-config.",
 	"type": "module",
 	"imports": {
