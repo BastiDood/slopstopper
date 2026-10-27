@@ -10,7 +10,10 @@ export const CORE = {
 			{
 				files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
 				rules: {
-					'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+					'no-unused-vars': [
+						'error',
+						{ argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+					],
 				},
 			},
 		],
@@ -98,7 +101,10 @@ export const CORE = {
 			'no-shadow': 'off',
 			'no-template-curly-in-string': 'error',
 			'no-this-before-super': 'off',
-			'no-underscore-dangle': ['error', { enforceInMethodNames: true, enforceInClassFields: true }],
+			'no-underscore-dangle': [
+				'error',
+				{ enforceInMethodNames: true, enforceInClassFields: true },
+			],
 			'no-unmodified-loop-condition': 'error',
 			'no-unneeded-ternary': 'error',
 			'no-unreachable': 'off',
@@ -185,8 +191,7 @@ export const CORE = {
 				'error',
 				{
 					types: {
-						object:
-							'Use a precise `interface` contract instead of `object`; accept `unknown` only at an untrusted boundary and parse it into a trusted type there.',
+						object: 'Use a precise `interface` contract instead of `object`; accept `unknown` only at an untrusted boundary and parse it into a trusted type there.',
 						'Record<string, unknown>':
 							'Do not use `Record<string, unknown>`: it is a variant of `any`. Declare a precise `interface`, or accept `unknown` only at an untrusted boundary and parse it into a trusted type there.',
 					},
@@ -222,7 +227,10 @@ export const CORE = {
 			'typescript/prefer-function-type': 'error',
 			'typescript/prefer-includes': 'error',
 			'typescript/prefer-namespace-keyword': 'error',
-			'typescript/prefer-nullish-coalescing': ['error', { ignorePrimitives: { string: true } }],
+			'typescript/prefer-nullish-coalescing': [
+				'error',
+				{ ignorePrimitives: { string: true } },
+			],
 			'typescript/prefer-optional-chain': 'error',
 			'typescript/prefer-promise-reject-errors': 'error',
 			'typescript/prefer-readonly': 'error',

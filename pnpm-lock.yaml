@@ -167,6 +167,9 @@ catalogs:
     '@typescript/native':
       specifier: npm:typescript@^7.0.2
       version: 7.0.2
+    oxfmt:
+      specifier: ^0.74.0
+      version: 0.74.0
     oxlint:
       specifier: ^1.89.0
       version: 1.89.0
@@ -184,6 +187,9 @@ importers:
 
   .:
     devDependencies:
+      '@bastidood/oxfmt-config':
+        specifier: workspace:*
+        version: link:configs/oxfmt
       '@bastidood/oxlint-config':
         specifier: workspace:*
         version: link:configs/oxlint
@@ -197,7 +203,7 @@ importers:
         specifier: runtime:^26.12.1
         version: runtime:26.12.1
       oxfmt:
-        specifier: ^0.74.0
+        specifier: 'catalog:'
         version: 0.74.0(@astrojs/compiler-rs@0.5.2)(svelte@5.57.2(@typescript-eslint/types@8.72.0))
       oxlint:
         specifier: 'catalog:'
@@ -301,6 +307,31 @@ importers:
       svelte:
         specifier: ^5.57.2
         version: 5.57.2(@typescript-eslint/types@8.72.0)
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.23.2(@typescript/typescript6@6.0.2)
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+
+  configs/oxfmt:
+    dependencies:
+      '@astrojs/compiler-rs':
+        specifier: ^0.5.2
+        version: 0.5.2
+      svelte:
+        specifier: ^5.0.0
+        version: 5.57.2(@typescript-eslint/types@8.72.0)
+    devDependencies:
+      '@bastidood/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      oxfmt:
+        specifier: 'catalog:'
+        version: 0.74.0(@astrojs/compiler-rs@0.5.2)(svelte@5.57.2(@typescript-eslint/types@8.72.0))
       tsdown:
         specifier: 'catalog:'
         version: 0.23.2(@typescript/typescript6@6.0.2)

@@ -13,6 +13,10 @@ writeEslintRules(RULES, OXLINT_PROMISE.config.rules);
 /** `eslint-plugin-promise` rules, generated from the Oxlint `promise` entry point. */
 export const PROMISE: Entry = {
 	configs: [
-		{ name: '@bastidood/eslint-config/promise', plugins: { promise: promisePlugin }, rules: RULES },
+		{
+			name: '@bastidood/eslint-config/promise',
+			plugins: { promise: promisePlugin },
+			rules: RULES,
+		},
 	],
 };

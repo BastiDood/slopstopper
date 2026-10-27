@@ -43,7 +43,10 @@ describe('compose', () => {
 			rules: {
 				'no-restricted-imports': [
 					'error',
-					{ paths: [], patterns: [{ regex: String.raw`^\.\./`, message: 'no parent imports' }] },
+					{
+						paths: [],
+						patterns: [{ regex: String.raw`^\.\./`, message: 'no parent imports' }],
+					},
 				],
 				'no-restricted-syntax': [
 					'error',

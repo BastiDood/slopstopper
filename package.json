@@ -22,10 +22,11 @@
 		"test": "vitest run"
 	},
 	"devDependencies": {
+		"@bastidood/oxfmt-config": "workspace:*",
 		"@bastidood/oxlint-config": "workspace:*",
 		"@bastidood/tsconfig": "workspace:*",
 		"@typescript/native": "catalog:",
-		"oxfmt": "^0.74.0",
+		"oxfmt": "catalog:",
 		"oxlint": "catalog:",
 		"oxlint-tsgolint": "^7.0.2005",
 		"typescript": "catalog:",

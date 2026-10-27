@@ -118,6 +118,9 @@ describe('writeExtensionRules', () => {
 			'@typescript-eslint/no-loop-func': 'error',
 		};
 		writeExtensionRules(rules, {}, EXTENSIONS);
-		expect(rules).toEqual({ 'no-loop-func': 'error', '@typescript-eslint/no-loop-func': 'off' });
+		expect(rules).toEqual({
+			'no-loop-func': 'error',
+			'@typescript-eslint/no-loop-func': 'off',
+		});
 	});
 });

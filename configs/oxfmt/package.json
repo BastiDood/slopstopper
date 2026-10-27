@@ -1,0 +1,48 @@
+{
+	"name": "@bastidood/oxfmt-config",
+	"version": "0.0.0",
+	"description": "Shared Oxfmt formatting style, including Svelte and Astro components.",
+	"type": "module",
+	"exports": {
+		".": "./src/compose/index.ts",
+		"./core": "./src/core.ts",
+		"./svelte": "./src/svelte.ts",
+		"./astro": "./src/astro.ts"
+	},
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public",
+		"exports": {
+			".": "./dist/compose/index.mjs",
+			"./core": "./dist/core.mjs",
+			"./svelte": "./dist/svelte.mjs",
+			"./astro": "./dist/astro.mjs"
+		}
+	},
+	"scripts": {
+		"build": "tsdown",
+		"check": "tsc"
+	},
+	"devDependencies": {
+		"@bastidood/tsconfig": "workspace:*",
+		"@typescript/native": "catalog:",
+		"oxfmt": "catalog:",
+		"tsdown": "catalog:",
+		"typescript": "catalog:"
+	},
+	"peerDependencies": {
+		"@astrojs/compiler-rs": "^0.5.2",
+		"oxfmt": "^0.74.0",
+		"svelte": "^5.0.0"
+	},
+	"peerDependenciesMeta": {
+		"@astrojs/compiler-rs": {
+			"optional": true
+		},
+		"svelte": {
+			"optional": true
+		}
+	}
+}

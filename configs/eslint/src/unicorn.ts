@@ -13,6 +13,10 @@ writeEslintRules(RULES, OXLINT_UNICORN.config.rules);
 /** `eslint-plugin-unicorn` rules, generated from the Oxlint `unicorn` entry point. */
 export const UNICORN: Entry = {
 	configs: [
-		{ name: '@bastidood/eslint-config/unicorn', plugins: { unicorn: unicornPlugin }, rules: RULES },
+		{
+			name: '@bastidood/eslint-config/unicorn',
+			plugins: { unicorn: unicornPlugin },
+			rules: RULES,
+		},
 	],
 };

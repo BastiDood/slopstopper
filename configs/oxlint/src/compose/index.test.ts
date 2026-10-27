@@ -69,7 +69,11 @@ describe('compose', () => {
 						'error',
 						{
 							paths: [
-								{ name: 'react', importNames: ['useEffect'], message: 'no useEffect' },
+								{
+									name: 'react',
+									importNames: ['useEffect'],
+									message: 'no useEffect',
+								},
 								{ name: 'react-dom', message: 'no react-dom' },
 							],
 							patterns: [{ regex: String.raw`^\.\./`, message: 'no parent imports' }],
@@ -77,7 +81,8 @@ describe('compose', () => {
 					],
 					'no-restricted-globals': config.rules['no-restricted-globals'],
 					'no-restricted-properties': config.rules['no-restricted-properties'],
-					'eslint-js/no-restricted-syntax': config.rules['eslint-js/no-restricted-syntax'],
+					'eslint-js/no-restricted-syntax':
+						config.rules['eslint-js/no-restricted-syntax'],
 				},
 			},
 		]);
@@ -85,7 +90,9 @@ describe('compose', () => {
 
 	test('merges plugins and JS plugins by name', () => {
 		expect(config.plugins).toEqual(['typescript', 'react']);
-		expect(config.jsPlugins).toEqual([{ name: 'eslint-js', specifier: 'oxlint-plugin-eslint' }]);
+		expect(config.jsPlugins).toEqual([
+			{ name: 'eslint-js', specifier: 'oxlint-plugin-eslint' },
+		]);
 	});
 
 	test('registers the eslint-js plugin only when a syntax restriction exists', () => {
