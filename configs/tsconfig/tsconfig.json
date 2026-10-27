@@ -1,7 +1,6 @@
 {
 	"compilerOptions": {
 		"target": "esnext",
-		"lib": ["ESNext"],
 		"moduleDetection": "force",
 		"verbatimModuleSyntax": true,
 		"strict": true,
@@ -11,12 +10,9 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noUncheckedSideEffectImports": true,
-		"module": "nodenext",
-		"noEmit": true,
 		"exactOptionalPropertyTypes": true,
 		"noFallthroughCasesInSwitch": true,
 		"allowUnusedLabels": false,
-		"allowImportingTsExtensions": true,
 		"skipLibCheck": true
 	}
 }

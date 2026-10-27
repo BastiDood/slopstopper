@@ -1,4 +1,10 @@
 {
 	"extends": "@bastidood/tsconfig",
-	"include": ["src/**/*.ts", "types/*.d.ts", "*.ts"]
+	"include": ["src/**/*.ts", "types/*.d.ts", "*.ts"],
+	"compilerOptions": {
+		"lib": ["ESNext"],
+		"module": "nodenext",
+		"noEmit": true,
+		"allowImportingTsExtensions": true
+	}
 }
