@@ -1,0 +1,41 @@
+{
+	"name": "@bastidood/eslint-config-astro",
+	"version": "0.0.0",
+	"description": "Astro rules and type-aware parsing for ESLint, composed with @bastidood/eslint-config.",
+	"type": "module",
+	"imports": {
+		"#*": "./src/*"
+	},
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public",
+		"exports": {
+			".": "./dist/index.mjs"
+		}
+	},
+	"scripts": {
+		"build": "tsdown",
+		"check": "tsc"
+	},
+	"dependencies": {
+		"astro-eslint-parser": "^3.2.0",
+		"eslint-plugin-astro": "^3.2.1",
+		"typescript-eslint": "^8.72.0"
+	},
+	"devDependencies": {
+		"@bastidood/tsconfig": "workspace:*",
+		"@typescript/native": "catalog:",
+		"eslint": "^10.13.0",
+		"tsdown": "catalog:",
+		"typescript": "catalog:"
+	},
+	"peerDependencies": {
+		"eslint": "^10.0.0",
+		"typescript": ">=4.8.4 <6.1.0"
+	}
+}

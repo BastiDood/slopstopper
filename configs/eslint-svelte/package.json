@@ -1,0 +1,45 @@
+{
+	"name": "@bastidood/eslint-config-svelte",
+	"version": "0.0.0",
+	"description": "Svelte rules and type-aware parsing for ESLint, composed with @bastidood/eslint-config.",
+	"type": "module",
+	"imports": {
+		"#*": "./src/*"
+	},
+	"exports": {
+		"./svelte": "./src/svelte.ts",
+		"./tanstack-svelte-query": "./src/tanstack-svelte-query.ts"
+	},
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public",
+		"exports": {
+			"./svelte": "./dist/svelte.mjs",
+			"./tanstack-svelte-query": "./dist/tanstack-svelte-query.mjs"
+		}
+	},
+	"scripts": {
+		"build": "tsdown",
+		"check": "tsc"
+	},
+	"dependencies": {
+		"eslint-plugin-svelte": "^3.23.1",
+		"svelte-eslint-parser": "^1.10.0",
+		"typescript-eslint": "^8.72.0"
+	},
+	"devDependencies": {
+		"@bastidood/tsconfig": "workspace:*",
+		"@typescript/native": "catalog:",
+		"eslint": "^10.13.0",
+		"svelte": "^5.57.2",
+		"tsdown": "catalog:",
+		"typescript": "catalog:"
+	},
+	"peerDependencies": {
+		"eslint": "^10.0.0",
+		"svelte": "^5.0.0",
+		"typescript": ">=4.8.4 <6.1.0"
+	}
+}

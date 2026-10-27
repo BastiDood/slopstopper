@@ -1,0 +1,4 @@
+{
+	"extends": "@bastidood/tsconfig",
+	"include": ["src/**/*.ts", "*.ts"]
+}

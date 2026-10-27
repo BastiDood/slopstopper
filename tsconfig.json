@@ -1,4 +1,7 @@
 {
 	"extends": "@bastidood/tsconfig",
-	"include": ["*.ts"]
+	"include": ["*.ts"],
+	"compilerOptions": {
+		"erasableSyntaxOnly": true
+	}
 }

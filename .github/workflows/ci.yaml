@@ -43,3 +43,6 @@ jobs:
 
           - name: Build Packages
             run: pnpm --recursive --if-present run build
+
+          - name: Run Unit Tests
+            run: pnpm test

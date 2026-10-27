@@ -1,0 +1,50 @@
+{
+	"name": "@bastidood/eslint-config",
+	"version": "0.0.0",
+	"description": "Strict baseline ESLint configuration generated from @bastidood/oxlint-config.",
+	"type": "module",
+	"imports": {
+		"#*": "./src/*"
+	},
+	"exports": {
+		"./compose": "./src/compose/index.ts",
+		"./core": "./src/core.ts",
+		"./unicorn": "./src/unicorn.ts",
+		"./promise": "./src/promise.ts"
+	},
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public",
+		"exports": {
+			"./compose": "./dist/compose/index.mjs",
+			"./core": "./dist/core.mjs",
+			"./unicorn": "./dist/unicorn.mjs",
+			"./promise": "./dist/promise.mjs"
+		}
+	},
+	"scripts": {
+		"build": "tsdown",
+		"check": "tsc"
+	},
+	"dependencies": {
+		"eslint-plugin-import-x": "^4.17.1",
+		"eslint-plugin-promise": "^7.3.0",
+		"eslint-plugin-unicorn": "^79.0.0",
+		"typescript-eslint": "^8.72.0"
+	},
+	"devDependencies": {
+		"@bastidood/oxlint-config": "workspace:*",
+		"@bastidood/tsconfig": "workspace:*",
+		"@typescript/native": "catalog:",
+		"eslint": "^10.13.0",
+		"eslint-plugin-oxlint": "1.89.0",
+		"tsdown": "catalog:",
+		"typescript": "catalog:"
+	},
+	"peerDependencies": {
+		"eslint": "^10.0.0",
+		"typescript": ">=4.8.4 <6.1.0"
+	}
+}

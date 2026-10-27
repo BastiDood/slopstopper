@@ -7,7 +7,14 @@
 		"#*": "./src/*"
 	},
 	"exports": {
-		".": "./src/index.ts"
+		"./compose": "./src/compose/index.ts",
+		"./restrictions": "./src/restrictions/index.ts",
+		"./core": "./src/core.ts",
+		"./unicorn": "./src/unicorn.ts",
+		"./promise": "./src/promise.ts",
+		"./react": "./src/react.ts",
+		"./jsx-a11y": "./src/jsx-a11y.ts",
+		"./tanstack-react-query": "./src/tanstack-react-query.ts"
 	},
 	"files": [
 		"dist"
@@ -15,7 +22,14 @@
 	"publishConfig": {
 		"access": "public",
 		"exports": {
-			".": "./dist/index.mjs"
+			"./compose": "./dist/compose/index.mjs",
+			"./restrictions": "./dist/restrictions/index.mjs",
+			"./core": "./dist/core.mjs",
+			"./unicorn": "./dist/unicorn.mjs",
+			"./promise": "./dist/promise.mjs",
+			"./react": "./dist/react.mjs",
+			"./jsx-a11y": "./dist/jsx-a11y.mjs",
+			"./tanstack-react-query": "./dist/tanstack-react-query.mjs"
 		}
 	},
 	"scripts": {
@@ -33,6 +47,7 @@
 		"typescript": "catalog:"
 	},
 	"peerDependencies": {
-		"oxlint": "^1.89.0"
+		"oxlint": "^1.89.0",
+		"oxlint-tsgolint": "^7.0.2005"
 	}
 }
