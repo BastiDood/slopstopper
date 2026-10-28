@@ -28,7 +28,7 @@
 		"@typescript/native": "catalog:",
 		"oxfmt": "catalog:",
 		"oxlint": "catalog:",
-		"oxlint-plugin-eslint": "^1.89.0",
+		"oxlint-plugin-eslint": "^1.90.0",
 		"oxlint-tsgolint": "^7.0.2005",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
