@@ -53,8 +53,8 @@
 		"typescript": "catalog:"
 	},
 	"peerDependencies": {
-		"oxlint": "^1.89.0",
-		"oxlint-plugin-eslint": "^1.89.0",
-		"oxlint-tsgolint": "^7.0.2005"
+		"oxlint": "catalog:",
+		"oxlint-plugin-eslint": "catalog:",
+		"oxlint-tsgolint": "catalog:"
 	}
 }

@@ -36,14 +36,14 @@
 		"eslint-plugin-import-x": "^4.17.1",
 		"eslint-plugin-promise": "^7.3.0",
 		"eslint-plugin-unicorn": "^79.0.0",
-		"typescript-eslint": "^8.72.1"
+		"typescript-eslint": "catalog:"
 	},
 	"devDependencies": {
 		"@bastidood/oxlint-config": "workspace:*",
 		"@bastidood/tsconfig": "workspace:*",
 		"@typescript/native": "catalog:",
-		"eslint": "^10.13.0",
-		"eslint-plugin-oxlint": "1.89.0",
+		"eslint": "catalog:",
+		"eslint-plugin-oxlint": "catalog:",
 		"tsdown": "catalog:",
 		"typescript": "catalog:"
 	},

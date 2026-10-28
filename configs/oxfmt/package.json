@@ -41,7 +41,7 @@
 	},
 	"peerDependencies": {
 		"@astrojs/compiler-rs": "^0.5.2",
-		"oxfmt": "^0.74.0",
+		"oxfmt": "catalog:",
 		"svelte": "^5.0.0"
 	},
 	"peerDependenciesMeta": {

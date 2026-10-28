@@ -31,12 +31,12 @@
 	},
 	"dependencies": {
 		"eslint-plugin-astro": "^3.2.1",
-		"typescript-eslint": "^8.72.1"
+		"typescript-eslint": "catalog:"
 	},
 	"devDependencies": {
 		"@bastidood/tsconfig": "workspace:*",
 		"@typescript/native": "catalog:",
-		"eslint": "^10.13.0",
+		"eslint": "catalog:",
 		"tsdown": "catalog:",
 		"typescript": "catalog:"
 	},

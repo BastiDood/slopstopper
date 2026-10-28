@@ -9,7 +9,7 @@
 		},
 		"runtime": {
 			"name": "node",
-			"version": "^26.12.1",
+			"version": "^26.13.0",
 			"onFail": "download"
 		}
 	},
@@ -28,8 +28,8 @@
 		"@typescript/native": "catalog:",
 		"oxfmt": "catalog:",
 		"oxlint": "catalog:",
-		"oxlint-plugin-eslint": "^1.90.0",
-		"oxlint-tsgolint": "^7.0.2005",
+		"oxlint-plugin-eslint": "catalog:",
+		"oxlint-tsgolint": "catalog:",
 		"typescript": "catalog:",
 		"vitest": "catalog:"
 	}
