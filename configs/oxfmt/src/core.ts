@@ -9,5 +9,8 @@ export const CORE = {
 	tabWidth: 4,
 	trailingComma: 'all',
 	useTabs: true,
-	overrides: [{ files: ['**/*.yaml', '**/*.yml'], options: { useTabs: false, tabWidth: 2 } }],
+	overrides: [
+		{ files: ['**/*.yaml', '**/*.yml'], options: { useTabs: false, tabWidth: 2 } },
+		{ files: ['**/*.md'], options: { tabWidth: 2 } },
+	],
 } satisfies OxfmtConfig;

@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"description": "Shared Oxfmt formatting style, including Svelte and Astro components.",
 	"license": "MIT",
+	"homepage": "https://github.com/BastiDood/slopstopper",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/BastiDood/slopstopper.git",

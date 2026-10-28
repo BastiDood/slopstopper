@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"description": "Strict baseline Oxlint configuration for type-aware TypeScript projects.",
 	"license": "MIT",
+	"homepage": "https://github.com/BastiDood/slopstopper",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/BastiDood/slopstopper.git",
