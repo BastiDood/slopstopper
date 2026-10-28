@@ -34,3 +34,4 @@ List `SVELTE` after `CORE`.
 - Requires Svelte 5.
 - Rules are not configurable.
 - Covers `.svelte`, `.svelte.js`, and `.svelte.ts` files. List your other files yourself.
+- SvelteKit's inferred route props are invisible to ESLint due to differences between `eslint-plugin-svelte` and `svelte-check`. Annotate them (e.g., `const { params }: PageProps = $props()` via `./$types`) or turn off the respective `@typescript-eslint/no-unsafe-*` rules for route files in your own configuration.
