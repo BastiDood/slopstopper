@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/tsconfig",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Strict TypeScript compiler options.",
 	"license": "MIT",
 	"homepage": "https://github.com/BastiDood/slopstopper",

@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/eslint-config",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Strict baseline ESLint configuration generated from @bastidood/oxlint-config.",
 	"license": "MIT",
 	"homepage": "https://github.com/BastiDood/slopstopper",

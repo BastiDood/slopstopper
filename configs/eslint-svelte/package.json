@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/eslint-config-svelte",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Svelte rules and type-aware parsing for ESLint, composed with @bastidood/eslint-config.",
 	"license": "MIT",
 	"homepage": "https://github.com/BastiDood/slopstopper",

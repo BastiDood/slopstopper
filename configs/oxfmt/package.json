@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/oxfmt-config",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Shared Oxfmt formatting style, including Svelte and Astro components.",
 	"license": "MIT",
 	"homepage": "https://github.com/BastiDood/slopstopper",
