@@ -1,7 +1,7 @@
 # Configuration Packages
 
 - The consumer owns every project-specific detail: `files`, globals, env, paths, ignore patterns, and Tailwind stylesheets. Never impose these from a package.
-- Each package exports `compose` from its root and one subpath per entry. Never add a barrel.
+- A package that defines `compose` exports it from its root; an extension package (Svelte, Astro) exports its main entry from its root. Every other entry gets its own subpath. Never add a barrel.
 - Rules tied to a library or framework that not all projects use (e.g., React, Next.js, Vitest, TanStack Query) belong in their own opt-in entry, never in `CORE`.
 - An entry is a `SCREAMING_CASE` constant. Use a factory with a single positional argument only when the consumer must supply a value.
 - Development `exports` point at the TypeScript sources and `publishConfig.exports` point at the build output. Keep both in sync when adding an entry.

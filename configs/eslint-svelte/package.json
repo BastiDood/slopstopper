@@ -14,7 +14,7 @@
 		"#*": "./src/*"
 	},
 	"exports": {
-		"./svelte": "./src/svelte.ts",
+		".": "./src/index.ts",
 		"./tanstack-svelte-query": "./src/tanstack-svelte-query.ts"
 	},
 	"files": [
@@ -23,7 +23,7 @@
 	"publishConfig": {
 		"access": "public",
 		"exports": {
-			"./svelte": "./dist/svelte.mjs",
+			".": "./dist/index.mjs",
 			"./tanstack-svelte-query": "./dist/tanstack-svelte-query.mjs"
 		}
 	},

@@ -13,7 +13,7 @@ pnpm add --save-dev @bastidood/eslint-config @bastidood/eslint-config-svelte esl
 ```ts
 // eslint.config.ts
 import { compose } from '@bastidood/eslint-config';
-import { SVELTE } from '@bastidood/eslint-config-svelte/svelte';
+import { SVELTE } from '@bastidood/eslint-config-svelte';
 import { CORE } from '@bastidood/eslint-config/core';
 import { defineConfig } from 'eslint/config';
 
@@ -26,7 +26,7 @@ List `SVELTE` after `CORE`.
 
 | Entry point                                             | Contents                                            |
 | ------------------------------------------------------- | --------------------------------------------------- |
-| `@bastidood/eslint-config-svelte/svelte`                | Svelte rules and type-aware parsing; bans `$effect` |
+| `@bastidood/eslint-config-svelte`                       | Svelte rules and type-aware parsing; bans `$effect` |
 | `@bastidood/eslint-config-svelte/tanstack-svelte-query` | Bans `useQueryClient`                               |
 
 ## Limitations
