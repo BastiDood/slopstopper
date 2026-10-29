@@ -88,6 +88,15 @@ describe('compose', () => {
 		]);
 	});
 
+	test('merges options, letting later entries win', () => {
+		expect(
+			compose(
+				{ config: { options: { typeAware: true, denyWarnings: true } } },
+				{ config: { options: { denyWarnings: false } } },
+			).options,
+		).toEqual({ typeAware: true, denyWarnings: false });
+	});
+
 	test('merges plugins and JS plugins by name', () => {
 		expect(config.plugins).toEqual(['typescript', 'react']);
 		expect(config.jsPlugins).toEqual([

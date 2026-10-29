@@ -30,12 +30,15 @@ export class UnsupportedSeverityError extends Error {
 
 const ESLINT = ['eslint'];
 const IMPORT = ['import'];
+const JSDOC = ['jsdoc'];
 const JSX_A11Y = ['jsx-a11y'];
+const NODE = ['n'];
 const PROMISE = ['promise'];
 const REACT = ['react', 'react-hooks'];
 const REACT_PERF = ['react-perf'];
 const TYPESCRIPT = ['@typescript-eslint'];
 const UNICORN = ['unicorn'];
+const VITEST = ['vitest'];
 
 /** ESLint rule namespaces that an Oxlint plugin covers. */
 function namespacesOf(plugin: string) {
@@ -44,8 +47,12 @@ function namespacesOf(plugin: string) {
 			return ESLINT;
 		case 'import':
 			return IMPORT;
+		case 'jsdoc':
+			return JSDOC;
 		case 'jsx-a11y':
 			return JSX_A11Y;
+		case 'node':
+			return NODE;
 		case 'promise':
 			return PROMISE;
 		case 'react':
@@ -56,6 +63,8 @@ function namespacesOf(plugin: string) {
 			return TYPESCRIPT;
 		case 'unicorn':
 			return UNICORN;
+		case 'vitest':
+			return VITEST;
 		default:
 			return null;
 	}
@@ -63,16 +72,27 @@ function namespacesOf(plugin: string) {
 
 /**
  * Whether ESLint can run a rule, given its ESLint name. The conversion prunes unsupported rules: Oxlint-only rules,
- * rules without a shipped ESLint plugin, and rules that an ESLint 10 plugin renamed or removed.
+ * and rules or options that the ESLint 10 plugins lack.
  */
 function isSupportedInEslint(eslintName: string) {
 	switch (eslintName) {
-		// `eslint-plugin-unicorn` renamed this rule to `unicorn/no-for-each`.
-		case 'unicorn/no-array-for-each':
+		// `eslint-plugin-import-x` lacks the `prefer-top-level-if-only-type-imports` mode. Its behavior is already
+		// enforced by `@typescript-eslint/no-import-type-side-effects` and `no-duplicate-imports`.
+		case 'import/consistent-type-specifier-style':
 			return false;
-		// The configurations ship no ESLint plugin for the Oxlint `oxc` and `node` rules.
+		// No ESLint plugin implements the Oxlint `oxc` rules.
 		default:
-			return !eslintName.startsWith('oxc/') && !eslintName.startsWith('n/');
+			return !eslintName.startsWith('oxc/');
+	}
+}
+
+/** Rename the rules that an ESLint 10 plugin publishes under a different name than Oxlint's `eslint-plugin-oxlint` lists. */
+function renamedInEslint(eslintName: string) {
+	switch (eslintName) {
+		case 'unicorn/no-array-for-each':
+			return 'unicorn/no-for-each';
+		default:
+			return eslintName;
 	}
 }
 
@@ -99,9 +119,10 @@ function indexCategories() {
 			for (const name in ruleSet) {
 				if (!Object.hasOwn(ruleSet, name) || !isSupportedInEslint(name)) continue;
 				const namespace = namespaceOf(name);
+				const eslintName = renamedInEslint(name);
 				const names = byNamespace.get(namespace);
-				if (typeof names === 'undefined') byNamespace.set(namespace, [name]);
-				else names.push(name);
+				if (typeof names === 'undefined') byNamespace.set(namespace, [eslintName]);
+				else names.push(eslintName);
 			}
 		}
 		index.set(category, byNamespace);
@@ -124,6 +145,8 @@ export function toEslintRuleName(name: string) {
 			return `@typescript-eslint/${rule}`;
 		case 'node':
 			return `n/${rule}`;
+		case 'unicorn':
+			return renamedInEslint(name);
 		case 'react': {
 			const hook = `react-hooks/${rule}`;
 			return Object.hasOwn(reactHooksRules, hook) ? hook : name;

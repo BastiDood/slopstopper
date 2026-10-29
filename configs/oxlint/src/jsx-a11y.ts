@@ -1,5 +1,62 @@
 import type { Entry } from './compose/index.ts';
 
 export const JSX_A11Y = {
-	config: { plugins: ['jsx-a11y'] },
+	config: {
+		plugins: ['jsx-a11y'],
+		rules: {
+			'jsx-a11y/alt-text': 'error',
+			'jsx-a11y/anchor-ambiguous-text': 'off',
+			'jsx-a11y/anchor-has-content': 'error',
+			'jsx-a11y/anchor-is-valid': 'error',
+			'jsx-a11y/aria-activedescendant-has-tabindex': 'error',
+			'jsx-a11y/aria-props': 'error',
+			'jsx-a11y/aria-proptypes': 'error',
+			'jsx-a11y/aria-role': 'error',
+			'jsx-a11y/aria-unsupported-elements': 'error',
+			'jsx-a11y/autocomplete-valid': 'error',
+			'jsx-a11y/click-events-have-key-events': 'error',
+			'jsx-a11y/control-has-associated-label': 'error',
+			'jsx-a11y/heading-has-content': 'error',
+			'jsx-a11y/html-has-lang': 'error',
+			'jsx-a11y/iframe-has-title': 'error',
+			'jsx-a11y/img-redundant-alt': 'error',
+			'jsx-a11y/interactive-supports-focus': 'error',
+			'jsx-a11y/label-has-associated-control': ['error', { assert: 'either' }],
+			'jsx-a11y/lang': 'error',
+			'jsx-a11y/media-has-caption': 'off',
+			// Pointer events cover mouse, pen, and touch input, so their hover handlers need keyboard equivalents too.
+			'jsx-a11y/mouse-events-have-key-events': [
+				'error',
+				{
+					hoverInHandlers: [
+						'onMouseOver',
+						'onMouseEnter',
+						'onPointerOver',
+						'onPointerEnter',
+					],
+					hoverOutHandlers: [
+						'onMouseOut',
+						'onMouseLeave',
+						'onPointerOut',
+						'onPointerLeave',
+					],
+				},
+			],
+			'jsx-a11y/no-access-key': 'error',
+			'jsx-a11y/no-aria-hidden-on-focusable': 'error',
+			'jsx-a11y/no-autofocus': 'error',
+			'jsx-a11y/no-distracting-elements': 'error',
+			'jsx-a11y/no-interactive-element-to-noninteractive-role': 'error',
+			'jsx-a11y/no-noninteractive-element-interactions': 'error',
+			'jsx-a11y/no-noninteractive-element-to-interactive-role': 'error',
+			'jsx-a11y/no-noninteractive-tabindex': 'error',
+			'jsx-a11y/no-redundant-roles': 'error',
+			'jsx-a11y/no-static-element-interactions': 'error',
+			'jsx-a11y/prefer-tag-over-role': 'error',
+			'jsx-a11y/role-has-required-aria-props': 'error',
+			'jsx-a11y/role-supports-aria-props': 'error',
+			'jsx-a11y/scope': 'error',
+			'jsx-a11y/tabindex-no-positive': 'error',
+		},
+	},
 } satisfies Entry;

@@ -3,15 +3,18 @@ import { expect, test } from 'vitest';
 
 import { compose } from './compose/index.ts';
 import { CORE } from './core.ts';
+import { JSDOC } from './jsdoc.ts';
+import { NODE } from './node.ts';
 import { PROMISE } from './promise.ts';
 import { UNICORN } from './unicorn.ts';
+import { VITEST } from './vitest.ts';
 
 const TYPESCRIPT_PREFIX = '@typescript-eslint/';
 const PLUGINS: Record<string, ESLint.Plugin> = {};
 const SYNTAX_RULES: Linter.RulesRecord = {};
 const TYPE_AWARE_RULE_NAMES: string[] = [];
 
-for (const config of compose(CORE, UNICORN, PROMISE)) {
+for (const config of compose(CORE, UNICORN, PROMISE, NODE, VITEST, JSDOC)) {
 	Object.assign(PLUGINS, config.plugins);
 	const { rules } = config;
 	if (typeof rules === 'undefined') continue;

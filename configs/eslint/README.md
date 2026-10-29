@@ -25,12 +25,15 @@ List `CORE` first.
 
 ## Entry Points
 
-| Entry point                        | Contents                                              |
-| ---------------------------------- | ----------------------------------------------------- |
-| `@bastidood/eslint-config`         | `compose`                                             |
-| `@bastidood/eslint-config/core`    | ESLint core, `import`, and `@typescript-eslint` rules |
-| `@bastidood/eslint-config/unicorn` | `unicorn` rules                                       |
-| `@bastidood/eslint-config/promise` | `promise` rules                                       |
+| Entry point                        | Contents                                                     |
+| ---------------------------------- | ------------------------------------------------------------ |
+| `@bastidood/eslint-config`         | `compose`                                                    |
+| `@bastidood/eslint-config/core`    | ESLint core, `import`, and `@typescript-eslint` rules        |
+| `@bastidood/eslint-config/unicorn` | `unicorn` rules                                              |
+| `@bastidood/eslint-config/promise` | `promise` rules                                              |
+| `@bastidood/eslint-config/node`    | Node.js rules                                                |
+| `@bastidood/eslint-config/vitest`  | Vitest rules                                                 |
+| `@bastidood/eslint-config/jsdoc`   | JSDoc rules for documentation that TypeScript does not cover |
 
 ## Limitations
 

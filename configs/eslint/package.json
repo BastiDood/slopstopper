@@ -14,7 +14,10 @@
 		".": "./src/compose/index.ts",
 		"./core": "./src/core.ts",
 		"./unicorn": "./src/unicorn.ts",
-		"./promise": "./src/promise.ts"
+		"./promise": "./src/promise.ts",
+		"./node": "./src/node.ts",
+		"./vitest": "./src/vitest.ts",
+		"./jsdoc": "./src/jsdoc.ts"
 	},
 	"files": [
 		"dist"
@@ -25,7 +28,10 @@
 			".": "./dist/compose/index.mjs",
 			"./core": "./dist/core.mjs",
 			"./unicorn": "./dist/unicorn.mjs",
-			"./promise": "./dist/promise.mjs"
+			"./promise": "./dist/promise.mjs",
+			"./node": "./dist/node.mjs",
+			"./vitest": "./dist/vitest.mjs",
+			"./jsdoc": "./dist/jsdoc.mjs"
 		}
 	},
 	"scripts": {
@@ -33,7 +39,10 @@
 		"check": "tsc"
 	},
 	"dependencies": {
+		"@vitest/eslint-plugin": "^1.6.28",
 		"eslint-plugin-import-x": "^4.17.1",
+		"eslint-plugin-jsdoc": "^65.4.2",
+		"eslint-plugin-n": "^18.5.0",
 		"eslint-plugin-promise": "^7.3.0",
 		"eslint-plugin-unicorn": "^79.0.0",
 		"typescript-eslint": "catalog:"

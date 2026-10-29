@@ -28,13 +28,14 @@ describe('toEslintRuleName', () => {
 describe('writeEslintRules', () => {
 	test('skips rules that ESLint cannot run', () => {
 		const rules: Linter.RulesRecord = {};
-		writeEslintRules(rules, {
-			'node/no-exports-assign': 'error',
-			'oxc/no-accumulating-spread': 'error',
-			'unicorn/no-array-for-each': 'error',
-			eqeqeq: 'error',
-		});
+		writeEslintRules(rules, { 'oxc/no-accumulating-spread': 'error', eqeqeq: 'error' });
 		expect(rules).toEqual({ eqeqeq: 'error' });
+	});
+
+	test('renames rules that an ESLint plugin publishes under another name', () => {
+		const rules: Linter.RulesRecord = {};
+		writeEslintRules(rules, { 'node/no-sync': 'error', 'unicorn/no-array-for-each': 'error' });
+		expect(rules).toEqual({ 'n/no-sync': 'error', 'unicorn/no-for-each': 'error' });
 	});
 
 	test('translates severities and keeps rule options', () => {

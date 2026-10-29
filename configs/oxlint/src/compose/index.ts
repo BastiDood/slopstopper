@@ -16,6 +16,22 @@ export interface Entry {
 type Rules = NonNullable<OxlintConfig['rules']>;
 type Plugin = NonNullable<OxlintConfig['plugins']>[number];
 
+/**
+ * The composed configuration. Its fields are spelled out because the declaration emit cannot name some of Oxlint's
+ * option types otherwise.
+ */
+export interface ComposedConfig extends OxlintConfig {
+	plugins: Plugin[];
+	jsPlugins: ExternalPluginEntry[];
+	categories: NonNullable<OxlintConfig['categories']>;
+	env: NonNullable<OxlintConfig['env']>;
+	globals: NonNullable<OxlintConfig['globals']>;
+	ignorePatterns: string[];
+	options: NonNullable<OxlintConfig['options']>;
+	overrides: OxlintOverride[];
+	rules: Rules;
+}
+
 const ESLINT_JS_PLUGIN = { name: 'eslint-js', specifier: 'oxlint-plugin-eslint' };
 
 /**
@@ -23,12 +39,13 @@ const ESLINT_JS_PLUGIN = { name: 'eslint-js', specifier: 'oxlint-plugin-eslint' 
  * instead of replaced, and every scoped override repeats the top-level restrictions so that it cannot drop
  * them.
  */
-export function compose(...entries: Entry[]) {
+export function compose(...entries: Entry[]): ComposedConfig {
 	const plugins = new Set<Plugin>();
 	const jsPlugins = new Map<string, ExternalPluginEntry>();
 	const categories: NonNullable<OxlintConfig['categories']> = {};
 	const env: NonNullable<OxlintConfig['env']> = {};
 	const globals: NonNullable<OxlintConfig['globals']> = {};
+	const options: NonNullable<OxlintConfig['options']> = {};
 	const ignorePatterns: string[] = [];
 	const overrides: OxlintOverride[] = [];
 	const rules: Rules = {};
@@ -42,6 +59,7 @@ export function compose(...entries: Entry[]) {
 			env: entryEnv,
 			globals: entryGlobals,
 			ignorePatterns: entryIgnorePatterns,
+			options: entryOptions,
 			overrides: entryOverrides,
 			rules: entryRules,
 		},
@@ -56,6 +74,7 @@ export function compose(...entries: Entry[]) {
 		Object.assign(categories, entryCategories);
 		Object.assign(env, entryEnv);
 		Object.assign(globals, entryGlobals);
+		Object.assign(options, entryOptions);
 		Object.assign(rules, entryRules);
 		if (typeof entryIgnorePatterns !== 'undefined') {
 			for (const pattern of entryIgnorePatterns) ignorePatterns.push(pattern);
@@ -86,9 +105,10 @@ export function compose(...entries: Entry[]) {
 		env,
 		globals,
 		ignorePatterns,
+		options,
 		overrides,
 		rules,
-	} satisfies OxlintConfig;
+	};
 }
 
 /** Write the non-empty restriction rules and report whether a syntax restriction needs the `eslint-js` plugin. */

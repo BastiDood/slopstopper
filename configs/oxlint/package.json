@@ -22,7 +22,11 @@
 		"./react": "./src/react.ts",
 		"./react-compiler": "./src/react-compiler.ts",
 		"./jsx-a11y": "./src/jsx-a11y.ts",
-		"./tanstack-react-query": "./src/tanstack-react-query.ts"
+		"./tanstack-react-query": "./src/tanstack-react-query.ts",
+		"./jsdoc": "./src/jsdoc.ts",
+		"./next": "./src/next.ts",
+		"./vitest": "./src/vitest.ts",
+		"./node": "./src/node.ts"
 	},
 	"files": [
 		"dist"
@@ -38,7 +42,11 @@
 			"./react": "./dist/react.mjs",
 			"./react-compiler": "./dist/react-compiler.mjs",
 			"./jsx-a11y": "./dist/jsx-a11y.mjs",
-			"./tanstack-react-query": "./dist/tanstack-react-query.mjs"
+			"./tanstack-react-query": "./dist/tanstack-react-query.mjs",
+			"./jsdoc": "./dist/jsdoc.mjs",
+			"./next": "./dist/next.mjs",
+			"./vitest": "./dist/vitest.mjs",
+			"./node": "./dist/node.mjs"
 		}
 	},
 	"scripts": {
