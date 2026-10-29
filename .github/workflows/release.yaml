@@ -29,7 +29,8 @@ jobs:
       - name: Install Dependencies
         uses: pnpm/setup@fa36a5ef7dcdefc3a7cb25655c122e00cf6e636e # v3.1.2
         with:
-          cache: true
+          # Release builds install from scratch so a tampered dependency cache cannot reach a published package.
+          cache: false
           require-lockfile: true
 
       # Trusted publishing authenticates through OIDC and attaches provenance on its own. A release checks out a
