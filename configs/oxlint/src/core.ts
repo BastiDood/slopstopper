@@ -392,7 +392,7 @@ export const CORE = {
 				{
 					allowDefaultCaseForExhaustiveSwitch: false,
 					considerDefaultExhaustiveForUnions: false,
-					requireDefaultForNonUnion: true,
+					requireDefaultForNonUnion: false,
 				},
 			],
 			'typescript/triple-slash-reference': 'error',
