@@ -40,66 +40,48 @@ const TYPESCRIPT = ['@typescript-eslint'];
 const UNICORN = ['unicorn'];
 const VITEST = ['vitest'];
 
-/** ESLint rule namespaces that an Oxlint plugin covers. */
-function namespacesOf(plugin: string) {
-	switch (plugin) {
-		case 'eslint':
-			return ESLINT;
-		case 'import':
-			return IMPORT;
-		case 'jsdoc':
-			return JSDOC;
-		case 'jsx-a11y':
-			return JSX_A11Y;
-		case 'node':
-			return NODE;
-		case 'promise':
-			return PROMISE;
-		case 'react':
-			return REACT;
-		case 'react-perf':
-			return REACT_PERF;
+/** Write the ESLint equivalents of explicitly configured Oxlint rules, skipping rules that ESLint cannot run. */
+export function writeEslintRules(target: Linter.RulesRecord, rules: OxlintRules) {
+	for (const name in rules) {
+		if (!Object.hasOwn(rules, name)) continue;
+		const rule = rules[name];
+		if (typeof rule === 'undefined') continue;
+		const eslintName = toEslintRuleName(name);
+		if (isSupportedInEslint(eslintName)) target[eslintName] = toEslintRuleEntry(rule);
+	}
+}
+
+/** Translate an Oxlint rule name into the name of the same rule in ESLint and its plugins. */
+export function toEslintRuleName(name: string) {
+	const separator = name.indexOf('/');
+	if (separator === -1) return name;
+
+	const rule = name.slice(separator + 1);
+	switch (name.slice(0, separator)) {
+		case 'eslint-js':
+			return rule;
 		case 'typescript':
-			return TYPESCRIPT;
+			return `@typescript-eslint/${rule}`;
+		case 'node':
+			return `n/${rule}`;
 		case 'unicorn':
-			return UNICORN;
-		case 'vitest':
-			return VITEST;
+			return renamedInEslint(name);
+		case 'react': {
+			const hook = `react-hooks/${rule}`;
+			return Object.hasOwn(reactHooksRules, hook) ? hook : name;
+		}
 		default:
-			return null;
+			return name;
 	}
 }
 
-/**
- * Whether ESLint can run a rule, given its ESLint name. The conversion prunes unsupported rules: Oxlint-only rules,
- * and rules or options that the ESLint 10 plugins lack.
- */
-function isSupportedInEslint(eslintName: string) {
-	switch (eslintName) {
-		// `eslint-plugin-import-x` lacks the `prefer-top-level-if-only-type-imports` mode. Its behavior is already
-		// enforced by `@typescript-eslint/no-import-type-side-effects` and `no-duplicate-imports`.
-		case 'import/consistent-type-specifier-style':
-			return false;
-		// No ESLint plugin implements the Oxlint `oxc` rules.
-		default:
-			return !eslintName.startsWith('oxc/');
-	}
+function toEslintRuleEntry(rule: NonNullable<OxlintRules[string]>) {
+	return Array.isArray(rule)
+		? ([toEslintSeverity(rule[0]), ...rule.values().drop(1)] satisfies Linter.RuleEntry)
+		: toEslintSeverity(rule);
 }
 
-/** Rename the rules that an ESLint 10 plugin publishes under a different name than Oxlint's `eslint-plugin-oxlint` lists. */
-function renamedInEslint(eslintName: string) {
-	switch (eslintName) {
-		case 'unicorn/no-array-for-each':
-			return 'unicorn/no-for-each';
-		default:
-			return eslintName;
-	}
-}
-
-function namespaceOf(eslintName: string) {
-	const separator = eslintName.lastIndexOf('/');
-	return separator === -1 ? 'eslint' : eslintName.slice(0, separator);
-}
+const CATEGORY_INDEX = indexCategories();
 
 /** Index the published category lists once: category, then ESLint namespace, then rule names. */
 function indexCategories() {
@@ -130,68 +112,34 @@ function indexCategories() {
 	return index;
 }
 
-const CATEGORY_INDEX = indexCategories();
-
-/** Translate an Oxlint rule name into the name of the same rule in ESLint and its plugins. */
-export function toEslintRuleName(name: string) {
-	const separator = name.indexOf('/');
-	if (separator === -1) return name;
-
-	const rule = name.slice(separator + 1);
-	switch (name.slice(0, separator)) {
-		case 'eslint-js':
-			return rule;
-		case 'typescript':
-			return `@typescript-eslint/${rule}`;
-		case 'node':
-			return `n/${rule}`;
-		case 'unicorn':
-			return renamedInEslint(name);
-		case 'react': {
-			const hook = `react-hooks/${rule}`;
-			return Object.hasOwn(reactHooksRules, hook) ? hook : name;
-		}
+/**
+ * Whether ESLint can run a rule, given its ESLint name. The conversion prunes unsupported rules: Oxlint-only rules,
+ * and rules or options that the ESLint 10 plugins lack.
+ */
+function isSupportedInEslint(eslintName: string) {
+	switch (eslintName) {
+		// `eslint-plugin-import-x` lacks the `prefer-top-level-if-only-type-imports` mode. Its behavior is already
+		// enforced by `@typescript-eslint/no-import-type-side-effects` and `no-duplicate-imports`.
+		case 'import/consistent-type-specifier-style':
+			return false;
+		// No ESLint plugin implements the Oxlint `oxc` rules.
 		default:
-			return name;
+			return !eslintName.startsWith('oxc/');
 	}
 }
 
-function toEslintSeverity(severity: AllowWarnDeny): Linter.RuleSeverity {
-	switch (severity) {
-		case 'deny':
-		case 'error':
-			return 'error';
-		case 'allow':
-		case 'off':
-			return 'off';
-		case 'warn':
-			return 'warn';
+function namespaceOf(eslintName: string) {
+	const separator = eslintName.lastIndexOf('/');
+	return separator === -1 ? 'eslint' : eslintName.slice(0, separator);
+}
+
+/** Rename the rules that an ESLint 10 plugin publishes under a different name than Oxlint's `eslint-plugin-oxlint` lists. */
+function renamedInEslint(eslintName: string) {
+	switch (eslintName) {
+		case 'unicorn/no-array-for-each':
+			return 'unicorn/no-for-each';
 		default:
-			switch (severity) {
-				case 0:
-				case 1:
-				case 2:
-					return severity;
-				default:
-					throw new UnsupportedSeverityError(severity);
-			}
-	}
-}
-
-function toEslintRuleEntry(rule: NonNullable<OxlintRules[string]>): Linter.RuleEntry {
-	return Array.isArray(rule)
-		? [toEslintSeverity(rule[0]), ...rule.values().drop(1)]
-		: toEslintSeverity(rule);
-}
-
-/** Write the ESLint equivalents of explicitly configured Oxlint rules, skipping rules that ESLint cannot run. */
-export function writeEslintRules(target: Linter.RulesRecord, rules: OxlintRules) {
-	for (const name in rules) {
-		if (!Object.hasOwn(rules, name)) continue;
-		const rule = rules[name];
-		if (typeof rule === 'undefined') continue;
-		const eslintName = toEslintRuleName(name);
-		if (isSupportedInEslint(eslintName)) target[eslintName] = toEslintRuleEntry(rule);
+			return eslintName;
 	}
 }
 
@@ -250,5 +198,57 @@ function writeNamespaceRules(
 			if (typeof names === 'undefined') continue;
 			for (const name of names) target[name] = severity;
 		}
+	}
+}
+
+/** ESLint rule namespaces that an Oxlint plugin covers. */
+function namespacesOf(plugin: string) {
+	switch (plugin) {
+		case 'eslint':
+			return ESLINT;
+		case 'import':
+			return IMPORT;
+		case 'jsdoc':
+			return JSDOC;
+		case 'jsx-a11y':
+			return JSX_A11Y;
+		case 'node':
+			return NODE;
+		case 'promise':
+			return PROMISE;
+		case 'react':
+			return REACT;
+		case 'react-perf':
+			return REACT_PERF;
+		case 'typescript':
+			return TYPESCRIPT;
+		case 'unicorn':
+			return UNICORN;
+		case 'vitest':
+			return VITEST;
+		default:
+			return null;
+	}
+}
+
+function toEslintSeverity(severity: AllowWarnDeny): Linter.RuleSeverity {
+	switch (severity) {
+		case 'deny':
+		case 'error':
+			return 'error';
+		case 'allow':
+		case 'off':
+			return 'off';
+		case 'warn':
+			return 'warn';
+		default:
+			switch (severity) {
+				case 0:
+				case 1:
+				case 2:
+					return severity;
+				default:
+					throw new UnsupportedSeverityError(severity);
+			}
 	}
 }

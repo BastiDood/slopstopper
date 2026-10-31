@@ -74,9 +74,11 @@ export class RestrictionLists {
 		return copy;
 	}
 
-	importsRule(): ['error', ImportOptions] | null {
+	importsRule() {
 		const { paths, patterns } = this.#imports;
-		return paths.length === 0 && patterns.length === 0 ? null : ['error', this.#imports];
+		return paths.length === 0 && patterns.length === 0
+			? null
+			: (['error', this.#imports] satisfies ['error', ImportOptions]);
 	}
 
 	globalsRule() {
