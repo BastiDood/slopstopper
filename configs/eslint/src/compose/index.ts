@@ -59,6 +59,7 @@ export interface Entry {
  * instead of replaced, and every scoped configuration repeats the top-level restrictions so that it cannot
  * drop them.
  */
+// oxlint-disable-next-line slopstopper/no-inferrable-return-type -- `tsdown` cannot emit the inferred type, which references ESLint's unexported `RulesConfig` (TS2883).
 export function compose(...entries: Entry[]): Linter.Config[] {
 	const configs: Linter.Config[] = [];
 	const extraFileExtensions: string[] = [];

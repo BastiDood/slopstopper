@@ -89,12 +89,11 @@ describe('compose', () => {
 	});
 
 	test('merges options, letting later entries win', () => {
-		expect(
-			compose(
-				{ config: { options: { typeAware: true, denyWarnings: true } } },
-				{ config: { options: { denyWarnings: false } } },
-			).options,
-		).toEqual({ typeAware: true, denyWarnings: false });
+		const { options } = compose(
+			{ config: { options: { typeAware: true, denyWarnings: true } } },
+			{ config: { options: { denyWarnings: false } } },
+		);
+		expect(options).toEqual({ typeAware: true, denyWarnings: false });
 	});
 
 	test('merges plugins and JS plugins by name', () => {
@@ -105,12 +104,17 @@ describe('compose', () => {
 	});
 
 	test('registers the eslint-js plugin only when a syntax restriction exists', () => {
-		const withoutSyntax = compose({ config: { rules: { eqeqeq: 'error' } } });
-		expect(withoutSyntax.jsPlugins).toEqual([]);
-		expect(withoutSyntax.rules).toEqual({ eqeqeq: 'error' });
+		const { jsPlugins: pluginsWithoutSyntax, rules } = compose({
+			config: { rules: { eqeqeq: 'error' } },
+		});
+		expect(pluginsWithoutSyntax).toEqual([]);
+		expect(rules).toEqual({ eqeqeq: 'error' });
 
-		const withSyntax = compose({ config: {}, restrictions: PARENT_IMPORTS.restrictions });
-		expect(withSyntax.jsPlugins).toEqual([
+		const { jsPlugins: pluginsWithSyntax } = compose({
+			config: {},
+			restrictions: PARENT_IMPORTS.restrictions,
+		});
+		expect(pluginsWithSyntax).toEqual([
 			{ name: 'eslint-js', specifier: 'oxlint-plugin-eslint' },
 		]);
 	});

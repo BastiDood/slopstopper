@@ -1,3 +1,4 @@
+import SLOPSTOPPER from '@bastidood/eslint-plugin-slopstopper';
 import { CORE as OXLINT_CORE } from '@bastidood/oxlint-config/core';
 import type { ESLint, Linter } from 'eslint';
 import { importX } from 'eslint-plugin-import-x';
@@ -30,7 +31,14 @@ for (const { files, rules } of OVERRIDES) {
 	OVERRIDE_CONFIGS.push({ name: '@bastidood/eslint-config/core', files, rules: overrideRules });
 }
 
-const PLUGIN_DEFINITIONS = { '@typescript-eslint': TYPESCRIPT_ESLINT, import: importX };
+// The slopstopper rules are typed for Oxlint, whose rule context type is incompatible with ESLint's even though ESLint
+// runs the same rule objects as-is. `rules.test.ts` verifies that ESLint accepts every generated `slopstopper` rule.
+const PLUGIN_DEFINITIONS = {
+	'@typescript-eslint': TYPESCRIPT_ESLINT,
+	import: importX,
+	// oxlint-disable-next-line typescript/no-unsafe-type-assertion
+	slopstopper: SLOPSTOPPER as unknown as ESLint.Plugin,
+};
 
 // ESLint has no equivalent of the `oxc/*` rules, so the ones that a selector can express fall back to syntax restrictions:
 // `oxc/no-const-enum`, `oxc/missing-throw`, and `oxc/erasing-op`.

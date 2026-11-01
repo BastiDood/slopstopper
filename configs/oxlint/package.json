@@ -54,6 +54,7 @@
 		"check": "tsc"
 	},
 	"devDependencies": {
+		"@bastidood/eslint-plugin-slopstopper": "workspace:*",
 		"@bastidood/tsconfig": "workspace:*",
 		"@typescript/native": "catalog:",
 		"oxlint": "catalog:",
@@ -61,6 +62,7 @@
 		"typescript": "catalog:"
 	},
 	"peerDependencies": {
+		"@bastidood/eslint-plugin-slopstopper": "workspace:^",
 		"oxlint": "catalog:",
 		"oxlint-plugin-eslint": "catalog:",
 		"oxlint-tsgolint": "catalog:"

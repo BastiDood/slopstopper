@@ -4,7 +4,10 @@ import type { Entry } from './compose/index.ts';
 export const CORE = {
 	config: {
 		plugins: ['import', 'oxc', 'typescript'],
-		jsPlugins: [{ name: 'eslint-js', specifier: 'oxlint-plugin-eslint' }],
+		jsPlugins: [
+			{ name: 'eslint-js', specifier: 'oxlint-plugin-eslint' },
+			{ name: 'slopstopper', specifier: '@bastidood/eslint-plugin-slopstopper' },
+		],
 		categories: { correctness: 'error', perf: 'error', suspicious: 'error' },
 		options: { denyWarnings: true, typeAware: true },
 		overrides: [
@@ -246,6 +249,28 @@ export const CORE = {
 			radix: 'error',
 			'require-unicode-regexp': 'error',
 			'require-yield': 'error',
+			'slopstopper/destructure-on-sight': 'error',
+			'slopstopper/handle-or-rethrow': 'error',
+			'slopstopper/merge-exclusive-branches': 'error',
+			'slopstopper/needless-type-intersection': 'error',
+			'slopstopper/no-alias-object-type': 'error',
+			'slopstopper/no-equality-chain': 'error',
+			'slopstopper/no-inferrable-return-type': 'error',
+			'slopstopper/no-multiple-optional-parameters': 'error',
+			'slopstopper/no-negated-group': 'error',
+			'slopstopper/no-negated-quantifier-callback': 'error',
+			'slopstopper/no-plain-template-literal': 'error',
+			'slopstopper/no-positional-scalars': 'error',
+			'slopstopper/no-private-modifier': 'error',
+			'slopstopper/no-temporary-access': 'error',
+			'slopstopper/no-type-predicates': 'error',
+			'slopstopper/prefer-class-over-factory': 'error',
+			'slopstopper/prefer-de-morgan': 'error',
+			'slopstopper/prefer-prefix-increment': 'error',
+			'slopstopper/prefer-switch': 'error',
+			'slopstopper/prefer-typeof-undefined': 'error',
+			'slopstopper/prefer-while-true': 'error',
+			'slopstopper/stepdown-order': 'error',
 			'sort-keys': 'off',
 			'symbol-description': 'error',
 			'typescript/adjacent-overload-signatures': 'error',
@@ -429,11 +454,6 @@ export const CORE = {
 			},
 		],
 		syntax: [
-			{
-				selector: '[accessibility="private"]:not(MethodDefinition[kind="constructor"])',
-				message:
-					'Use an ECMAScript `#private` member instead of the TypeScript `private` modifier.',
-			},
 			{
 				selector:
 					'UnaryExpression[operator="void"][argument.type="Literal"]:not(:matches(CallExpression, NewExpression) > UnaryExpression.arguments)',

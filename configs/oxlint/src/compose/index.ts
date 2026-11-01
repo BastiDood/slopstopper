@@ -39,6 +39,7 @@ const ESLINT_JS_PLUGIN = { name: 'eslint-js', specifier: 'oxlint-plugin-eslint' 
  * instead of replaced, and every scoped override repeats the top-level restrictions so that it cannot drop
  * them.
  */
+// oxlint-disable-next-line slopstopper/no-inferrable-return-type -- `tsdown` cannot emit the inferred type, which references Oxlint's unexported `OxlintOptions` (TS4058).
 export function compose(...entries: Entry[]): ComposedConfig {
 	const plugins = new Set<Plugin>();
 	const jsPlugins = new Map<string, ExternalPluginEntry>();

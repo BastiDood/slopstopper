@@ -55,12 +55,12 @@ export class RestrictionLists {
 	readonly #syntax: ['error', ...RestrictedSyntax[]] = ['error'];
 
 	/** Append every list of an entry point's restrictions. */
-	append(restrictions: Restrictions) {
-		appendAll(this.#imports.paths, restrictions.importPaths);
-		appendAll(this.#imports.patterns, restrictions.importPatterns);
-		appendAll(this.#globals, restrictions.globals);
-		appendAll(this.#properties, restrictions.properties);
-		appendAll(this.#syntax, restrictions.syntax);
+	append({ importPaths, importPatterns, globals, properties, syntax }: Restrictions) {
+		appendAll(this.#imports.paths, importPaths);
+		appendAll(this.#imports.patterns, importPatterns);
+		appendAll(this.#globals, globals);
+		appendAll(this.#properties, properties);
+		appendAll(this.#syntax, syntax);
 	}
 
 	/** Copy these lists so that a scoped override can extend them without changing the top-level rules. */
