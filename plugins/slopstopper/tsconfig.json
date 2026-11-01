@@ -1,0 +1,13 @@
+{
+	"extends": "@bastidood/tsconfig",
+	"include": ["src/**/*.ts", "*.ts"],
+	"compilerOptions": {
+		"lib": ["ESNext"],
+		"types": ["node"],
+		"module": "nodenext",
+		"noEmit": true,
+		"allowImportingTsExtensions": true,
+		"erasableSyntaxOnly": true,
+		"incremental": true
+	}
+}

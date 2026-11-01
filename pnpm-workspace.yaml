@@ -3,7 +3,9 @@ packages:
   - plugins/*
 
 catalog:
+  '@types/node': ^26.6.6
   '@typescript/native': npm:typescript@^7.0.2
+  '@oxlint/plugins': ^1.90.0
   eslint: ^10.13.0
   eslint-plugin-oxlint: ^1.90.0
   oxfmt: ^0.75.0

@@ -1,0 +1,46 @@
+{
+	"name": "@bastidood/eslint-plugin-slopstopper",
+	"version": "0.1.0",
+	"description": "Custom lint rules against sloppy code, for both Oxlint and ESLint.",
+	"license": "MIT",
+	"type": "module",
+	"homepage": "https://github.com/BastiDood/slopstopper",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/BastiDood/slopstopper.git",
+		"directory": "plugins/slopstopper"
+	},
+	"imports": {
+		"#*": "./src/*"
+	},
+	"exports": {
+		".": "./src/index.ts"
+	},
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public",
+		"exports": {
+			".": "./dist/index.mjs"
+		}
+	},
+	"scripts": {
+		"prepack": "tsdown",
+		"check": "tsc"
+	},
+	"dependencies": {
+		"@oxlint/plugins": "catalog:"
+	},
+	"devDependencies": {
+		"@bastidood/tsconfig": "workspace:*",
+		"@types/node": "catalog:",
+		"@typescript/native": "catalog:",
+		"eslint": "catalog:",
+		"oxlint": "catalog:",
+		"tsdown": "catalog:",
+		"typescript": "catalog:",
+		"typescript-eslint": "catalog:",
+		"vitest": "catalog:"
+	}
+}

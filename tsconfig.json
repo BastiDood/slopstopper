@@ -6,6 +6,7 @@
 		{ "path": "./configs/eslint-astro" },
 		{ "path": "./configs/eslint-svelte" },
 		{ "path": "./configs/oxfmt" },
-		{ "path": "./configs/oxlint" }
+		{ "path": "./configs/oxlint" },
+		{ "path": "./plugins/slopstopper" }
 	]
 }
