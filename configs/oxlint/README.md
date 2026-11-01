@@ -5,7 +5,7 @@ Strict, type-aware Oxlint configuration for TypeScript projects.
 ## Installation
 
 ```sh
-pnpm add --save-dev @bastidood/oxlint-config oxlint oxlint-plugin-eslint oxlint-tsgolint
+pnpm add --save-dev @bastidood/oxlint-config @bastidood/eslint-plugin-slopstopper oxlint oxlint-plugin-eslint oxlint-tsgolint
 ```
 
 ## Configuration
