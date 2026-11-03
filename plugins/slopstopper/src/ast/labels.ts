@@ -30,6 +30,7 @@ function functionName(node: ESTree.Node) {
 		case 'FunctionDeclaration':
 		case 'FunctionExpression':
 		case 'TSDeclareFunction':
+		case 'TSEmptyBodyFunctionExpression':
 			return node.id === null ? contextualName(node) : node.id.name;
 		case 'ArrowFunctionExpression':
 			return contextualName(node);

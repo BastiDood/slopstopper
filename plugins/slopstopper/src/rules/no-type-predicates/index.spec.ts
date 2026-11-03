@@ -20,5 +20,12 @@ OXLINT_RULE_TESTER.run('no-type-predicates', NO_TYPE_PREDICATES, {
 				{ messageId: 'assertion', data: { function: '`assertValid`', subject: 'this' } },
 			],
 		},
+		// A class overload signature is named after its method.
+		{
+			code: 'class A { assertValid(): asserts this; assertValid() {} }',
+			errors: [
+				{ messageId: 'assertion', data: { function: '`assertValid`', subject: 'this' } },
+			],
+		},
 	],
 });
