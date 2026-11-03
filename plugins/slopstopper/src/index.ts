@@ -5,16 +5,23 @@ import { HANDLE_OR_RETHROW } from './rules/handle-or-rethrow/index.ts';
 import { MERGE_EXCLUSIVE_BRANCHES } from './rules/merge-exclusive-branches/index.ts';
 import { NEEDLESS_TYPE_INTERSECTION } from './rules/needless-type-intersection/index.ts';
 import { NO_ALIAS_OBJECT_TYPE } from './rules/no-alias-object-type/index.ts';
+import { NO_ARRAY_FILTER_MAP } from './rules/no-array-filter-map/index.ts';
+import { NO_CONDITIONAL_EMPTY_OBJECT_SPREAD } from './rules/no-conditional-empty-object-spread/index.ts';
 import { NO_EQUALITY_CHAIN } from './rules/no-equality-chain/index.ts';
 import { NO_INFERRABLE_RETURN_TYPE } from './rules/no-inferrable-return-type/index.ts';
+import { NO_KNOWN_VALUE_WIDENING } from './rules/no-known-value-widening/index.ts';
 import { NO_MULTIPLE_OPTIONAL_PARAMETERS } from './rules/no-multiple-optional-parameters/index.ts';
 import { NO_NEGATED_GROUP } from './rules/no-negated-group/index.ts';
 import { NO_NEGATED_QUANTIFIER_CALLBACK } from './rules/no-negated-quantifier-callback/index.ts';
 import { NO_PLAIN_TEMPLATE_LITERAL } from './rules/no-plain-template-literal/index.ts';
 import { NO_POSITIONAL_SCALARS } from './rules/no-positional-scalars/index.ts';
 import { NO_PRIVATE_MODIFIER } from './rules/no-private-modifier/index.ts';
+import { NO_REDUCE_ACCUMULATOR_COPY } from './rules/no-reduce-accumulator-copy/index.ts';
 import { NO_TEMPORARY_ACCESS } from './rules/no-temporary-access/index.ts';
 import { NO_TYPE_PREDICATES } from './rules/no-type-predicates/index.ts';
+import { NO_UNKNOWN_RETURNS } from './rules/no-unknown-returns/index.ts';
+import { NO_UNKNOWN_TYPE_ALIASES } from './rules/no-unknown-type-aliases/index.ts';
+import { NO_UNSAFE_DICTIONARY_TYPE } from './rules/no-unsafe-dictionary-type/index.ts';
 import { PREFER_CLASS_OVER_FACTORY } from './rules/prefer-class-over-factory/index.ts';
 import { PREFER_DE_MORGAN } from './rules/prefer-de-morgan/index.ts';
 import { PREFER_PREFIX_INCREMENT } from './rules/prefer-prefix-increment/index.ts';
@@ -32,16 +39,23 @@ export default definePlugin({
 		'merge-exclusive-branches': MERGE_EXCLUSIVE_BRANCHES,
 		'needless-type-intersection': NEEDLESS_TYPE_INTERSECTION,
 		'no-alias-object-type': NO_ALIAS_OBJECT_TYPE,
+		'no-array-filter-map': NO_ARRAY_FILTER_MAP,
+		'no-conditional-empty-object-spread': NO_CONDITIONAL_EMPTY_OBJECT_SPREAD,
 		'no-equality-chain': NO_EQUALITY_CHAIN,
 		'no-inferrable-return-type': NO_INFERRABLE_RETURN_TYPE,
+		'no-known-value-widening': NO_KNOWN_VALUE_WIDENING,
 		'no-multiple-optional-parameters': NO_MULTIPLE_OPTIONAL_PARAMETERS,
 		'no-negated-group': NO_NEGATED_GROUP,
 		'no-negated-quantifier-callback': NO_NEGATED_QUANTIFIER_CALLBACK,
 		'no-plain-template-literal': NO_PLAIN_TEMPLATE_LITERAL,
 		'no-positional-scalars': NO_POSITIONAL_SCALARS,
 		'no-private-modifier': NO_PRIVATE_MODIFIER,
+		'no-reduce-accumulator-copy': NO_REDUCE_ACCUMULATOR_COPY,
 		'no-temporary-access': NO_TEMPORARY_ACCESS,
 		'no-type-predicates': NO_TYPE_PREDICATES,
+		'no-unknown-returns': NO_UNKNOWN_RETURNS,
+		'no-unknown-type-aliases': NO_UNKNOWN_TYPE_ALIASES,
+		'no-unsafe-dictionary-type': NO_UNSAFE_DICTIONARY_TYPE,
 		'prefer-class-over-factory': PREFER_CLASS_OVER_FACTORY,
 		'prefer-de-morgan': PREFER_DE_MORGAN,
 		'prefer-prefix-increment': PREFER_PREFIX_INCREMENT,

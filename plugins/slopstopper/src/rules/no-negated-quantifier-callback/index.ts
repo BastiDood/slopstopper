@@ -3,9 +3,9 @@ import { type Context, defineRule, type ESTree, type SourceCode } from '@oxlint/
 import { onlyElement } from '#arrays.ts';
 import { negate } from '#ast/negation.ts';
 import { dropsComment } from '#ast/ranges.ts';
-import { symbolAtLocation, type TypeServices, typeServicesOf } from '#type-services.ts';
+import { isDefaultLibraryMember, type TypeServices, typeServicesOf } from '#type-services.ts';
 
-/** The interfaces of the default library that declare the standard `some` and `every` methods. */
+/** The interfaces of the default library that declare the standard `some` and `every` methods (see `isDefaultLibraryMember`). */
 const STANDARD_RECEIVERS = new Set([
 	'Array',
 	'ReadonlyArray',
@@ -37,7 +37,7 @@ interface Quantifier {
  * quantifier with one negation outside the call. De Morgan's law turns `xs.every(x => !p)` into `!xs.some(x => p)` and
  * `xs.some(x => !p)` into `!xs.every(x => p)`, and a negated call drops both negations: `!xs.some(x => !p)` becomes
  * `xs.every(x => p)`. The rewrite is a fix when the type checker resolves the method to the standard one of an array,
- * a typed array, or an iterator (see `isStandardMethod`), and a suggestion otherwise.
+ * a typed array, or an iterator (see `STANDARD_RECEIVERS`), and a suggestion otherwise.
  */
 export const NO_NEGATED_QUANTIFIER_CALLBACK = defineRule({
 	meta: {
@@ -173,7 +173,7 @@ function reportQuantifier(context: Context, services: TypeServices | null, quant
 	const rewritten = dualCall(sourceCode, quantifier);
 	const text = outer === null ? negatedCall(call, rewritten) : rewritten;
 
-	if (services !== null && isStandardMethod(services, property)) {
+	if (services !== null && isDefaultLibraryMember(services, STANDARD_RECEIVERS, property)) {
 		context.report({
 			node: target,
 			messageId: 'negatedQuantifierCallback',
@@ -237,27 +237,4 @@ function bindsTighterThanNot(call: ESTree.CallExpression) {
 		default:
 			return false;
 	}
-}
-
-/**
- * Whether the type checker resolves the method to the standard `some` or `every`: every declaration of the method sits
- * in a default library file, inside an interface of `STANDARD_RECEIVERS`. A union receiver resolves to the declarations
- * of every member. A method of a user-defined type, or of an `any` receiver, is not proven standard.
- */
-function isStandardMethod(services: TypeServices, property: ESTree.IdentifierName) {
-	const { program } = services;
-	const symbol = symbolAtLocation(services, property);
-	const declarations = symbol?.getDeclarations();
-	return (
-		typeof declarations !== 'undefined' &&
-		declarations.length > 0 &&
-		declarations.every(declaration => {
-			const name = declaration.parent.name?.text;
-			return (
-				typeof name === 'string' &&
-				STANDARD_RECEIVERS.has(name) &&
-				program.isSourceFileDefaultLibrary(declaration.getSourceFile())
-			);
-		})
-	);
 }

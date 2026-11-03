@@ -59,7 +59,7 @@ function contextualName(node: ESTree.Function | ESTree.ArrowFunctionExpression) 
 }
 
 /** The static name of a key, with the `#` of a private name, or `null` for a dynamic computed key. */
-function keyName(key: ESTree.PropertyKey, computed: boolean) {
+export function keyName(key: ESTree.PropertyKey, computed: boolean) {
 	return key.type === 'PrivateIdentifier' ? `#${key.name}` : propertyName(key, computed);
 }
 

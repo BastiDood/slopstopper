@@ -124,6 +124,31 @@ export function isNeverOrTopType(checker: TypeChecker, type: Type) {
 	);
 }
 
+/**
+ * Whether the type checker resolves a member to one of the default library: every declaration of the member sits in a
+ * default library file, inside an interface whose name `receivers` holds. A union receiver resolves to the declarations
+ * of every member. A member of a user-defined type, or of an `any` receiver, does not count.
+ */
+export function isDefaultLibraryMember(
+	services: TypeServices,
+	receivers: ReadonlySet<string>,
+	property: ESTree.Node,
+) {
+	const { program } = services;
+	const declarations = symbolAtLocation(services, property)?.getDeclarations() ?? [];
+	return (
+		declarations.length > 0 &&
+		declarations.every(declaration => {
+			const name = declaration.parent.name?.text;
+			return (
+				typeof name === 'string' &&
+				receivers.has(name) &&
+				program.isSourceFileDefaultLibrary(declaration.getSourceFile())
+			);
+		})
+	);
+}
+
 /** The type of an ESTree node, or `null` when the node has no TypeScript counterpart. */
 export function typeAtLocation({ nodeMap, checker }: TypeServices, node: ESTree.Node) {
 	const tsNode = nodeMap.get(node);
