@@ -255,7 +255,12 @@ function checkStatements(
 /** Whether a statement is a function implementation with a name, unwrapping `export` and `export default` (see `statementElement`). */
 function isImplementation(statement: ESTree.Directive | ESTree.Statement) {
 	const declared = declaredFunction(exportedDeclaration(statement));
-	return declared !== null && declared.id !== null && declared.body !== null;
+	return (
+		declared !== null &&
+		declared.id !== null &&
+		declared.body !== null &&
+		typeof declared.body !== 'undefined'
+	);
 }
 
 /** Classifies a statement as a function implementation or overload signature, unwrapping `export` and `export default`. */
@@ -268,7 +273,8 @@ function statementElement(statement: ESTree.Directive | ESTree.Statement) {
 			node: statement,
 			label: `\`${id.name}\``,
 			key: id.name,
-			implementation: declared.body === null ? null : id,
+			implementation:
+				declared.body === null || typeof declared.body === 'undefined' ? null : id,
 		};
 	}
 

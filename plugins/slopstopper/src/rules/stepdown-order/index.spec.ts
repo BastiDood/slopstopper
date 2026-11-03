@@ -397,7 +397,8 @@ OXLINT_RULE_TESTER.run('stepdown-order', STEPDOWN_ORDER, {
 
 // The typescript-eslint parser gives nodes and tokens a `range` but no `start` or `end`.
 UNTYPED_RULE_TESTER.run('stepdown-order', eslintRule(STEPDOWN_ORDER), {
-	valid: [],
+	// A signature without a body is no helper.
+	valid: ['declare function helper(): void;\nfunction caller() { helper(); }'],
 	invalid: [
 		{
 			name: 'helpers via this and the class name follow their caller in order of use',
