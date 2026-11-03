@@ -466,7 +466,8 @@ function conditionKey(target: ESTree.Expression): string | null {
 	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only negations and comparisons wrap other conditions, so `default` covers the rest.
 	switch (target.type) {
 		case 'UnaryExpression': {
-			const key = target.operator === '!' ? conditionKey(unwrap(target.argument)) : null;
+			if (target.operator !== '!') return null;
+			const key = conditionKey(unwrap(target.argument));
 			return key === null ? null : `!${key}`;
 		}
 		case 'BinaryExpression': {

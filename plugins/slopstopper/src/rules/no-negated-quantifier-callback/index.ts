@@ -80,8 +80,9 @@ function quantifierOf(call: ESTree.CallExpression) {
 	if (property.type === 'PrivateIdentifier') return null;
 	const dual = dualOf(property.name);
 	const argument = onlyElement(args);
-	const predicate = argument === null ? null : predicateOf(argument);
-	if (dual === null || predicate === null) return null;
+	if (dual === null || argument === null) return null;
+	const predicate = predicateOf(argument);
+	if (predicate === null) return null;
 
 	const negation = negatedResult(predicate);
 	return negation === null ? null : ({ call, property, dual, negation } satisfies Quantifier);

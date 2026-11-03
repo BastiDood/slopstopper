@@ -52,11 +52,11 @@ function enclosingAlias(sourceCode: SourceCode, literal: ESTree.TSTypeLiteral) {
 				return null;
 			case 'TSTypeAliasDeclaration': {
 				const type = parent.typeAnnotation;
-				return type === child &&
-					type !== literal &&
-					!isExtendableIntersection(sourceCode, type)
-					? parent
-					: null;
+				return type !== child ||
+					type === literal ||
+					isExtendableIntersection(sourceCode, type)
+					? null
+					: parent;
 			}
 			default:
 		}

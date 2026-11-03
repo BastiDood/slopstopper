@@ -1,7 +1,6 @@
 import type { Definition, ESTree, SourceCode } from '@oxlint/plugins';
 
-import { onlyElement } from '#arrays.ts';
-import { resolvedVariable } from '#ast/bindings.ts';
+import { constInitializer, onlyDefinition } from '#ast/bindings.ts';
 import { unwrap } from '#ast/discriminant.ts';
 import { negatedNumber, scalarKindOf } from '#ast/literals.ts';
 import { propertyName } from '#ast/property-keys.ts';
@@ -37,18 +36,21 @@ function isConstantReference(sourceCode: SourceCode, node: ESTree.Expression) {
 	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only identifiers and member accesses read constants, so `default` covers the rest.
 	switch (node.type) {
 		case 'Identifier': {
-			const initializer = constInitializer(definitionOf(sourceCode, node));
-			return initializer !== null && isCaseLiteral(initializer);
+			const definition = onlyDefinition(sourceCode, node);
+			if (definition === null) return false;
+			const value = constValue(definition);
+			return value !== null && isCaseLiteral(value);
 		}
 		case 'MemberExpression': {
 			const key = propertyName(node.property, node.computed);
 			const object = unwrap(node.object);
 			if (key === null || object.type !== 'Identifier') return false;
 
-			const definition = definitionOf(sourceCode, object);
-			if (definition?.node.type === 'TSEnumDeclaration') return true;
-			const initializer = constInitializer(definition);
-			return initializer?.type === 'ObjectExpression' && hasLiteralProperty(initializer, key);
+			const definition = onlyDefinition(sourceCode, object);
+			if (definition === null) return false;
+			if (definition.node.type === 'TSEnumDeclaration') return true;
+			const value = constValue(definition);
+			return value?.type === 'ObjectExpression' && hasLiteralProperty(value, key);
 		}
 		default:
 			return false;
@@ -56,24 +58,12 @@ function isConstantReference(sourceCode: SourceCode, node: ESTree.Expression) {
 }
 
 /**
- * The initializer of a `const` declaration that binds one identifier, without `as const`, `satisfies`, and other
- * wrappers, or `null` for any other definition.
+ * The initializer of a `const` declarator that binds an identifier (see `constInitializer`), without `as const`,
+ * `satisfies`, and other wrappers, or `null` for any other definition.
  */
-function constInitializer(definition: Definition | null) {
-	if (definition?.parent?.type !== 'VariableDeclaration' || definition.parent.kind !== 'const') {
-		return null;
-	}
-
-	const { node } = definition;
-	return node.type === 'VariableDeclarator' && node.id.type === 'Identifier' && node.init !== null
-		? unwrap(node.init)
-		: null;
-}
-
-/** The only definition of the variable that an identifier resolves to, or `null` when it is unresolved or redeclared. */
-function definitionOf(sourceCode: SourceCode, identifier: ESTree.IdentifierReference) {
-	const variable = resolvedVariable(sourceCode, identifier);
-	return variable === null ? null : onlyElement(variable.defs);
+function constValue(definition: Definition) {
+	const initializer = constInitializer(definition);
+	return initializer === null ? null : unwrap(initializer);
 }
 
 /** Whether the first property of an object literal with the given name holds a literal that a `switch` case can name. */
