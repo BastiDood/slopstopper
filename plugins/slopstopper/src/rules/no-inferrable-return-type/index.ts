@@ -90,7 +90,10 @@ function enter(
 	const implicitReturns = node.body?.type === 'BlockStatement' ? 0 : 1;
 	frames.push({
 		node,
-		methodKey: (node.returnType ?? null) === null ? null : methodKeyOf(services, node),
+		methodKey:
+			node.returnType === null || typeof node.returnType === 'undefined'
+				? null
+				: methodKeyOf(services, node),
 		returns: implicitReturns,
 		valueReturns: implicitReturns,
 		recursive: false,

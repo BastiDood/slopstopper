@@ -472,7 +472,7 @@ function splittableDeclaration(
 		computed ||
 		key.type !== 'Identifier' ||
 		value.type !== 'Identifier' ||
-		(pattern.typeAnnotation ?? null) !== null
+		(pattern.typeAnnotation !== null && typeof pattern.typeAnnotation !== 'undefined')
 	) {
 		return null;
 	}

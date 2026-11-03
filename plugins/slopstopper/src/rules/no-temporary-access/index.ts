@@ -170,7 +170,8 @@ function constTarget(node: ESTree.MemberExpression) {
 		declarator.type !== 'VariableDeclarator' ||
 		declarator.init !== node ||
 		declarator.id.type !== 'Identifier' ||
-		(declarator.id.typeAnnotation ?? null) !== null
+		(declarator.id.typeAnnotation !== null &&
+			typeof declarator.id.typeAnnotation !== 'undefined')
 	) {
 		return null;
 	}
