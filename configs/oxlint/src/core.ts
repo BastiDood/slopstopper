@@ -447,6 +447,11 @@ export const CORE = {
 		],
 		globals: [
 			{
+				name: 'Reflect',
+				message:
+					'Call typed functions and read typed properties directly instead of through `Reflect`, and parse dynamic input into a domain type first. Suppress this diagnostic with a reason only where a typed access is impossible.',
+			},
+			{
 				name: 'undefined',
 				message:
 					'Omit absent values instead of writing `undefined`: add the property in an `if` after declaring the object (as `exactOptionalPropertyTypes` requires) or leave out the argument, and use a `typeof` check to test for absence. Pass `void 0` only to a parameter that cannot be omitted and is explicitly typed to accept `undefined`.',

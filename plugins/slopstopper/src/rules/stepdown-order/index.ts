@@ -323,7 +323,7 @@ function valueUses(sourceCode: SourceCode, id: ESTree.BindingIdentifier) {
 function isValueUse(reference: Reference) {
 	return (
 		reference.isRead() &&
-		Reflect.get(reference, 'isValueReference') !== false &&
+		(!('isValueReference' in reference) || reference.isValueReference !== false) &&
 		reference.identifier.parent.type !== 'TSTypeQuery'
 	);
 }

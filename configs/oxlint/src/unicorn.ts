@@ -105,7 +105,8 @@ export const UNICORN = {
 			'unicorn/prefer-optional-catch-binding': 'off',
 			'unicorn/prefer-prototype-methods': 'error',
 			'unicorn/prefer-query-selector': 'error',
-			'unicorn/prefer-reflect-apply': 'error',
+			// `Reflect` is a restricted global in core.
+			'unicorn/prefer-reflect-apply': 'off',
 			'unicorn/prefer-regexp-test': 'error',
 			'unicorn/prefer-response-static-json': 'error',
 			'unicorn/prefer-set-has': 'error',
