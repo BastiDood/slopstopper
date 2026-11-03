@@ -78,7 +78,7 @@ export const VITEST = {
 			'vitest/valid-describe-callback': 'error',
 			'vitest/valid-expect': 'error',
 			'vitest/valid-expect-in-promise': 'error',
-			'vitest/valid-title': 'error',
+			'vitest/valid-title': ['error', { ignoreTypeOfDescribeName: true }],
 			'vitest/warn-todo': 'error',
 		},
 	},
