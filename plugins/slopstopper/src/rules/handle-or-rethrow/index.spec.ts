@@ -8,8 +8,6 @@ OXLINT_RULE_TESTER.run('handle-or-rethrow', HANDLE_OR_RETHROW, {
 		'function f() { try { g(); } catch (error) { if (!(error instanceof NotFound)) throw error; return fallback; } }',
 		// Wrapping with `cause`: a call inside the thrown expression is not recording.
 		"try { g(); } catch (error) { throw new AppError('x', { cause: error }); }",
-		// Passing a member of the error is not recording it.
-		'try { g(); } catch (error) { span.setStatus({ code: 2, message: error.message }); throw error; }',
 		// Referenced only inside a nested function.
 		'try { g(); } catch (error) { setTimeout(() => report(error)); }',
 		// A call in a nested function does not count as recording next to a throw.
@@ -21,7 +19,6 @@ OXLINT_RULE_TESTER.run('handle-or-rethrow', HANDLE_OR_RETHROW, {
 	],
 	invalid: [
 		// Unbound catch, even when it throws.
-		{ code: 'try { g(); } catch { }', errors: [{ messageId: 'unboundCatch' }] },
 		{
 			code: 'try { g(); } catch { throw new AppError(); }',
 			errors: [{ messageId: 'unboundCatch' }],

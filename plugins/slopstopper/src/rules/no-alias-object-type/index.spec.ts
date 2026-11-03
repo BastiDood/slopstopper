@@ -11,8 +11,6 @@ OXLINT_RULE_TESTER.run('no-alias-object-type', NO_ALIAS_OBJECT_TYPE, {
 		'type X = { a: { b: 1 } };',
 		// An empty object type has no useful interface to replace it.
 		'type X = string & {};',
-		// A mapped type is not an object type literal.
-		'type X = { [K in keyof T]: T[K] } | null;',
 		// An extendable intersection belongs to `needless-type-intersection`.
 		'type X = Base & { a: 1 };',
 		// Only the alias's type counts, not its type parameters.

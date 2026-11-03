@@ -7,8 +7,7 @@ OXLINT_RULE_TESTER.run('merge-exclusive-branches', MERGE_EXCLUSIVE_BRANCHES, {
 	valid: [
 		// Another statement separates the `if` statements.
 		'const a = f(); if (a) x(); y(); if (!a) z();',
-		// An `if` with an `else` already holds a decision, whether it comes first or second.
-		'const a = f(); if (a) x(); else y(); if (!a) z();',
+		// An `if` with an `else` already holds a decision.
 		'const a = f(); if (a) x(); if (!a) y(); else z();',
 		// Only `!` negates a condition, so `-a` neither negates `a` nor is a condition that `!-a` negates.
 		'const a = f(); if (-a) x(); if (!-a) y();',

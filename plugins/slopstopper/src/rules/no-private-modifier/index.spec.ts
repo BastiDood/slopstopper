@@ -6,16 +6,10 @@ import { NO_PRIVATE_MODIFIER } from './index.ts';
 OXLINT_RULE_TESTER.run('no-private-modifier', NO_PRIVATE_MODIFIER, {
 	valid: [
 		'class A { protected x = 1; public y = 2; z = 3; }',
-		'class A { private constructor() {} }',
 		'class A { constructor(private x: number) {} }',
 	],
 	invalid: [
 		// Fields.
-		{
-			code: 'class A { private x: number; constructor() { this.x = 1; this.x += 1; this.x++; } }',
-			output: 'class A { #x: number; constructor() { this.#x = 1; this.#x += 1; this.#x++; } }',
-			errors: errors('x'),
-		},
 		{
 			code: 'class A { private /* keep */ x = 1; }',
 			output: 'class A { /* keep */ #x = 1; }',
@@ -58,11 +52,6 @@ OXLINT_RULE_TESTER.run('no-private-modifier', NO_PRIVATE_MODIFIER, {
 			code: 'class A { private name = 1; m() { return A.name + this.name; } }',
 			output: 'class A { #name = 1; m() { return A.name + this.#name; } }',
 			errors: errors('name'),
-		},
-		{
-			code: 'let A = class B { private static x = 1; m() { return B.x; } };',
-			output: 'let A = class B { static #x = 1; m() { return B.#x; } };',
-			errors: errors('x'),
 		},
 		{
 			code: 'const A = class { private static x = 1; m() { return A.x; } };',

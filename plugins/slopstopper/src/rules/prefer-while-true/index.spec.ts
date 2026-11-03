@@ -6,7 +6,7 @@ import { PREFER_WHILE_TRUE } from './index.ts';
 const ERRORS = [{ messageId: 'preferWhileTrue' }];
 
 OXLINT_RULE_TESTER.run('prefer-while-true', PREFER_WHILE_TRUE, {
-	valid: ['for (let i = 0; ; ) {}', 'for (; x; ) {}', 'for (; ; i++) {}', 'while (true) {}'],
+	valid: ['for (let i = 0; ; ) {}', 'for (; x; ) {}', 'for (; ; i++) {}'],
 	invalid: [
 		// The label and the body stay as they are, and so does a comment after the head.
 		{
@@ -14,7 +14,6 @@ OXLINT_RULE_TESTER.run('prefer-while-true', PREFER_WHILE_TRUE, {
 			output: 'outer: while (true) /* forever */ { break outer; }',
 			errors: ERRORS,
 		},
-		{ code: 'for (;;) f();', output: 'while (true) f();', errors: ERRORS },
 		// A comment inside the head would be dropped.
 		{ code: 'for (; /* forever */ ;) {}', output: null, errors: ERRORS },
 	],

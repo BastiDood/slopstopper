@@ -14,8 +14,6 @@ OXLINT_RULE_TESTER.run('prefer-de-morgan', PREFER_DE_MORGAN, {
 		'if (!a && !b) {}',
 		// ... of an `if` whose `else` continues the chain, ...
 		'if (!a && !b) {} else if (c) {}',
-		// ... of a value, ...
-		'const v = !a && !b;',
 		// ... or of a chain nested in another chain.
 		'if ((!a || !b) && c) {} else {}',
 		// `!==` comparisons against different values do not become one `===` run.

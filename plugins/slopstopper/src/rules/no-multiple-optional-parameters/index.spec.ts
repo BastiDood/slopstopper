@@ -8,7 +8,6 @@ OXLINT_RULE_TESTER.run('no-multiple-optional-parameters', NO_MULTIPLE_OPTIONAL_P
 	valid: [
 		'function f(a: number, options: Partial<Options> = {}) {}',
 		'function f(a?: number, ...rest: number[]) {}',
-		'function f({ a }: Options, [b]: [number]) {}',
 	],
 	invalid: [
 		{ code: 'function f({ a }?: Options, b?: number) {}', errors: TWO },

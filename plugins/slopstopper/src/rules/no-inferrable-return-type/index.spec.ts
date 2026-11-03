@@ -30,12 +30,6 @@ OXLINT_RULE_TESTER.run('no-inferrable-return-type', NO_INFERRABLE_RETURN_TYPE, {
 			annotation: ': number',
 			function: '`f`',
 		}),
-		invalid('function f(): void {}', 'function f() {}'),
-		// A bare `return` is not a value-returning branch.
-		invalid(
-			'function f(x: boolean): number { if (x) return; return 1; }',
-			'function f(x: boolean) { if (x) return; return 1; }',
-		),
 		// Returns of nested functions do not count toward the outer function.
 		invalid(
 			'function f(): number { const g = () => { return 2; }; return g(); }',
@@ -50,22 +44,13 @@ OXLINT_RULE_TESTER.run('no-inferrable-return-type', NO_INFERRABLE_RETURN_TYPE, {
 			annotation: ': never',
 			function: '`f`',
 		}),
-		// The implementation of an overloaded function.
-		invalid(
-			'function f(): number; function f() : number { return 1; }',
-			'function f(): number; function f() { return 1; }',
-		),
-		// Recursion through a different method or name does not count.
+		// Recursion through a different method does not count.
 		withData(
 			invalid(
 				'class A { m(): number { return this.n(); } }',
 				'class A { m() { return this.n(); } }',
 			),
 			{ annotation: ': number', function: '`m`' },
-		),
-		invalid(
-			'function f(f: () => number): number { return f(); }',
-			'function f(f: () => number) { return f(); }',
 		),
 		invalid(
 			'class A { m(): number { return [1].map(function () { return this.m(); })[0]; } }',

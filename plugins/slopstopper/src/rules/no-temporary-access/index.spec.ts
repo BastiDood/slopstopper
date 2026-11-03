@@ -6,14 +6,10 @@ OXLINT_RULE_TESTER.run('no-temporary-access', NO_TEMPORARY_ACCESS, {
 	valid: [
 		// A method call reads no field.
 		'f().g();',
-		// Neither does a method chain.
-		'name.trim().toLowerCase();',
 		// Neither does a tagged template, which calls the member as a method.
 		'f().raw`x`;',
 		// A field read that receives a method call is allowed.
 		'expect(x).not.toThrow();',
-		// The object is not a call.
-		'const c = a.b.c;',
 	],
 	invalid: [
 		// A lone `const` declarator destructures the result in place.

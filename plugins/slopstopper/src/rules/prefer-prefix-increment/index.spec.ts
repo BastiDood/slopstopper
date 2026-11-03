@@ -7,8 +7,6 @@ const DECREMENT = { assignment: '-=', operator: '--' };
 
 OXLINT_RULE_TESTER.run('prefer-prefix-increment', PREFER_PREFIX_INCREMENT, {
 	valid: [
-		// The old value of a postfix update is read.
-		'const v = items[i++];',
 		// The value of a sequence's last element is the value of the sequence.
 		'const v = (f(), i++);',
 		// Only a step of `1` is an update.

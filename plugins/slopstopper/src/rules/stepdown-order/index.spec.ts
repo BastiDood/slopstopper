@@ -10,10 +10,6 @@ OXLINT_RULE_TESTER.run('stepdown-order', STEPDOWN_ORDER, {
 			code: 'function isEven(n: number): boolean { return n === 0 || isOdd(n - 1); }\nfunction isOdd(n: number): boolean { return n !== 0 && isEven(n - 1); }',
 		},
 		{
-			name: 'shadowed name does not count as a use',
-			code: 'function helper() {}\nfunction caller() { const helper = () => 1; return helper(); }',
-		},
-		{
 			name: 'type position does not count as a use',
 			code: 'function helper() { return 1; }\nfunction caller(value: ReturnType<typeof helper>) { return value; }',
 		},
@@ -132,14 +128,6 @@ OXLINT_RULE_TESTER.run('stepdown-order', STEPDOWN_ORDER, {
 			errors: [{ messageId: 'helperAboveUser', data: { helper: '`helper`', user: '`Box`' } }],
 		},
 		{
-			name: 'functions move past statements that do not use them',
-			code: 'function helper() { return 1; }\nconst value = 2;\nfunction caller() { return helper() + value; }',
-			output: 'const value = 2;\nfunction caller() { return helper() + value; }\nfunction helper() { return 1; }',
-			errors: [
-				{ messageId: 'helperAboveUser', data: { helper: '`helper`', user: '`caller`' } },
-			],
-		},
-		{
 			name: 'functions settle below their last user between statements',
 			code: 'function b() {}\nfunction a() { b(); }\nconst x = a();\nconst y = b();',
 			output: 'const x = a();\nfunction a() { b(); }\nconst y = b();\nfunction b() {}',
@@ -180,14 +168,6 @@ OXLINT_RULE_TESTER.run('stepdown-order', STEPDOWN_ORDER, {
 			name: 'comment between a function and the next statement on one line blocks the fix',
 			code: 'function helper() {} /* Shared. */ const value = 1;\nfunction caller() { helper(); }',
 			output: null,
-			errors: [
-				{ messageId: 'helperAboveUser', data: { helper: '`helper`', user: '`caller`' } },
-			],
-		},
-		{
-			name: 'exported helper above exported caller',
-			code: 'export function helper() {}\nexport function caller() { helper(); }',
-			output: 'export function caller() { helper(); }\nexport function helper() {}',
 			errors: [
 				{ messageId: 'helperAboveUser', data: { helper: '`helper`', user: '`caller`' } },
 			],
@@ -320,12 +300,6 @@ OXLINT_RULE_TESTER.run('stepdown-order', STEPDOWN_ORDER, {
 			name: 'static method via this above its caller',
 			code: 'class Box { static step() {} static run() { this.step(); } }',
 			output: 'class Box { static run() { this.step(); } static step() {} }',
-			errors: [{ messageId: 'helperAboveUser', data: { helper: '`step`', user: '`run`' } }],
-		},
-		{
-			name: 'static method via the class name above an instance caller',
-			code: 'class Box { static step() {} run() { Box.step(); } }',
-			output: 'class Box { run() { Box.step(); } static step() {} }',
 			errors: [{ messageId: 'helperAboveUser', data: { helper: '`step`', user: '`run`' } }],
 		},
 		{

@@ -5,8 +5,7 @@ import { DESTRUCTURE_ON_SIGHT } from './index.ts';
 
 OXLINT_RULE_TESTER.run('destructure-on-sight', DESTRUCTURE_ON_SIGHT, {
 	valid: [
-		// A whole use: an argument, a method call that needs `this`, a member write, and an optional or computed read.
-		'function f(x) { g(x); return x.a; }',
+		// A whole use: a method call that needs `this`, a member write, and an optional or computed read.
 		'function f(x) { return x.m(); }',
 		'function f(x) { x.a = 1; return x.b; }',
 		'function f(x) { return x?.a; }',

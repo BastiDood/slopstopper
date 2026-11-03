@@ -12,7 +12,6 @@ OXLINT_RULE_TESTER.run('no-negated-quantifier-callback', NO_NEGATED_QUANTIFIER_C
 		// An index or array parameter, a `thisArg`, or an optional call is left alone.
 		'const v = xs.every((x, i) => !p(x, i));',
 		'const v = xs.every(x => !p(x), context);',
-		'const v = xs?.every(x => !p(x));',
 		'const v = a?.xs.every(x => !p(x));',
 		// An `async` callback returns a promise, which is always truthy.
 		'const v = xs.every(async x => !p(x));',

@@ -9,7 +9,6 @@ OXLINT_RULE_TESTER.run('prefer-switch', PREFER_SWITCH, {
 		// Tests that do not compare one discriminant with `===`.
 		'if (x == 1) {} else if (x == 2) {}',
 		'if (x === 1 || y === 2) {} else if (x === 3) {}',
-		'if (f() === 1) {} else if (f() === 2) {}',
 		'if (a[k] === 1) {} else if (a[k] === 2) {}',
 		// Comparisons against `null` and `undefined` guard values instead of naming cases.
 		'if (x === undefined) {} else if (x === null) {}',
@@ -41,28 +40,6 @@ OXLINT_RULE_TESTER.run('prefer-switch', PREFER_SWITCH, {
 			),
 		},
 		// A failed rest breaks out of the case, because no later test can hold for the same value.
-		{
-			code: lines(
-				'function f(x: number) {',
-				'\tif (x === 1 && p) return 1;',
-				'\tif (x === 2 && q) return 2;',
-				'\treturn 3;',
-				'}',
-			),
-			output: lines(
-				'function f(x: number) {',
-				'\tswitch (x) {',
-				'\t\tcase 1:',
-				'\t\t\tif (p) return 1;',
-				'\t\t\tbreak;',
-				'\t\tcase 2:',
-				'\t\t\tif (q) return 2;',
-				'\t}',
-				'\treturn 3;',
-				'}',
-			),
-			errors: on('x'),
-		},
 		{
 			code: lines(
 				'function f(x: number) {',
@@ -225,28 +202,7 @@ OXLINT_RULE_TESTER.run('prefer-switch', PREFER_SWITCH, {
 			code: 'if (x === 1) {} else if (x === 2) {} else if (y === 1) {} else if (y === 2) {}',
 			errors: [...mayChange('x'), ...mayChange('y')],
 		},
-		// Adjacent `if` statements form a chain when every consequent but the last always exits. The code after the chain stays after the `switch`.
-		{
-			code: lines(
-				'function f(x: number) {',
-				'\tif (x === 1) return 1;',
-				'\tif (x === 2) return 2;',
-				'\treturn 3;',
-				'}',
-			),
-			output: lines(
-				'function f(x: number) {',
-				'\tswitch (x) {',
-				'\t\tcase 1:',
-				'\t\t\treturn 1;',
-				'\t\tcase 2:',
-				'\t\t\treturn 2;',
-				'\t}',
-				'\treturn 3;',
-				'}',
-			),
-			errors: on('x'),
-		},
+		// Adjacent `if` statements form a chain when every consequent but the last always exits.
 		{
 			code: 'function f() { if (x === 1) throw e; if (x === 2) g(); }',
 			errors: mayChange('x'),

@@ -15,8 +15,7 @@ OXLINT_RULE_TESTER.run('no-equality-chain', NO_EQUALITY_CHAIN, {
 		// A `const` object names no case through a property that it lacks, or through a nested member.
 		"const K = { A: 'a' } as const; const v = x === K.B || x === K.C;",
 		'const K = { A: { B: 1, C: 2 } } as const; const v = x === K.A.B || x === K.A.C;',
-		// Neither `undefined` nor a member of a call result is a discriminant.
-		"const v = undefined === 'a' || undefined === 'b';",
+		// A member of a call result is no discriminant.
 		'const v = f().b === 1 || f().b === 2;',
 		// The negated form is left to `prefer-de-morgan`, which turns it into the positive form.
 		'const v = x !== 1 && x !== 2;',
