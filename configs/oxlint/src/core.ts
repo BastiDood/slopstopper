@@ -271,6 +271,7 @@ export const CORE = {
 			'slopstopper/no-unknown-returns': 'error',
 			'slopstopper/no-unknown-type-aliases': 'error',
 			'slopstopper/no-unsafe-dictionary-type': 'error',
+			'slopstopper/no-untyped-empty-initializer': 'error',
 			'slopstopper/prefer-class-over-factory': 'error',
 			'slopstopper/prefer-de-morgan': 'error',
 			'slopstopper/prefer-prefix-increment': 'error',
@@ -293,7 +294,8 @@ export const CORE = {
 			'typescript/consistent-type-definitions': ['error', 'interface'],
 			'typescript/dot-notation': 'error',
 			'typescript/explicit-member-accessibility': ['error', { accessibility: 'no-public' }],
-			'typescript/init-declarations': 'error',
+			// `slopstopper/no-untyped-empty-initializer` requires an initializer or a type annotation instead.
+			'typescript/init-declarations': 'off',
 			'typescript/method-signature-style': 'error',
 			'typescript/no-array-delete': 'error',
 			'typescript/no-base-to-string': ['error', { checkUnknown: true, ignoredTypeNames: [] }],
