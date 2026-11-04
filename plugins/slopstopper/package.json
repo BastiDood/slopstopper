@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/eslint-plugin-slopstopper",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "Custom lint rules against sloppy code, for both Oxlint and ESLint.",
 	"license": "MIT",
 	"type": "module",
