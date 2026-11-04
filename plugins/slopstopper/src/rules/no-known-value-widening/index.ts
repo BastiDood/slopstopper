@@ -163,12 +163,19 @@ function checkAnnotated(
 
 /**
  * Reports a type assertion that discards the known type of its value, with a suggestion to replace `as` with
- * `satisfies`. Only the outermost of chained assertions counts, so that `x as unknown as T` reports at most once.
+ * `satisfies`. Only the outermost of chained assertions counts, so that `x as unknown as T` reports at most once. An
+ * empty literal is left to `no-untyped-empty-initializer`, because `satisfies` would keep its empty type.
  */
 function checkAssertion(context: Context, node: ESTree.TSAsExpression | ESTree.TSTypeAssertion) {
 	const { sourceCode } = context;
 	const { expression, typeAnnotation, parent } = node;
-	if (isAssertion(parent) || !widensKnownValue(sourceCode, typeAnnotation, expression)) return;
+	if (
+		isAssertion(parent) ||
+		isEmptyLiteral(unwrap(expression)) ||
+		!widensKnownValue(sourceCode, typeAnnotation, expression)
+	) {
+		return;
+	}
 
 	const data = {
 		type: messageLabel(sourceCode.getText(typeAnnotation)),
@@ -206,6 +213,21 @@ function isAssertion({ type }: ESTree.Node) {
 		case 'TSAsExpression':
 		case 'TSTypeAssertion':
 			return true;
+		default:
+			return false;
+	}
+}
+
+/** Whether an expression without wrappers (see `unwrap`) is an empty array literal, an empty object literal, or `null`. */
+function isEmptyLiteral(node: ESTree.Expression) {
+	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only array, object, and `null` literals can be empty, so `default` covers the rest.
+	switch (node.type) {
+		case 'ArrayExpression':
+			return node.elements.length === 0;
+		case 'ObjectExpression':
+			return isEmptyObject(node);
+		case 'Literal':
+			return node.value === null && !('regex' in node);
 		default:
 			return false;
 	}
@@ -295,6 +317,25 @@ function narrowedParameter({
 	return null;
 }
 
+/** The identifier that a parameter binds, through a default value, a rest element, or a parameter property, or `null` for a destructuring parameter. */
+function parameterBinding(
+	parameter: ESTree.ParamPattern | ESTree.BindingPattern,
+): ESTree.BindingIdentifier | null {
+	switch (parameter.type) {
+		case 'Identifier':
+			return parameter;
+		case 'AssignmentPattern':
+			return parameterBinding(parameter.left);
+		case 'RestElement':
+			return parameterBinding(parameter.argument);
+		case 'TSParameterProperty':
+			return parameterBinding(parameter.parameter);
+		case 'ObjectPattern':
+		case 'ArrayPattern':
+			return null;
+	}
+}
+
 /** Whether a type is `unknown` or a union that holds `unknown`. */
 function containsUnknown(type: ESTree.TSType): boolean {
 	return (
@@ -379,6 +420,20 @@ function calledFunction(sourceCode: SourceCode, callee: ESTree.Expression) {
 	}
 }
 
+/** The node as a function with parameters, or `null` for any other node. */
+function functionOf(node: ESTree.Node) {
+	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only functions have parameters and a return type, so `default` covers the rest.
+	switch (node.type) {
+		case 'ArrowFunctionExpression':
+		case 'FunctionExpression':
+		case 'FunctionDeclaration':
+		case 'TSDeclareFunction':
+			return node;
+		default:
+			return null;
+	}
+}
+
 /**
  * Whether an expression spells out its own type: an object, array, function, or class literal, a `new` expression, a
  * literal, a template literal, or a unary expression. Expects a node without wrappers (see `unwrap`).
@@ -426,37 +481,4 @@ function bindingAnnotation({ type, name }: Definition) {
 function identifierAnnotation({ typeAnnotation, parent }: AnnotatedNode) {
 	const own = typeAnnotation ?? null;
 	return parent.type === 'RestElement' ? (parent.typeAnnotation ?? own) : own;
-}
-
-/** The node as a function with parameters, or `null` for any other node. */
-function functionOf(node: ESTree.Node) {
-	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only functions have parameters and a return type, so `default` covers the rest.
-	switch (node.type) {
-		case 'ArrowFunctionExpression':
-		case 'FunctionExpression':
-		case 'FunctionDeclaration':
-		case 'TSDeclareFunction':
-			return node;
-		default:
-			return null;
-	}
-}
-
-/** The identifier that a parameter binds, through a default value, a rest element, or a parameter property, or `null` for a destructuring parameter. */
-function parameterBinding(
-	parameter: ESTree.ParamPattern | ESTree.BindingPattern,
-): ESTree.BindingIdentifier | null {
-	switch (parameter.type) {
-		case 'Identifier':
-			return parameter;
-		case 'AssignmentPattern':
-			return parameterBinding(parameter.left);
-		case 'RestElement':
-			return parameterBinding(parameter.argument);
-		case 'TSParameterProperty':
-			return parameterBinding(parameter.parameter);
-		case 'ObjectPattern':
-		case 'ArrayPattern':
-			return null;
-	}
 }

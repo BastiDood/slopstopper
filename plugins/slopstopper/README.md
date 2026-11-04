@@ -45,6 +45,7 @@ Rules marked as derived from `anti-slop` are vendored from [`dmmulroy/anti-slop`
 | [`no-unknown-returns`](./src/rules/no-unknown-returns/README.md)                                 | An explicit return type that resolves to `unknown` or `Promise<unknown>` (derived from [anti-slop](./THIRD-PARTY-NOTICES.md))                                                                                 |
 | [`no-unknown-type-aliases`](./src/rules/no-unknown-type-aliases/README.md)                       | A type alias that resolves to `unknown` (derived from [anti-slop](./THIRD-PARTY-NOTICES.md))                                                                                                                  |
 | [`no-unsafe-dictionary-type`](./src/rules/no-unsafe-dictionary-type/README.md)                   | A dictionary type whose value type is `unknown`, `any`, `object`, `{}`, or a union or alias that holds one (derived from [anti-slop](./THIRD-PARTY-NOTICES.md))                                               |
+| [`no-untyped-empty-initializer`](./src/rules/no-untyped-empty-initializer/README.md)             | A binding without an annotation that has no initializer or starts as `[]`, `{}`, or `null`, a `new Map()`, `new WeakMap()`, or `new Set()` without type arguments, or an assertion on an empty literal        |
 
 ## Compatibility
 

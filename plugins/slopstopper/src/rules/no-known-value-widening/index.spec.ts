@@ -19,7 +19,10 @@ OXLINT_RULE_TESTER.run('no-known-value-widening', NO_KNOWN_VALUE_WIDENING, {
 		// An empty object literal may start an open dictionary.
 		`${PRELUDE} const commands: Record<string, Command> = {};`,
 		`${PRELUDE} type Index<T> = Record<string, T>; const commands: Index<Command> = {};`,
+		// `no-untyped-empty-initializer` owns assertions on empty literals, where `satisfies` would keep the empty type.
 		`${PRELUDE} const commands = {} as Record<string, Command>;`,
+		'const items = [] as object;',
+		'const value = null as unknown;',
 		`${PRELUDE} const commands = ${VALUE} as const;`,
 		// A named type is a contract, even when it aliases an anonymous object type.
 		`${PRELUDE} interface Commands { readonly start: Command } const commands: Commands = ${VALUE};`,

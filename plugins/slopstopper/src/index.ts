@@ -22,6 +22,7 @@ import { NO_TYPE_PREDICATES } from './rules/no-type-predicates/index.ts';
 import { NO_UNKNOWN_RETURNS } from './rules/no-unknown-returns/index.ts';
 import { NO_UNKNOWN_TYPE_ALIASES } from './rules/no-unknown-type-aliases/index.ts';
 import { NO_UNSAFE_DICTIONARY_TYPE } from './rules/no-unsafe-dictionary-type/index.ts';
+import { NO_UNTYPED_EMPTY_INITIALIZER } from './rules/no-untyped-empty-initializer/index.ts';
 import { PREFER_CLASS_OVER_FACTORY } from './rules/prefer-class-over-factory/index.ts';
 import { PREFER_DE_MORGAN } from './rules/prefer-de-morgan/index.ts';
 import { PREFER_PREFIX_INCREMENT } from './rules/prefer-prefix-increment/index.ts';
@@ -56,6 +57,7 @@ export default definePlugin({
 		'no-unknown-returns': NO_UNKNOWN_RETURNS,
 		'no-unknown-type-aliases': NO_UNKNOWN_TYPE_ALIASES,
 		'no-unsafe-dictionary-type': NO_UNSAFE_DICTIONARY_TYPE,
+		'no-untyped-empty-initializer': NO_UNTYPED_EMPTY_INITIALIZER,
 		'prefer-class-over-factory': PREFER_CLASS_OVER_FACTORY,
 		'prefer-de-morgan': PREFER_DE_MORGAN,
 		'prefer-prefix-increment': PREFER_PREFIX_INCREMENT,

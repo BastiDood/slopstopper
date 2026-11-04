@@ -43,3 +43,4 @@ An `as` assertion gets a suggestion that replaces `as` with `satisfies`, which k
 - Aliases, interfaces, and functions declared in other files are not resolved.
 - A value that only type information knows, such as a call result, is not reported, except as an argument of a type guard.
 - A destructuring declaration is not reported.
+- A type assertion on an empty literal, `[]`, `{}`, or `null`, is left to `no-untyped-empty-initializer`, because `satisfies` would keep its empty type.
