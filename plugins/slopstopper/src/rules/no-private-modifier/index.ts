@@ -209,7 +209,12 @@ function groupOf(groups: Map<string, Group>, name: string) {
 	let group = groups.get(name);
 	if (typeof group === 'object') return group;
 
-	group = { members: [], fixable: true, edits: [], destructurings: new Map() };
+	group = {
+		members: [],
+		fixable: true,
+		edits: [],
+		destructurings: new Map<ESTree.VariableDeclaration, Destructuring>(),
+	};
 	groups.set(name, group);
 	return group;
 }
@@ -445,7 +450,7 @@ function checkPattern(sourceCode: SourceCode, stack: readonly ClassState[], node
 
 		let destructuring = group.destructurings.get(declaration);
 		if (typeof destructuring !== 'object') {
-			destructuring = { declaration, pattern, extracted: new Set(), lines: [] };
+			destructuring = { declaration, pattern, extracted: new Set<ESTree.Node>(), lines: [] };
 			group.destructurings.set(declaration, destructuring);
 		}
 

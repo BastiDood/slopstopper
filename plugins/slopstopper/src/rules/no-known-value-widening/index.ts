@@ -221,7 +221,7 @@ function widensKnownValue(sourceCode: SourceCode, target: ESTree.TSType, value: 
 	if (widening === null) return false;
 	const node = unwrap(value);
 	if (widening === 'open dictionary' && isEmptyObject(node)) return false;
-	return hasKnownType(sourceCode, new Set(), node);
+	return hasKnownType(sourceCode, new Set<Variable>(), node);
 }
 
 /** Whether an expression without wrappers (see `unwrap`) is an object literal without properties. */
@@ -264,7 +264,7 @@ function checkGuardCall(context: Context, { callee, arguments: args }: ESTree.Ca
 
 	const annotation = identifierAnnotation(binding);
 	if (annotation === null || !containsUnknown(annotation.typeAnnotation)) return;
-	if (!hasKnownArgumentType(sourceCode, new Set(), argument)) return;
+	if (!hasKnownArgumentType(sourceCode, new Set<Variable>(), argument)) return;
 
 	context.report({
 		node: argument,

@@ -488,7 +488,7 @@ function link(
 function groupOverloads<Implementation>(elements: Iterable<Element<Implementation>>) {
 	const walk: OverloadWalk<Implementation> = {
 		groups: [],
-		orphans: new Set(),
+		orphans: new Set<string>(),
 		signatures: [],
 		pending: null,
 	};

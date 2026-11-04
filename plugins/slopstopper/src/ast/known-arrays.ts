@@ -21,7 +21,7 @@ export interface MethodTarget {
  * `const`, initialized with a known array. An unknown receiver, such as an iterator, does not count.
  */
 export function isKnownArrayExpression(sourceCode: SourceCode, expression: ESTree.Expression) {
-	return isKnownArray(sourceCode, new Set(), expression);
+	return isKnownArray(sourceCode, new Set<Variable>(), expression);
 }
 
 /**

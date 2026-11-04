@@ -187,12 +187,12 @@ function copiesAccumulator(
 				isGlobal(sourceCode, object, 'Array') &&
 				typeof source !== 'undefined' &&
 				source.type !== 'SpreadElement' &&
-				aliasesAccumulator(sourceCode, accumulator, new Set(), source)
+				aliasesAccumulator(sourceCode, accumulator, new Set<Variable>(), source)
 			);
 		}
 		default:
 			return (
-				aliasesAccumulator(sourceCode, accumulator, new Set(), object) &&
+				aliasesAccumulator(sourceCode, accumulator, new Set<Variable>(), object) &&
 				((initialValue !== null &&
 					initialValue.type !== 'SpreadElement' &&
 					isKnownArrayExpression(sourceCode, initialValue)) ||
@@ -214,7 +214,7 @@ function assignsFromAccumulator(
 		sources.some(
 			source =>
 				source.type !== 'SpreadElement' &&
-				aliasesAccumulator(sourceCode, accumulator, new Set(), source),
+				aliasesAccumulator(sourceCode, accumulator, new Set<Variable>(), source),
 		)
 	);
 }

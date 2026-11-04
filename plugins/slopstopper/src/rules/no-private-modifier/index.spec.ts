@@ -340,7 +340,5 @@ UNTYPED_RULE_TESTER.run('no-private-modifier', eslintRule(NO_PRIVATE_MODIFIER), 
 });
 
 function errors(...names: string[]) {
-	const entries = [];
-	for (const name of names) entries.push({ messageId: 'privateModifier', data: { name } });
-	return entries;
+	return names.map(name => ({ messageId: 'privateModifier', data: { name } }));
 }

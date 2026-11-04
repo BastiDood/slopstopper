@@ -19,7 +19,11 @@ export interface ResolvedType {
 
 /** A type as written, outside any alias expansion. */
 export function written(type: ESTree.TSType) {
-	return { type, substitutions: new Map(), expanding: new Set() } satisfies ResolvedType;
+	return {
+		type,
+		substitutions: new Map<ESTree.TSTypeParameter, ResolvedType>(),
+		expanding: new Set<ESTree.TSTypeAliasDeclaration>(),
+	} satisfies ResolvedType;
 }
 
 /** The type that a resolved type expands to once no alias or type parameter is left to expand (see `expand`). */
