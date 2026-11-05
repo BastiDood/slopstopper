@@ -1,11 +1,6 @@
 import type { ESTree, SourceCode, Variable } from '@oxlint/plugins';
 
-import {
-	findVariable,
-	firstConstInitializer,
-	isNeverReassigned,
-	unvisitedVariable,
-} from '#ast/bindings.ts';
+import { findVariable, firstConstInitializer, unvisitedVariable } from '#ast/bindings.ts';
 import { unwrap } from '#ast/discriminant.ts';
 import { isNeverOrTopType, typeAtLocation, type TypeServices } from '#type-services.ts';
 
@@ -83,10 +78,9 @@ function isTableExpression(
 	}
 }
 
-/** Whether a variable is a never-reassigned `const` whose initializer is a table without type information. */
+/** Whether a variable is a `const` whose initializer is a table without type information. */
 function isTableVariable(sourceCode: SourceCode, visited: Variable[], variable: Variable | null) {
-	if (variable === null || !isNeverReassigned(variable)) return false;
-	const init = firstConstInitializer(variable);
+	const init = variable === null ? null : firstConstInitializer(variable);
 	return init !== null && isTableExpression(sourceCode, visited, init);
 }
 

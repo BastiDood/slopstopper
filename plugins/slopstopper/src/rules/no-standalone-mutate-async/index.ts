@@ -1,22 +1,17 @@
-import { defineRule, type ESTree, type SourceCode } from '@oxlint/plugins';
+import { defineRule, type ESTree, type Reference, type SourceCode } from '@oxlint/plugins';
 
 import { onlyElement } from '#arrays.ts';
+import { assertNotNull } from '#assert.ts';
 import { unwrap } from '#ast/discriminant.ts';
 import { enclosingFunction } from '#ast/functions.ts';
-import { methodTarget } from '#ast/known-arrays.ts';
+import { methodName, methodTarget } from '#ast/known-arrays.ts';
 import { outermostWrapper } from '#ast/members.ts';
-import { referenceMethodOf } from '#ast/tanstack-mutations.ts';
+import { variableMethodOf } from '#ast/tanstack-mutations.ts';
 
 /**
- * Reports a use of a TanStack Query mutation's `mutateAsync`, as a reference or a call, in favor of `mutate` with its
- * callbacks. A use is a member named `mutateAsync` or an identifier that reads it (see `mutationMethodOf`): a field that
- * a `const` pattern destructures from `useMutation` or `createMutation` under any local name, a `const` alias of one,
- * or an untraced identifier named `mutateAsync`, such as a prop. The destructuring pattern itself and the initializer of
- * a `const` alias, whose own uses are reported, are not uses. Concurrent mutations are exempt: a call that is an element
- * of an array literal, or a call that a callback of `xs.map` returns, or the reference that `xs.map` takes as its
- * callback, where the array or the `map` call is the argument of `Promise.all`, `Promise.allSettled`, `Promise.race`, or
- * `Promise.any` on the global `Promise`. There is no rewrite: moving the code after an `await` into callbacks is a
- * restructuring that the author must do.
+ * Reports a use of a TanStack Query mutation's `mutateAsync` in favor of `mutate` with its callbacks, which handle the
+ * outcome and never reject. A use inside a `Promise` combinator is exempt, because concurrent mutations need the
+ * promises. There is no rewrite: moving the code after an `await` into callbacks is a restructuring.
  */
 export const NO_STANDALONE_MUTATE_ASYNC = defineRule({
 	meta: {
@@ -35,23 +30,44 @@ export const NO_STANDALONE_MUTATE_ASYNC = defineRule({
 		const { sourceCode } = context;
 
 		return {
-			Identifier(node) {
-				const reference = valueRead(sourceCode, node);
-				if (
-					reference === null ||
-					referenceMethodOf(sourceCode, reference) !== 'mutateAsync'
-				) {
-					return;
+			Program() {
+				const { scopes, globalScope } = sourceCode.scopeManager;
+				// Each variable is traced once, and only the references of one that holds `mutateAsync` are checked.
+				for (const { variables } of scopes) {
+					for (const variable of variables) {
+						const { references } = variable;
+						if (
+							references.length > 0 &&
+							variableMethodOf(sourceCode, variable) === 'mutateAsync'
+						) {
+							for (const reference of references) checkRead(reference);
+						}
+					}
 				}
-				check(node, outermostUse(node));
+				// An unresolved reference reads the method of its own name.
+				const { through } = assertNotNull(globalScope);
+				for (const reference of through) {
+					if (reference.identifier.name === 'mutateAsync') checkRead(reference);
+				}
 			},
 			MemberExpression(node) {
-				const target = methodTarget(node);
+				if (methodName(node) !== 'mutateAsync') return;
 				const wrapper = outermostWrapper(node);
-				if (target?.name !== 'mutateAsync' || isAssigned(wrapper)) return;
+				if (isAssigned(wrapper)) return;
 				check(node, wrapper);
 			},
 		};
+
+		/**
+		 * Checks a reference to `mutateAsync` when it reads the value, rather than writing it or naming it in a type
+		 * query, as in `typeof x`.
+		 */
+		function checkRead(reference: Reference) {
+			const { identifier } = reference;
+			if (reference.isRead() && !isTypeQueryName(identifier)) {
+				check(identifier, outermostUse(identifier));
+			}
+		}
 
 		/**
 		 * Reports a use of `mutateAsync` unless it initializes an alias or runs concurrently. Expects the outermost
@@ -63,19 +79,6 @@ export const NO_STANDALONE_MUTATE_ASYNC = defineRule({
 		}
 	},
 });
-
-/**
- * The reference that an identifier makes when it reads a value, or `null` for a declaration, a write, a type query, or
- * any other identifier that is no reference.
- */
-function valueRead(sourceCode: SourceCode, identifier: ESTree.Node) {
-	if (isTypeQueryName(identifier)) return null;
-	const reference = sourceCode
-		.getScope(identifier)
-		.references.find(candidate => candidate.identifier === identifier);
-	if (typeof reference === 'undefined') return null;
-	return reference.isRead() ? reference : null;
-}
 
 /** Whether an identifier names a value in a type query, as in `typeof x` or `typeof x.y`. */
 function isTypeQueryName({ parent }: ESTree.Node) {
@@ -173,10 +176,9 @@ function isConcurrentCall(sourceCode: SourceCode, call: ESTree.Expression) {
 function isMapCallback(sourceCode: SourceCode, wrapper: ESTree.Node) {
 	const { parent } = wrapper;
 	if (parent?.type !== 'CallExpression') return false;
-	const target = methodTarget(parent.callee);
 	return (
 		parent.arguments[0] === wrapper &&
-		target?.name === 'map' &&
+		methodName(parent.callee) === 'map' &&
 		isCombinatorArgument(sourceCode, parent)
 	);
 }
@@ -189,9 +191,10 @@ function isCombinatorArgument(sourceCode: SourceCode, argument: ESTree.Expressio
 	const wrapper = outermostWrapper(argument);
 	const { parent } = wrapper;
 	if (parent.type !== 'CallExpression' || onlyElement(parent.arguments) !== wrapper) return false;
-	const target = methodTarget(parent.callee);
-	if (target === null || !isCombinator(target.name)) return false;
-	const object = unwrap(target.object);
+	const name = methodName(parent.callee);
+	if (name === null || !isCombinator(name)) return false;
+	const { object: receiver } = assertNotNull(methodTarget(parent.callee));
+	const object = unwrap(receiver);
 	return (
 		object.type === 'Identifier' &&
 		object.name === 'Promise' &&

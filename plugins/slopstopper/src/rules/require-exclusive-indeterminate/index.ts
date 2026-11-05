@@ -1,7 +1,8 @@
 import { defineRule, type ESTree, type SourceCode } from '@oxlint/plugins';
 
+import { assertNotNull } from '#assert.ts';
 import { unwrap } from '#ast/discriminant.ts';
-import { methodTarget } from '#ast/known-arrays.ts';
+import { methodName, methodTarget } from '#ast/known-arrays.ts';
 import { outermostWrapper } from '#ast/members.ts';
 import { propertyName } from '#ast/property-keys.ts';
 
@@ -25,12 +26,8 @@ const FULL_SELECTION_CHECKS = new Map([
 
 /**
  * Reports a TanStack Table `getIsSomeRowsSelected()` or `getIsSomePageRowsSelected()` call that sets the indeterminate
- * state of a checkbox without excluding the full selection. Both are `true` when every row is selected, so the
- * checkbox shows as indeterminate instead of checked. The call sets an indeterminate state when its value reaches a JSX
- * `indeterminate={…}` attribute, a Svelte `indeterminate={…}` attribute or `bind:indeterminate={…}` directive, or an
- * `indeterminate: …` property, through logical operators, the branches of a conditional, TypeScript assertions, and the
- * body of an arrow function. A sibling `&&` operand `!x.getIsAllRowsSelected()` (or `!x.getIsAllPageRowsSelected()`) on
- * the same receiver `x` excludes the full selection.
+ * state of a checkbox without excluding the full selection. Both are `true` when every row is selected, so the checkbox
+ * shows as indeterminate instead of checked.
  */
 export const REQUIRE_EXCLUSIVE_INDETERMINATE = defineRule({
 	meta: {
@@ -56,11 +53,12 @@ export const REQUIRE_EXCLUSIVE_INDETERMINATE = defineRule({
 				svelteHolders.push(node);
 			},
 			CallExpression(node) {
-				const method = methodTarget(node.callee);
-				if (method === null) return;
-				const full = FULL_SELECTION_CHECKS.get(method.name);
+				const name = methodName(node.callee);
+				if (name === null) return;
+				const full = FULL_SELECTION_CHECKS.get(name);
 				if (typeof full === 'undefined') return;
-				const receiver = sourceCode.getText(unwrap(method.object));
+				const { object } = assertNotNull(methodTarget(node.callee));
+				const receiver = sourceCode.getText(unwrap(object));
 				const call = outermostWrapper(node);
 				const root = indeterminateRoot(sourceCode, call, receiver, full);
 				if (root === null) return;
@@ -157,8 +155,9 @@ function excludesFullSelection(
 			if (node.operator !== '!') return false;
 			const argument = unwrap(node.argument);
 			if (argument.type !== 'CallExpression') return false;
-			const method = methodTarget(argument.callee);
-			return method?.name === full && sourceCode.getText(unwrap(method.object)) === receiver;
+			if (methodName(argument.callee) !== full) return false;
+			const { object } = assertNotNull(methodTarget(argument.callee));
+			return sourceCode.getText(unwrap(object)) === receiver;
 		}
 		default:
 			return false;

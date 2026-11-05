@@ -28,11 +28,17 @@ export function queryOption({ properties }: ESTree.ObjectExpression, name: strin
  * nested in the expression do not count.
  */
 export function valueReads(sourceCode: SourceCode, { parent, range }: ESTree.Expression) {
+	const reads: Reference[] = [];
 	// The scope around the parent holds the expression, even when the expression is a function with a scope of its own.
 	const { references } = sourceCode.getScope(parent);
-	return references
-		.filter(reference => isWithin(reference.identifier.range, range) && isValueRead(reference))
-		.sort(({ identifier: left }, { identifier: right }) => left.range[0] - right.range[0]);
+	for (const reference of references) {
+		if (isWithin(reference.identifier.range, range) && isValueRead(reference)) {
+			reads.push(reference);
+		}
+	}
+	return reads.sort(
+		({ identifier: left }, { identifier: right }) => left.range[0] - right.range[0],
+	);
 }
 
 /** Whether a reference reads a value, rather than only writing it or naming a type, as in `x as Key` or `typeof x`. */
@@ -41,31 +47,31 @@ export function isValueRead(reference: Reference) {
 }
 
 /**
- * The member reads and calls that a node starts, from the node outward: `a`, `a.b`, and `a.b(c)` for `a` in `a.b(c)`.
- * Optional chains and TypeScript assertions between them do not end the chain and are left out of it. Expects the node
- * to read a value (see `isValueRead`), so that it sits in the expression of any such wrapper, never in its type.
+ * The member read or call whose object or callee a node is, as `a.b` is for `a` and `a.b(c)` is for `a.b` in `a.b(c)`,
+ * or `null` when the node ends its access chain. Optional chains and TypeScript assertions between them do not end the
+ * chain. Expects the node to read a value (see `isValueRead`), so that it sits in the expression of any such wrapper,
+ * never in its type.
  */
-export function accessChain(node: ESTree.Node) {
-	return [node, ...outerAccesses(node)];
-}
-
-/** The member reads and calls around a node whose object or callee it is, from the node outward (see `accessChain`). */
-function outerAccesses(node: ESTree.Node): ESTree.Expression[] {
-	const parent = assertNotNull(node.parent);
-	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only wrappers, members, and calls continue the chain, so `default` covers the rest.
-	switch (parent.type) {
-		case 'ChainExpression':
-		case 'TSNonNullExpression':
-		case 'TSAsExpression':
-		case 'TSSatisfiesExpression':
-		case 'TSTypeAssertion':
-			return outerAccesses(parent);
-		case 'MemberExpression':
-			return parent.object === node ? [parent, ...outerAccesses(parent)] : [];
-		case 'CallExpression':
-			return parent.callee === node ? [parent, ...outerAccesses(parent)] : [];
-		default:
-			return [];
+export function outerAccess(node: ESTree.Node) {
+	let child = node;
+	while (true) {
+		const parent = assertNotNull(child.parent);
+		// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only wrappers, members, and calls continue the chain, so `default` covers the rest.
+		switch (parent.type) {
+			case 'ChainExpression':
+			case 'TSNonNullExpression':
+			case 'TSAsExpression':
+			case 'TSSatisfiesExpression':
+			case 'TSTypeAssertion':
+				child = parent;
+				break;
+			case 'MemberExpression':
+				return parent.object === child ? parent : null;
+			case 'CallExpression':
+				return parent.callee === child ? parent : null;
+			default:
+				return null;
+		}
 	}
 }
 

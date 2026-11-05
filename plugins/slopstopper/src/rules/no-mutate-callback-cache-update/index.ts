@@ -1,18 +1,14 @@
 import { defineRule, type ESTree, type SourceCode } from '@oxlint/plugins';
 
-import { methodTarget } from '#ast/known-arrays.ts';
+import { methodName } from '#ast/known-arrays.ts';
 import { outermostWrapper } from '#ast/members.ts';
 import { mutationMethodOf } from '#ast/tanstack-mutations.ts';
 
 /**
- * Reports a member call of a `QueryClient` cache update (`invalidateQueries`, `refetchQueries`, `resetQueries`,
- * `removeQueries`, `cancelQueries`, `setQueryData`, or `setQueriesData`) anywhere inside the object literal that is the
- * second argument of a call to a mutation's `mutate`. The callee is `mutate` when it reads that method (see
- * `mutationMethodOf`): a field that a `const` pattern destructures from `useMutation` or `createMutation` under any
- * local name, a `const` alias of one, an untraced identifier named `mutate`, or any member named `mutate`. TanStack
- * Query drops these per-call callbacks when the component unmounts first or a later call replaces this one, so a cache
- * update there can silently not run. The callbacks of the mutation definition always run, so the update belongs there.
- * There is no rewrite: moving the update needs the definition, which can live in another module.
+ * Reports a `QueryClient` cache update inside the per-call callbacks of a TanStack Query mutation's `mutate`. TanStack
+ * Query drops these callbacks when the component unmounts first or a later call replaces this one, so the update can
+ * silently not run, while the callbacks of the mutation definition always run. There is no rewrite: the definition can
+ * live in another module.
  */
 export const NO_MUTATE_CALLBACK_CACHE_UPDATE = defineRule({
 	meta: {
@@ -31,8 +27,8 @@ export const NO_MUTATE_CALLBACK_CACHE_UPDATE = defineRule({
 		const { sourceCode } = context;
 		return {
 			CallExpression(node) {
-				const target = methodTarget(node.callee);
-				if (target === null || !isCacheUpdate(target.name)) return;
+				const name = methodName(node.callee);
+				if (name === null || !isCacheUpdate(name)) return;
 				if (isInsideMutateOptions(sourceCode, node)) {
 					context.report({ node, messageId: 'cacheUpdate' });
 				}

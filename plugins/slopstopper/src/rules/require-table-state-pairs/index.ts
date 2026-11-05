@@ -10,15 +10,10 @@ import { tableOptionsObject } from '#ast/tanstack-table.ts';
 const HANDLER_NAME_REGEX = /^on(?<slice>[A-Z]\w*)Change$/u;
 
 /**
- * Reports a controlled TanStack Table state slice that lacks its other half, in the options object literal passed to
- * `useTable`, `createTable`, or `tableOptions`. A key `slice` of `options.state` needs the option `onSliceChange`, and
- * an option `onSliceChange` needs `options.state.slice` unless `options.atoms.slice` owns the slice. A state without its
- * handler leaves the table no way to report updates, so the table ignores them; a handler without its state replaces the
+ * Reports a controlled TanStack Table state slice that lacks its other half in the table options: a `state` entry
+ * without its `on<Slice>Change` handler, or a handler without its `state` or `atoms` entry. A state without its handler
+ * leaves the table no way to report updates, so the table ignores them; a handler without its state replaces the
  * internal update without feeding the value back, so the table and its owner desynchronize.
- *
- * An options object, `state` object, or `atoms` object whose keys the rule cannot see, through a spread, a computed key,
- * or a value that is no object literal, exempts the checks that depend on it. A `state` getter counts when its body
- * returns an object literal, as Svelte options often do.
  */
 export const REQUIRE_TABLE_STATE_PAIRS = defineRule({
 	meta: {

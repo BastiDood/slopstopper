@@ -62,8 +62,8 @@ useSelector(atom, s => s.pagination);`,
 	invalid: [
 		// Uses that read no snapshot slice leave only the report.
 		{
-			code: 'table.store.subscribe(() => {}); f(table.store); x[table.store]; const read = table.store.get; table.store.get(now).pagination; f(table.store.get()); x[table.store.get()];',
-			errors: Array.from({ length: 7 }, () => storeError('table')),
+			code: 'table.store.subscribe(() => {}); f(table.store); x.f(table.store); x[table.store]; const read = table.store.get; table.store.get(now).pagination; f(table.store.get()); x[table.store.get()];',
+			errors: Array.from({ length: 8 }, () => storeError('table')),
 		},
 		// Destructuring that is no object pattern, is empty, typed, has a rest element, a default, or a key that names no
 		// identifier leaves only the report.

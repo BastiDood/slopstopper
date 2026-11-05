@@ -1,9 +1,10 @@
 import { defineRule, type ESTree, type SourceCode, type Variable } from '@oxlint/plugins';
 
+import { assertNotNull } from '#assert.ts';
 import { firstConstInitializer, resolvedVariable, unvisitedVariable } from '#ast/bindings.ts';
 import { unwrap } from '#ast/discriminant.ts';
 import { enclosingFunction } from '#ast/functions.ts';
-import { methodTarget } from '#ast/known-arrays.ts';
+import { methodName, methodTarget } from '#ast/known-arrays.ts';
 import { messageLabel } from '#ast/labels.ts';
 import {
 	isSvelteComponent,
@@ -18,14 +19,9 @@ const COMPONENT_NAME_REGEX = /^[A-Z][\dA-Za-z]*$/u;
 const HOOK_NAME_REGEX = /^use[\dA-Z]/u;
 
 /**
- * Reports a call that builds a TanStack Table schema on every render: `tableFeatures(…)`, `createColumnHelper(…)`, or
- * `helper.columns(…)` on a column helper. A column helper is a `createColumnHelper(…)` call or a never-reassigned `const`
- * that it initializes, directly or through `const` aliases. `tableFeatures` and `createColumnHelper` count when they are
- * imported or undeclared, not when a local binding shadows them.
- *
- * In a Svelte component, a call in the instance `<script>` is reported, and a call in the `<script module>` is not. In
- * any other file, a call inside a function named like a React component or hook is reported, unless a `useMemo`
- * callback between them holds the call. There is no rewrite: hoisting the schema moves code across scopes.
+ * Reports a TanStack Table schema, built by `tableFeatures(…)`, `createColumnHelper(…)`, or `helper.columns(…)`, inside
+ * a React component or hook or the instance `<script>` of a Svelte component, where it is rebuilt on every render or for
+ * every instance. There is no rewrite: hoisting the schema moves code across scopes.
  */
 export const NO_RENDER_SCOPED_TABLE_SCHEMA = defineRule({
 	meta: {
@@ -85,18 +81,20 @@ export const NO_RENDER_SCOPED_TABLE_SCHEMA = defineRule({
 
 /** Whether a call builds a part of the table schema: `tableFeatures(…)`, `createColumnHelper(…)`, or `.columns(…)` on a column helper. */
 function isSchemaCall(sourceCode: SourceCode, call: ESTree.CallExpression) {
-	const method = methodTarget(call.callee);
-	if (method === null) {
+	const name = methodName(call.callee);
+	if (name === null) {
 		return (
 			isLibraryCall(sourceCode, call, 'tableFeatures') ||
 			isLibraryCall(sourceCode, call, 'createColumnHelper')
 		);
 	}
-	return method.name === 'columns' && isColumnHelper(sourceCode, [], method.object);
+	if (name !== 'columns') return false;
+	const { object } = assertNotNull(methodTarget(call.callee));
+	return isColumnHelper(sourceCode, [], object);
 }
 
 /**
- * Whether an expression is a column helper: a `createColumnHelper(…)` call, or a never-reassigned `const` that one
+ * Whether an expression is a column helper: a `createColumnHelper(…)` call, or a `const` that one
  * initializes, directly or through `const` aliases. `visited` holds the aliases already followed, so that a cycle of
  * aliases ends.
  */
@@ -154,8 +152,7 @@ function isMemoCallback(fn: ESTree.Function | ESTree.ArrowFunctionExpression) {
 	if (parent.type !== 'CallExpression' || parent.arguments[0] !== fn) return false;
 	const callee = unwrap(parent.callee);
 	if (callee.type === 'Identifier') return callee.name === 'useMemo';
-	const method = methodTarget(callee);
-	return method?.name === 'useMemo';
+	return methodName(callee) === 'useMemo';
 }
 
 /**

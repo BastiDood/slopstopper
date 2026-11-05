@@ -6,13 +6,12 @@ import {
 	type Variable,
 } from '@oxlint/plugins';
 
-import { assertDefined } from '#assert.ts';
 import { referenceKey, unwrap } from '#ast/discriminant.ts';
 import { isFunction } from '#ast/functions.ts';
 import { messageLabel } from '#ast/labels.ts';
 import { propertyName } from '#ast/property-keys.ts';
 import { isWithin } from '#ast/ranges.ts';
-import { accessChain, isValueRead, queryOption, valueReads } from '#ast/tanstack-query.ts';
+import { isValueRead, outerAccess, queryOption, valueReads } from '#ast/tanstack-query.ts';
 
 /** What the `queryKey` of a query holds, as seen from its `queryFn`. */
 interface QueryKey {
@@ -27,15 +26,8 @@ interface QueryKey {
 /**
  * Reports a value that the inline `queryFn` of a TanStack Query captures from its closure while the sibling `queryKey`
  * holds it too. The query function context passes the key to `queryFn`, so reading the value from there keeps the fetch
- * in step with the cache entry that the key names.
- *
- * Inside `queryFn`, a reference that resolves outside it is reported when it reads a variable that the key reads, or a
- * static member path of one: a key that holds `filters.status` reports `filters.status`, and a key that holds `filters`
- * reports every read of `filters`. A `.queryKey` read on a captured object, such as `opts.queryKey`, and a call with the
- * same tokens and bindings as a key that is a call, such as a repeated key factory call `keys.detail(id)`, are reported
- * too. Each offending expression is reported once, at the outermost match. The context parameter of `queryFn`, its
- * locals, and captures that the key does not hold are never reported. There is no rewrite: the position of a value in
- * the key is up to the key's author.
+ * in step with the cache entry that the key names. There is no rewrite: the position of a value in the key is up to the
+ * key's author.
  */
 export const PREFER_QUERY_KEY_CONTEXT = defineRule({
 	meta: {
@@ -77,15 +69,20 @@ export const PREFER_QUERY_KEY_CONTEXT = defineRule({
 });
 
 /**
- * What a `queryKey` value holds. A read adds a path only when its whole access chain (see `accessChain`) reads static
+ * What a `queryKey` value holds. A read adds a path only when its whole access chain (see `outerAccess`) reads static
  * members, so that a callee such as `keys.detail` in `keys.detail(id)` and a dynamic read such as `items[i]` add none.
  */
 function queryKeyOf(sourceCode: SourceCode, value: ESTree.Expression) {
 	const reads = valueReads(sourceCode, value);
 	const paths = new Map<Variable, string[]>();
 	for (const { identifier, resolved } of reads) {
-		const path = pathOf(assertDefined(accessChain(identifier).at(-1)));
-		if (resolved === null || path === null) continue;
+		if (resolved === null) continue;
+		let outermost: ESTree.Node = identifier;
+		for (let access = outerAccess(identifier); access !== null; access = outerAccess(access)) {
+			outermost = access;
+		}
+		const path = pathOf(outermost);
+		if (path === null) continue;
 		const known = paths.get(resolved);
 		if (typeof known === 'undefined') paths.set(resolved, [path]);
 		else known.push(path);
@@ -109,10 +106,15 @@ function keyCaptures(sourceCode: SourceCode, key: QueryKey, queryFn: ESTree.Node
 	const { through } = sourceCode.getScope(queryFn);
 	for (const reference of through) {
 		if (!isValueRead(reference)) continue;
-		const capture = accessChain(reference.identifier).findLast(node =>
-			isKeyCapture(sourceCode, key, reference, node),
-		);
-		if (typeof capture !== 'undefined') captures.push(capture);
+		let capture: ESTree.Node | null = null;
+		for (
+			let node: ESTree.Node | null = reference.identifier;
+			node !== null;
+			node = outerAccess(node)
+		) {
+			if (isKeyCapture(sourceCode, key, reference, node)) capture = node;
+		}
+		if (capture !== null) captures.push(capture);
 	}
 	return captures.filter(
 		capture =>

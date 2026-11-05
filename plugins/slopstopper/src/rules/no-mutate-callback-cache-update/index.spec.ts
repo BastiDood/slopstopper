@@ -13,14 +13,14 @@ const ERROR = { messageId: 'cacheUpdate' };
 
 OXLINT_RULE_TESTER.run('no-mutate-callback-cache-update', NO_MUTATE_CALLBACK_CACHE_UPDATE, {
 	valid: [
-		// A renamed field of an untraced call, and a computed member.
-		'const { mutate: save } = useCustom(); save(input, { onSuccess: () => queryClient.invalidateQueries() }); mutation[method](input, { onSuccess: () => queryClient.invalidateQueries() });',
+		// A renamed field of an untraced call or of an unresolved name, and a computed member.
+		'const { mutate: save } = useCustom(); save(input, { onSuccess: () => queryClient.invalidateQueries() }); const { mutate: copy } = mutation; copy(input, { onSuccess: () => queryClient.invalidateQueries() }); mutation[method](input, { onSuccess: () => queryClient.invalidateQueries() });',
 	],
 	invalid: [
-		// A `.mutate` member call, nested deep in a callback.
+		// A `.mutate` member call, nested deep in a callback, and an unresolved `mutate`.
 		{
-			code: 'mutation.mutate(input, { onSettled() { if (ok) { void queryClient.invalidateQueries({ queryKey }); } } });',
-			errors: [ERROR],
+			code: 'mutation.mutate(input, { onSettled() { if (ok) { void queryClient.invalidateQueries({ queryKey }); } } }); mutate(input, { onSuccess: () => queryClient.setQueryData(queryKey, data) });',
+			errors: [ERROR, ERROR],
 		},
 	],
 });

@@ -1,14 +1,9 @@
-import type { ESTree, Reference, SourceCode, Variable } from '@oxlint/plugins';
+import type { ESTree, SourceCode, Variable } from '@oxlint/plugins';
 
 import { onlyElement } from '#arrays.ts';
-import {
-	firstConstInitializer,
-	isNeverReassigned,
-	resolvedVariable,
-	unvisitedVariable,
-} from '#ast/bindings.ts';
+import { firstConstInitializer, resolvedVariable, unvisitedVariable } from '#ast/bindings.ts';
 import { unwrap } from '#ast/discriminant.ts';
-import { methodTarget } from '#ast/known-arrays.ts';
+import { methodName } from '#ast/known-arrays.ts';
 import { propertyName } from '#ast/property-keys.ts';
 
 /** Matches the name of a TanStack Query adapter package, such as `@tanstack/react-query` or `@tanstack/svelte-query`. */
@@ -18,17 +13,16 @@ const TANSTACK_QUERY_PACKAGE_REGEX = /^@tanstack\/[\w-]+-query$/u;
  * The method of a TanStack Query mutation that an expression reads: `mutate` or `mutateAsync`, or `null` for anything
  * else. A member reads the method of its static property name, whatever its object. An identifier reads the method that
  * its binding holds: a field that a `const` pattern destructures, under any local name, from the result of
- * `useMutation` or `createMutation` (see `isMutationResult`), or a never-reassigned `const` alias of such a method. An
+ * `useMutation` or `createMutation` (see `isMutationResult`), or a `const` alias of such a method. An
  * identifier that the rule cannot trace reads the method of its own name.
  */
 export function mutationMethodOf(sourceCode: SourceCode, expression: ESTree.Expression) {
 	return methodOf(sourceCode, [], expression);
 }
 
-/** The method that the identifier of a reference reads (see `mutationMethodOf`). */
-export function referenceMethodOf(sourceCode: SourceCode, { resolved, identifier }: Reference) {
-	const visited = resolved === null ? [] : [resolved];
-	return namedMethod(sourceCode, visited, resolved, identifier.name);
+/** The method that every reference to a variable reads (see `mutationMethodOf`). */
+export function variableMethodOf(sourceCode: SourceCode, variable: Variable) {
+	return namedMethod(sourceCode, [variable], variable, variable.name);
 }
 
 /**
@@ -51,8 +45,8 @@ function methodOf(
 				node.name,
 			);
 		case 'MemberExpression': {
-			const target = methodTarget(node);
-			return target === null ? null : mutationMethod(target.name);
+			const name = methodName(node);
+			return name === null ? null : mutationMethod(name);
 		}
 		default:
 			return null;
@@ -60,8 +54,8 @@ function methodOf(
 }
 
 /**
- * The method that an identifier reads: the method that its never-reassigned binding holds, or else the method of its
- * name. Expects `visited` to hold the variable already.
+ * The method that an identifier reads: the method that its `const` binding holds, or else the method of its name.
+ * Expects `visited` to hold the variable already.
  */
 function namedMethod(
 	sourceCode: SourceCode,
@@ -69,10 +63,7 @@ function namedMethod(
 	variable: Variable | null,
 	name: string,
 ) {
-	const traced =
-		variable !== null && isNeverReassigned(variable)
-			? boundMethod(sourceCode, visited, variable)
-			: null;
+	const traced = variable === null ? null : boundMethod(sourceCode, visited, variable);
 	return traced ?? mutationMethod(name);
 }
 
@@ -87,9 +78,8 @@ function boundMethod(sourceCode: SourceCode, visited: Variable[], { defs }: Vari
 		}
 		if (node.id === name) return methodOf(sourceCode, visited, node.init);
 		const key = patternKey(node.id, name);
-		return key !== null && isMutationResult(sourceCode, visited, node.init)
-			? mutationMethod(key)
-			: null;
+		const method = key === null ? null : mutationMethod(key);
+		return method !== null && isMutationResult(sourceCode, visited, node.init) ? method : null;
 	}
 	return null;
 }
@@ -116,7 +106,7 @@ function patternKey(pattern: ESTree.BindingPattern, binding: ESTree.Node) {
 
 /**
  * Whether an expression is the result of a mutation: a call of `useMutation` or `createMutation` (see
- * `isMutationFactory`), directly or through never-reassigned `const` aliases.
+ * `isMutationFactory`), directly or through `const` aliases.
  */
 function isMutationResult(
 	sourceCode: SourceCode,
@@ -130,8 +120,7 @@ function isMutationResult(
 			return isMutationFactory(sourceCode, node.callee);
 		case 'Identifier': {
 			const variable = unvisitedVariable(sourceCode, visited, node);
-			if (variable === null || !isNeverReassigned(variable)) return false;
-			const init = firstConstInitializer(variable);
+			const init = variable === null ? null : firstConstInitializer(variable);
 			return init !== null && isMutationResult(sourceCode, visited, init);
 		}
 		default:

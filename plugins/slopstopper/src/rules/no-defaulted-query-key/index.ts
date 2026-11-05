@@ -9,11 +9,9 @@ import { propertyName } from '#ast/property-keys.ts';
 import { queryOption, valueReads } from '#ast/tanstack-query.ts';
 
 /**
- * Reports a defaulted value in the `queryKey` of a TanStack Query: a `??` or `||` expression, or a binding that holds
- * a default, which is a parameter or destructured binding with a default value, or a `const` initialized with `??` or
- * `||`, directly or through `const` aliases. A defaulted key shares its cache entry with the real value that equals
- * the default, so the author must keep the absent value in the key and disable the query with `skipToken` instead. The key includes the arguments of key factory calls in it, but not the functions nested in it.
- * A binding inside a reported `??` or `||` expression is not reported again. There is no rewrite.
+ * Reports a defaulted value in the `queryKey` of a TanStack Query: a `??` or `||` expression, or a binding that holds a
+ * default. A defaulted key shares its cache entry with the real value that equals the default, so the key must keep the
+ * absent value and the query must be disabled with `skipToken` instead. There is no rewrite.
  */
 export const NO_DEFAULTED_QUERY_KEY = defineRule({
 	meta: {

@@ -60,23 +60,11 @@ interface StoreSubscription extends SelectorTarget {
  * (`packages/react-table/src/useTable.ts`), and Svelte prefers a slice read because a whole-store read reruns for every
  * state change (`packages/svelte-table/skills/table-state/SKILL.md`).
  *
- * The rule reports a snapshot read such as `table.store.get()` or `table.store.state`, and any other raw use of
- * `table.store`, such as `table.store.subscribe(...)`. A subscription to the store through a selector, as in
- * `useSelector(table.store, selector)` from `@tanstack/react-store`, `<Subscribe source={table.store} selector={...}>`,
- * or `<table.Subscribe selector={...}>`, which selects from the store, is reported when the selector is an inline
- * function that reads exactly one top-level slice of its state, because the slice's atom is the narrowest boundary. A
- * selector that reads several slices, or that the rule cannot analyze, is allowed
- * (`packages/react-table/skills/table-state/references/reactivity.md`), except under `useSelector`: it compares with
- * `===` unless a third argument passes `compare` (`packages/react-store/src/useSelector.ts` in TanStack/store), while
- * `Subscribe` compares with `shallow` (`packages/react-table/src/Subscribe.ts`), so a `useSelector` selector of several
- * slices that returns a fresh array or object literal is reported without a third argument. `useSelector` from
- * `@tanstack/svelte-store` over the store is reported whatever its selector, because Svelte table UI reads the
- * rune-aware atoms inside `$derived`. `<table.Subscribe>` with neither a `source` nor a `selector` re-renders on every
- * state change, so it is reported too.
- *
- * Without type information, a table is the identifier `table`, a non-computed `table` member, a call to `useTable` or
- * `createTable`, or a never-reassigned `const` whose initializer is one of these, followed through aliases. With type
- * information, a table is also any expression whose type has the `store`, `atoms`, and `baseAtoms` of a table instance.
+ * A selector subscription to the store is reported when its selector reads one slice, since the slice's atom is the
+ * narrowest boundary. A selector of several slices is allowed (`packages/react-table/skills/table-state/references/reactivity.md`),
+ * except under `useSelector`, which compares with `===` by default (`packages/react-store/src/useSelector.ts` in
+ * TanStack/store) while `Subscribe` compares with `shallow` (`packages/react-table/src/Subscribe.ts`), so a fresh
+ * literal re-renders on every change.
  *
  * The rewrites into atoms are suggestions: `table.atoms` holds only the slices of registered features, so a rewrite
  * throws where the store read gave `undefined`.
@@ -112,10 +100,11 @@ export const PREFER_TABLE_ATOMS = defineRule({
 
 		return {
 			CallExpression(node) {
-				const selector = useSelectorSelector(sourceCode, node);
-				if (selector === null) return;
+				// The store check comes first because it rejects most calls without a scope lookup.
 				const store = tableStoreOf(sourceCode, services, node.arguments[0]);
 				if (store === null) return;
+				const selector = useSelectorSelector(sourceCode, node);
+				if (selector === null) return;
 				checkSelector(context, {
 					...storeSubscription(sourceCode, store, selector),
 					isIdentityCompared: node.arguments.length < 3,
@@ -193,7 +182,7 @@ function isSelectedSource(sourceCode: SourceCode, store: ESTree.MemberExpression
  */
 function useSelectorSelector(sourceCode: SourceCode, call: ESTree.CallExpression) {
 	const [, selector] = call.arguments;
-	return isUseSelector(sourceCode, call, isReactStoreModule) && typeof selector !== 'undefined'
+	return typeof selector !== 'undefined' && isUseSelector(sourceCode, call, isReactStoreModule)
 		? selector
 		: null;
 }
