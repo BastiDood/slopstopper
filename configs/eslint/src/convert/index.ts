@@ -80,15 +80,14 @@ function toEslintRuleEntry(rule: NonNullable<OxlintRules[string]>) {
 		: toEslintSeverity(rule);
 }
 
-/** The published category lists, indexed once by category, then ESLint namespace, then rule names. */
-const CATEGORY_INDEX = new Map<Category, Map<string, string[]>>()
-	.set('correctness', indexByNamespace(correctnessRules, correctnessTypeAwareRules))
-	.set('nursery', indexByNamespace(nurseryRules, nurseryTypeAwareRules))
-	.set('pedantic', indexByNamespace(pedanticRules, pedanticTypeAwareRules))
-	.set('perf', indexByNamespace(perfRules))
-	.set('restriction', indexByNamespace(restrictionRules, restrictionTypeAwareRules))
-	.set('style', indexByNamespace(styleRules, styleTypeAwareRules))
-	.set('suspicious', indexByNamespace(suspiciousRules, suspiciousTypeAwareRules));
+// The published category lists, each indexed once by ESLint namespace, then rule names.
+const CORRECTNESS = indexByNamespace(correctnessRules, correctnessTypeAwareRules);
+const NURSERY = indexByNamespace(nurseryRules, nurseryTypeAwareRules);
+const PEDANTIC = indexByNamespace(pedanticRules, pedanticTypeAwareRules);
+const PERF = indexByNamespace(perfRules);
+const RESTRICTION = indexByNamespace(restrictionRules, restrictionTypeAwareRules);
+const STYLE = indexByNamespace(styleRules, styleTypeAwareRules);
+const SUSPICIOUS = indexByNamespace(suspiciousRules, suspiciousTypeAwareRules);
 
 function indexByNamespace(...ruleSets: Record<string, 'off'>[]) {
 	const byNamespace = new Map<string, string[]>();
@@ -167,14 +166,26 @@ export function writeExtensionRules(
 /** Write the ESLint rules that the configured Oxlint categories enable for the given Oxlint plugins. */
 export function writeCategoryRules(
 	target: Linter.RulesRecord,
-	categories: Categories,
+	{ correctness, nursery, pedantic, perf, restriction, style, suspicious }: Categories,
 	plugins: Iterable<string>,
 ) {
-	for (const [category, byNamespace] of CATEGORY_INDEX) {
-		const severity = categories[category];
-		if (typeof severity === 'undefined') continue;
-		writeNamespaceRules(target, byNamespace, plugins, toEslintSeverity(severity));
-	}
+	writeCategory(target, CORRECTNESS, correctness, plugins);
+	writeCategory(target, NURSERY, nursery, plugins);
+	writeCategory(target, PEDANTIC, pedantic, plugins);
+	writeCategory(target, PERF, perf, plugins);
+	writeCategory(target, RESTRICTION, restriction, plugins);
+	writeCategory(target, STYLE, style, plugins);
+	writeCategory(target, SUSPICIOUS, suspicious, plugins);
+}
+
+function writeCategory(
+	target: Linter.RulesRecord,
+	byNamespace: Map<string, string[]>,
+	severity: Categories[Category],
+	plugins: Iterable<string>,
+) {
+	if (typeof severity === 'undefined') return;
+	writeNamespaceRules(target, byNamespace, plugins, toEslintSeverity(severity));
 }
 
 function writeNamespaceRules(
