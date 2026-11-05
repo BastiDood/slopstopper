@@ -21,7 +21,7 @@ export interface MethodTarget {
  * `const`, initialized with a known array. An unknown receiver, such as an iterator, does not count.
  */
 export function isKnownArrayExpression(sourceCode: SourceCode, expression: ESTree.Expression) {
-	return isKnownArray(sourceCode, new Set<Variable>(), expression);
+	return isKnownArray(sourceCode, [], expression);
 }
 
 /**
@@ -38,7 +38,7 @@ export function isStandardArrayMethod(services: TypeServices, property: ESTree.N
  */
 function isKnownArray(
 	sourceCode: SourceCode,
-	visited: Set<Variable>,
+	visited: Variable[],
 	expression: ESTree.Expression,
 ): boolean {
 	const node = unwrap(expression);
@@ -96,7 +96,7 @@ function returnsNewArray(name: string) {
  */
 function isKnownArrayBinding(
 	sourceCode: SourceCode,
-	visited: Set<Variable>,
+	visited: Variable[],
 	identifier: ESTree.IdentifierReference,
 ) {
 	const variable = unvisitedVariable(sourceCode, visited, identifier);

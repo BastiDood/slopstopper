@@ -31,17 +31,17 @@ export function onlyDefinition(sourceCode: SourceCode, identifier: ESTree.Identi
 
 /**
  * The variable that an identifier resolves to when a walk over aliases reaches it for the first time, or `null` when it
- * resolves to none or `visited` already holds it. Adds the variable to `visited`, so that a cycle of aliases ends. A
+ * resolves to none or `visited` already holds it. Appends the variable to `visited`, so that a cycle of aliases ends. A
  * walk that must not follow a reassigned alias checks `isNeverReassigned` itself.
  */
 export function unvisitedVariable(
 	sourceCode: SourceCode,
-	visited: Set<Variable>,
+	visited: Variable[],
 	identifier: ESTree.IdentifierReference,
 ) {
 	const variable = resolvedVariable(sourceCode, identifier);
-	if (variable === null || visited.has(variable)) return null;
-	visited.add(variable);
+	if (variable === null || visited.includes(variable)) return null;
+	visited.push(variable);
 	return variable;
 }
 

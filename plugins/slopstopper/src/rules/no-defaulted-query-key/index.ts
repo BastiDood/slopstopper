@@ -47,7 +47,7 @@ export const NO_DEFAULTED_QUERY_KEY = defineRule({
 					if (
 						resolved === null ||
 						keyPosition(identifier) !== 'key' ||
-						!holdsDefault(sourceCode, new Set([resolved]), resolved)
+						!holdsDefault(sourceCode, [resolved], resolved)
 					) {
 						continue;
 					}
@@ -97,7 +97,7 @@ function isQueryKeyValue(parent: ESTree.Node, child: ESTree.Node) {
  * does, or it is a `const` initialized with a `??` or `||` expression or with the name of another variable that holds a
  * default. `visited` holds the variables already followed, so that a cycle of aliases ends.
  */
-function holdsDefault(sourceCode: SourceCode, visited: Set<Variable>, variable: Variable): boolean {
+function holdsDefault(sourceCode: SourceCode, visited: Variable[], variable: Variable): boolean {
 	const definition = onlyElement(variable.defs);
 	if (definition === null) return false;
 	const { name } = definition;

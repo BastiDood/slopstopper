@@ -92,9 +92,7 @@ function isSchemaCall(sourceCode: SourceCode, call: ESTree.CallExpression) {
 			isLibraryCall(sourceCode, call, 'createColumnHelper')
 		);
 	}
-	return (
-		method.name === 'columns' && isColumnHelper(sourceCode, new Set<Variable>(), method.object)
-	);
+	return method.name === 'columns' && isColumnHelper(sourceCode, [], method.object);
 }
 
 /**
@@ -104,7 +102,7 @@ function isSchemaCall(sourceCode: SourceCode, call: ESTree.CallExpression) {
  */
 function isColumnHelper(
 	sourceCode: SourceCode,
-	visited: Set<Variable>,
+	visited: Variable[],
 	expression: ESTree.Expression,
 ): boolean {
 	const node = unwrap(expression);

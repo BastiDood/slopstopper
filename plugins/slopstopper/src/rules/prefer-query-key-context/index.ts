@@ -19,7 +19,7 @@ interface QueryKey {
 	/** The value reads in the key, in source order. */
 	reads: Reference[];
 	/** The paths (see `pathOf`) of the static member reads in the key, by the variable at their root. */
-	paths: Map<Variable, Set<string>>;
+	paths: Map<Variable, string[]>;
 	/** The key when it is a call, such as `keys.detail(id)`, through optional chains and TypeScript assertions. */
 	call: ESTree.CallExpression | null;
 }
@@ -82,12 +82,13 @@ export const PREFER_QUERY_KEY_CONTEXT = defineRule({
  */
 function queryKeyOf(sourceCode: SourceCode, value: ESTree.Expression) {
 	const reads = valueReads(sourceCode, value);
-	const paths = new Map<Variable, Set<string>>();
+	const paths = new Map<Variable, string[]>();
 	for (const { identifier, resolved } of reads) {
 		const path = pathOf(assertDefined(accessChain(identifier).at(-1)));
 		if (resolved === null || path === null) continue;
-		const known = paths.get(resolved) ?? new Set<string>();
-		paths.set(resolved, known.add(path));
+		const known = paths.get(resolved);
+		if (typeof known === 'undefined') paths.set(resolved, [path]);
+		else known.push(path);
 	}
 
 	const target = unwrap(value);
@@ -131,7 +132,7 @@ function isKeyCapture(
 ) {
 	const path = pathOf(node);
 	return (
-		(resolved !== null && path !== null && key.paths.get(resolved)?.has(path) === true) ||
+		(resolved !== null && path !== null && key.paths.get(resolved)?.includes(path) === true) ||
 		isQueryKeyRead(node) ||
 		(key.call !== null &&
 			node.type === 'CallExpression' &&

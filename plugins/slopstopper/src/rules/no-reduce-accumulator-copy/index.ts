@@ -187,12 +187,12 @@ function copiesAccumulator(
 				isGlobal(sourceCode, object, 'Array') &&
 				typeof source !== 'undefined' &&
 				source.type !== 'SpreadElement' &&
-				aliasesAccumulator(sourceCode, accumulator, new Set<Variable>(), source)
+				aliasesAccumulator(sourceCode, accumulator, [], source)
 			);
 		}
 		default:
 			return (
-				aliasesAccumulator(sourceCode, accumulator, new Set<Variable>(), object) &&
+				aliasesAccumulator(sourceCode, accumulator, [], object) &&
 				((initialValue !== null &&
 					initialValue.type !== 'SpreadElement' &&
 					isKnownArrayExpression(sourceCode, initialValue)) ||
@@ -214,7 +214,7 @@ function assignsFromAccumulator(
 		sources.some(
 			source =>
 				source.type !== 'SpreadElement' &&
-				aliasesAccumulator(sourceCode, accumulator, new Set<Variable>(), source),
+				aliasesAccumulator(sourceCode, accumulator, [], source),
 		)
 	);
 }
@@ -232,7 +232,7 @@ function isGlobal(sourceCode: SourceCode, expression: ESTree.Expression, name: s
 function aliasesAccumulator(
 	sourceCode: SourceCode,
 	accumulator: Variable,
-	visited: Set<Variable>,
+	visited: Variable[],
 	expression: ESTree.Expression,
 ): boolean {
 	const node = unwrap(expression);

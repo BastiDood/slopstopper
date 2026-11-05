@@ -22,13 +22,12 @@ const TANSTACK_QUERY_PACKAGE_REGEX = /^@tanstack\/[\w-]+-query$/u;
  * identifier that the rule cannot trace reads the method of its own name.
  */
 export function mutationMethodOf(sourceCode: SourceCode, expression: ESTree.Expression) {
-	return methodOf(sourceCode, new Set<Variable>(), expression);
+	return methodOf(sourceCode, [], expression);
 }
 
 /** The method that the identifier of a reference reads (see `mutationMethodOf`). */
 export function referenceMethodOf(sourceCode: SourceCode, { resolved, identifier }: Reference) {
-	const visited = new Set<Variable>();
-	if (resolved !== null) visited.add(resolved);
+	const visited = resolved === null ? [] : [resolved];
 	return namedMethod(sourceCode, visited, resolved, identifier.name);
 }
 
@@ -38,7 +37,7 @@ export function referenceMethodOf(sourceCode: SourceCode, { resolved, identifier
  */
 function methodOf(
 	sourceCode: SourceCode,
-	visited: Set<Variable>,
+	visited: Variable[],
 	expression: ESTree.Expression,
 ): ReturnType<typeof mutationMethod> {
 	const node = unwrap(expression);
@@ -66,7 +65,7 @@ function methodOf(
  */
 function namedMethod(
 	sourceCode: SourceCode,
-	visited: Set<Variable>,
+	visited: Variable[],
 	variable: Variable | null,
 	name: string,
 ) {
@@ -81,7 +80,7 @@ function namedMethod(
  * The method that the first `const` declarator of a variable binds: the method of the initializer for a plain name, or
  * the destructured key for a pattern on a mutation result. Returns `null` for any other binding.
  */
-function boundMethod(sourceCode: SourceCode, visited: Set<Variable>, { defs }: Variable) {
+function boundMethod(sourceCode: SourceCode, visited: Variable[], { defs }: Variable) {
 	for (const { node, name } of defs) {
 		if (node.type !== 'VariableDeclarator' || node.init === null || !isConstDeclarator(node)) {
 			continue;
@@ -121,7 +120,7 @@ function patternKey(pattern: ESTree.BindingPattern, binding: ESTree.Node) {
  */
 function isMutationResult(
 	sourceCode: SourceCode,
-	visited: Set<Variable>,
+	visited: Variable[],
 	expression: ESTree.Expression,
 ): boolean {
 	const node = unwrap(expression);

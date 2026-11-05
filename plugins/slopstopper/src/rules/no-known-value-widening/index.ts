@@ -243,7 +243,7 @@ function widensKnownValue(sourceCode: SourceCode, target: ESTree.TSType, value: 
 	if (widening === null) return false;
 	const node = unwrap(value);
 	if (widening === 'open dictionary' && isEmptyObject(node)) return false;
-	return hasKnownType(sourceCode, new Set<Variable>(), node);
+	return hasKnownType(sourceCode, [], node);
 }
 
 /** Whether an expression without wrappers (see `unwrap`) is an object literal without properties. */
@@ -257,7 +257,7 @@ function isEmptyObject(node: ESTree.Expression) {
  */
 function hasKnownType(
 	sourceCode: SourceCode,
-	visited: Set<Variable>,
+	visited: Variable[],
 	expression: ESTree.Expression,
 ): boolean {
 	const node = unwrap(expression);
@@ -286,7 +286,7 @@ function checkGuardCall(context: Context, { callee, arguments: args }: ESTree.Ca
 
 	const annotation = identifierAnnotation(binding);
 	if (annotation === null || !containsUnknown(annotation.typeAnnotation)) return;
-	if (!hasKnownArgumentType(sourceCode, new Set<Variable>(), argument)) return;
+	if (!hasKnownArgumentType(sourceCode, [], argument)) return;
 
 	context.report({
 		node: argument,
@@ -353,7 +353,7 @@ function containsUnknown(type: ESTree.TSType): boolean {
  */
 function hasKnownArgumentType(
 	sourceCode: SourceCode,
-	visited: Set<Variable>,
+	visited: Variable[],
 	expression: ESTree.Expression,
 ): boolean {
 	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- The other expressions count only as known values, which `default` checks.
@@ -381,7 +381,7 @@ function hasKnownArgumentType(
 /** Whether a binding has an informative annotation, or no annotation and a `const` initializer with a known type. */
 function hasKnownBindingType(
 	sourceCode: SourceCode,
-	visited: Set<Variable>,
+	visited: Variable[],
 	identifier: ESTree.IdentifierReference,
 ) {
 	const variable = unvisitedVariable(sourceCode, visited, identifier);

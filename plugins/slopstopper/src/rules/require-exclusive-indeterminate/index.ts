@@ -8,7 +8,7 @@ import { propertyName } from '#ast/property-keys.ts';
 /**
  * Matches the nodes around the value of a Svelte `indeterminate={…}` attribute or `bind:indeterminate={…}` directive in
  * the AST of `svelte-eslint-parser`: the mustache tag of the attribute, the directive, and the getter and setter pair of
- * a function binding `bind:indeterminate={get, set}`. ESLint visits these before the value, so a set of them is
+ * a function binding `bind:indeterminate={get, set}`. ESLint visits these before the value, so a list of them is
  * complete by the time a call in the value is visited.
  */
 const SVELTE_INDETERMINATE_HOLDER_SELECTOR = [
@@ -50,10 +50,10 @@ export const REQUIRE_EXCLUSIVE_INDETERMINATE = defineRule({
 	},
 	create(context) {
 		const { sourceCode } = context;
-		const svelteHolders = new Set<ESTree.Node>();
+		const svelteHolders: ESTree.Node[] = [];
 		return {
 			[SVELTE_INDETERMINATE_HOLDER_SELECTOR](node) {
-				svelteHolders.add(node);
+				svelteHolders.push(node);
 			},
 			CallExpression(node) {
 				const method = methodTarget(node.callee);
@@ -65,7 +65,7 @@ export const REQUIRE_EXCLUSIVE_INDETERMINATE = defineRule({
 				const root = indeterminateRoot(sourceCode, call, receiver, full);
 				if (root === null) return;
 				const setsIndeterminate =
-					svelteHolders.has(root.parent) || isIndeterminateValue(root);
+					svelteHolders.includes(root.parent) || isIndeterminateValue(root);
 				if (!setsIndeterminate) return;
 
 				const operator =
