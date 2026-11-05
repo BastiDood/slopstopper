@@ -1,8 +1,12 @@
 # Rule Implementation
 
+## Progressive Enhancement
+
+Oxlint doesn't yet provide type-aware properties in its public ESLint-compatible API yet. Therefore, rules must be implemented in such a way that progressively enhances linting behavior as type information becomes available (i.e., in ESLint environments).
+
 ## Validation
 
-- Validate and normalize a value once at the entry point, then pass the narrowed type forward. Callees state their assumptions in JSDoc and parameter types instead of re-checking them.
+Validate and normalize a value once at the entry point, then pass the narrowed type forward. Callees state their assumptions in JSDoc and parameter types instead of re-checking them.
 
 ## Fixes and Suggestions
 
