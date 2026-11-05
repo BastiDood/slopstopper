@@ -10,6 +10,9 @@
 		"directory": "configs/eslint"
 	},
 	"type": "module",
+	"imports": {
+		"#*": "./src/*"
+	},
 	"exports": {
 		".": "./src/compose/index.ts",
 		"./core": "./src/core.ts",
@@ -17,7 +20,9 @@
 		"./promise": "./src/promise.ts",
 		"./node": "./src/node.ts",
 		"./vitest": "./src/vitest.ts",
-		"./jsdoc": "./src/jsdoc.ts"
+		"./jsdoc": "./src/jsdoc.ts",
+		"./tanstack/query": "./src/tanstack/query.ts",
+		"./tanstack/table": "./src/tanstack/table.ts"
 	},
 	"files": [
 		"dist"
@@ -31,7 +36,9 @@
 			"./promise": "./dist/promise.mjs",
 			"./node": "./dist/node.mjs",
 			"./vitest": "./dist/vitest.mjs",
-			"./jsdoc": "./dist/jsdoc.mjs"
+			"./jsdoc": "./dist/jsdoc.mjs",
+			"./tanstack/query": "./dist/tanstack/query.mjs",
+			"./tanstack/table": "./dist/tanstack/table.mjs"
 		}
 	},
 	"scripts": {

@@ -1,4 +1,4 @@
-import type { Entry } from './compose/index.ts';
+import type { Entry } from '#compose/index.ts';
 
 /**
  * Turns off the memoization rules that the React Compiler makes obsolete: it memoizes inline functions, objects,

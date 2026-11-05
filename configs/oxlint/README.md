@@ -36,9 +36,12 @@ Combine entry points with `compose`, not `extends`, so that `no-restricted-*` li
 | `@bastidood/oxlint-config/unicorn`              | `unicorn` rules                                                                        |
 | `@bastidood/oxlint-config/promise`              | `promise` rules                                                                        |
 | `@bastidood/oxlint-config/react`                | React rules; bans effect hooks                                                         |
-| `@bastidood/oxlint-config/react-compiler`       | Turns off memoization rules made obsolete by the React Compiler; compose after `REACT` |
+| `@bastidood/oxlint-config/react/compiler`       | Turns off memoization rules made obsolete by the React Compiler; compose after `REACT` |
+| `@bastidood/oxlint-config/react/tanstack/query` | TanStack React Query rules; bans `useQueryClient`; compose with `TANSTACK_QUERY`       |
+| `@bastidood/oxlint-config/react/tanstack/table` | TanStack React Table rules; compose with `TANSTACK_TABLE`                              |
 | `@bastidood/oxlint-config/jsx-a11y`             | JSX accessibility rules                                                                |
-| `@bastidood/oxlint-config/tanstack-react-query` | Bans `useQueryClient`                                                                  |
+| `@bastidood/oxlint-config/tanstack/query`       | TanStack Query rules for every framework adapter                                       |
+| `@bastidood/oxlint-config/tanstack/table`       | TanStack Table rules for every framework adapter                                       |
 | `@bastidood/oxlint-config/next`                 | Next.js rules                                                                          |
 | `@bastidood/oxlint-config/vitest`               | Vitest rules                                                                           |
 | `@bastidood/oxlint-config/jsdoc`                | JSDoc rules for documentation that TypeScript does not cover                           |

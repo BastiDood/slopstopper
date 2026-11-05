@@ -25,15 +25,17 @@ List `CORE` first.
 
 ## Entry Points
 
-| Entry point                        | Contents                                                     |
-| ---------------------------------- | ------------------------------------------------------------ |
-| `@bastidood/eslint-config`         | `compose`                                                    |
-| `@bastidood/eslint-config/core`    | ESLint core, `import`, and `@typescript-eslint` rules        |
-| `@bastidood/eslint-config/unicorn` | `unicorn` rules                                              |
-| `@bastidood/eslint-config/promise` | `promise` rules                                              |
-| `@bastidood/eslint-config/node`    | Node.js rules                                                |
-| `@bastidood/eslint-config/vitest`  | Vitest rules                                                 |
-| `@bastidood/eslint-config/jsdoc`   | JSDoc rules for documentation that TypeScript does not cover |
+| Entry point                               | Contents                                                     |
+| ----------------------------------------- | ------------------------------------------------------------ |
+| `@bastidood/eslint-config`                | `compose`                                                    |
+| `@bastidood/eslint-config/core`           | ESLint core, `import`, and `@typescript-eslint` rules        |
+| `@bastidood/eslint-config/unicorn`        | `unicorn` rules                                              |
+| `@bastidood/eslint-config/promise`        | `promise` rules                                              |
+| `@bastidood/eslint-config/node`           | Node.js rules                                                |
+| `@bastidood/eslint-config/vitest`         | Vitest rules                                                 |
+| `@bastidood/eslint-config/jsdoc`          | JSDoc rules for documentation that TypeScript does not cover |
+| `@bastidood/eslint-config/tanstack/query` | TanStack Query rules for every framework adapter             |
+| `@bastidood/eslint-config/tanstack/table` | TanStack Table rules for every framework adapter             |
 
 ## Limitations
 

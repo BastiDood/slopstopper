@@ -15,7 +15,8 @@
 	},
 	"exports": {
 		".": "./src/index.ts",
-		"./tanstack-svelte-query": "./src/tanstack-svelte-query.ts"
+		"./tanstack/query": "./src/tanstack/query.ts",
+		"./tanstack/table": "./src/tanstack/table.ts"
 	},
 	"files": [
 		"dist"
@@ -24,7 +25,8 @@
 		"access": "public",
 		"exports": {
 			".": "./dist/index.mjs",
-			"./tanstack-svelte-query": "./dist/tanstack-svelte-query.mjs"
+			"./tanstack/query": "./dist/tanstack/query.mjs",
+			"./tanstack/table": "./dist/tanstack/table.mjs"
 		}
 	},
 	"scripts": {
