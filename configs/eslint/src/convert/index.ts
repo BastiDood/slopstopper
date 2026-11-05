@@ -51,7 +51,6 @@ export function writeEslintRules(target: Linter.RulesRecord, rules: OxlintRules)
 	}
 }
 
-/** Translate an Oxlint rule name into the name of the same rule in ESLint and its plugins. */
 export function toEslintRuleName(name: string) {
 	const separator = name.indexOf('/');
 	if (separator === -1) return name;
@@ -81,35 +80,29 @@ function toEslintRuleEntry(rule: NonNullable<OxlintRules[string]>) {
 		: toEslintSeverity(rule);
 }
 
-const CATEGORY_INDEX = indexCategories();
+/** The published category lists, indexed once by category, then ESLint namespace, then rule names. */
+const CATEGORY_INDEX = new Map<Category, Map<string, string[]>>()
+	.set('correctness', indexByNamespace(correctnessRules, correctnessTypeAwareRules))
+	.set('nursery', indexByNamespace(nurseryRules, nurseryTypeAwareRules))
+	.set('pedantic', indexByNamespace(pedanticRules, pedanticTypeAwareRules))
+	.set('perf', indexByNamespace(perfRules))
+	.set('restriction', indexByNamespace(restrictionRules, restrictionTypeAwareRules))
+	.set('style', indexByNamespace(styleRules, styleTypeAwareRules))
+	.set('suspicious', indexByNamespace(suspiciousRules, suspiciousTypeAwareRules));
 
-/** Index the published category lists once: category, then ESLint namespace, then rule names. */
-function indexCategories() {
-	const sources: [Category, Record<string, 'off'>[]][] = [
-		['correctness', [correctnessRules, correctnessTypeAwareRules]],
-		['nursery', [nurseryRules, nurseryTypeAwareRules]],
-		['pedantic', [pedanticRules, pedanticTypeAwareRules]],
-		['perf', [perfRules]],
-		['restriction', [restrictionRules, restrictionTypeAwareRules]],
-		['style', [styleRules, styleTypeAwareRules]],
-		['suspicious', [suspiciousRules, suspiciousTypeAwareRules]],
-	];
-	const index = new Map<Category, Map<string, string[]>>();
-	for (const [category, ruleSets] of sources) {
-		const byNamespace = new Map<string, string[]>();
-		for (const ruleSet of ruleSets) {
-			for (const name in ruleSet) {
-				if (!Object.hasOwn(ruleSet, name) || !isSupportedInEslint(name)) continue;
-				const namespace = namespaceOf(name);
-				const eslintName = renamedInEslint(name);
-				const names = byNamespace.get(namespace);
-				if (typeof names === 'undefined') byNamespace.set(namespace, [eslintName]);
-				else names.push(eslintName);
-			}
+function indexByNamespace(...ruleSets: Record<string, 'off'>[]) {
+	const byNamespace = new Map<string, string[]>();
+	for (const ruleSet of ruleSets) {
+		for (const name in ruleSet) {
+			if (!Object.hasOwn(ruleSet, name) || !isSupportedInEslint(name)) continue;
+			const namespace = namespaceOf(name);
+			const eslintName = renamedInEslint(name);
+			const names = byNamespace.get(namespace);
+			if (typeof names === 'undefined') byNamespace.set(namespace, [eslintName]);
+			else names.push(eslintName);
 		}
-		index.set(category, byNamespace);
 	}
-	return index;
+	return byNamespace;
 }
 
 /**

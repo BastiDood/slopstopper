@@ -1,6 +1,5 @@
 import type { Entry } from './compose/index.ts';
 
-/** Steers module mocks toward dependency injection, as honest functions take their external collaborators as parameters. */
 const MODULE_MOCK_MESSAGE =
 	'A module mock swaps out a dependency that the code under test hides. Make the code honest instead: have it take the stateful or external collaborator (a database, network client, file system, or clock) as a parameter, inject the real one from the entry point, and pass a fake in the test. If a mock is unavoidable, suppress this diagnostic with a reason and mock through `import()` so that the path stays type-checked.';
 

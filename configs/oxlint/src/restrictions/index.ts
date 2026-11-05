@@ -54,7 +54,6 @@ export class RestrictionLists {
 	readonly #properties: ['error', ...RestrictedProperty[]] = ['error'];
 	readonly #syntax: ['error', ...RestrictedSyntax[]] = ['error'];
 
-	/** Append every list of an entry point's restrictions. */
 	append({ importPaths, importPatterns, globals, properties, syntax }: Restrictions) {
 		appendAll(this.#imports.paths, importPaths);
 		appendAll(this.#imports.patterns, importPatterns);
