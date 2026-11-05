@@ -171,6 +171,9 @@ catalogs:
     '@oxlint/plugins':
       specifier: ^1.90.0
       version: 1.90.0
+    '@tanstack/eslint-plugin-query':
+      specifier: ^5.105.3
+      version: 5.105.3
     '@types/node':
       specifier: ^26.6.6
       version: 26.6.6
@@ -357,6 +360,34 @@ importers:
         specifier: 'catalog:'
         version: '@typescript/typescript6@6.0.2'
 
+  configs/eslint-tanstack-query:
+    dependencies:
+      '@bastidood/eslint-config-svelte':
+        specifier: workspace:^
+        version: link:../eslint-svelte
+      '@tanstack/eslint-plugin-query':
+        specifier: 'catalog:'
+        version: 5.105.3(@typescript/typescript6@6.0.2)(eslint@10.13.0)
+    devDependencies:
+      '@bastidood/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint
+      '@bastidood/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      eslint:
+        specifier: 'catalog:'
+        version: 10.13.0
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.23.4(@typescript/typescript6@6.0.2)
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+
   configs/oxfmt:
     dependencies:
       '@astrojs/compiler-rs':
@@ -397,6 +428,37 @@ importers:
       '@bastidood/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@typescript/native':
+        specifier: 'catalog:'
+        version: typescript@7.0.2
+      oxlint:
+        specifier: 'catalog:'
+        version: 1.90.0(oxlint-tsgolint@7.0.2005)
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.23.4(@typescript/typescript6@6.0.2)
+      typescript:
+        specifier: 'catalog:'
+        version: '@typescript/typescript6@6.0.2'
+
+  configs/oxlint-tanstack-query:
+    dependencies:
+      '@tanstack/eslint-plugin-query':
+        specifier: 'catalog:'
+        version: 5.105.3(@typescript/typescript6@6.0.2)(eslint@10.13.0)
+      eslint:
+        specifier: ^10.0.0
+        version: 10.13.0
+    devDependencies:
+      '@bastidood/oxlint-config':
+        specifier: workspace:*
+        version: link:../oxlint
+      '@bastidood/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@types/node':
+        specifier: 'catalog:'
+        version: 26.6.6
       '@typescript/native':
         specifier: 'catalog:'
         version: typescript@7.0.2
@@ -1045,6 +1107,15 @@ packages:
     resolution: {integrity: sha512-wgKggnhZVL9Bfx1OaKKTrYY9BFRk6C8UAkQNUcIv1+llzYrIqy+RZm5HPKzn0NpEBvTVhTqB4kQyllZywsRBRQ==}
     peerDependencies:
       acorn: ^8.9.0
+
+  '@tanstack/eslint-plugin-query@5.105.3':
+    resolution: {integrity: sha512-Q6WxKsiiS8RvtZYyUfWhdijXbomPxerWpNZNsWx439/Y3JkcXRBtRNIoeVC5i4jmD5SgNdvIL7emHLUkqN4YqA==}
+    peerDependencies:
+      eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
+      typescript: ^5.6.0 || ^6.0.0 || ^7.0.0
+    peerDependenciesMeta:
+      typescript:
+        optional: true
 
   '@tybys/wasm-util@0.10.4':
     resolution: {integrity: sha512-W3c4gRigFS0T/Ma4qIYF3GDAc5AQdHb1yL5znJT1Zv1YaD9Kitx656wBjvr19qbiosmZT8lWDM5BEMynUqX65A==}
@@ -3207,6 +3278,15 @@ snapshots:
   '@sveltejs/acorn-typescript@1.0.13(acorn@8.19.0)':
     dependencies:
       acorn: 8.19.0
+
+  '@tanstack/eslint-plugin-query@5.105.3(@typescript/typescript6@6.0.2)(eslint@10.13.0)':
+    dependencies:
+      '@typescript-eslint/utils': 8.72.1(@typescript/typescript6@6.0.2)(eslint@10.13.0)
+      eslint: 10.13.0
+    optionalDependencies:
+      typescript: '@typescript/typescript6@6.0.2'
+    transitivePeerDependencies:
+      - supports-color
 
   '@tybys/wasm-util@0.10.4':
     dependencies:

@@ -15,7 +15,6 @@
 	},
 	"exports": {
 		".": "./src/index.ts",
-		"./tanstack/query": "./src/tanstack/query.ts",
 		"./tanstack/table": "./src/tanstack/table.ts"
 	},
 	"files": [
@@ -25,7 +24,6 @@
 		"access": "public",
 		"exports": {
 			".": "./dist/index.mjs",
-			"./tanstack/query": "./dist/tanstack/query.mjs",
 			"./tanstack/table": "./dist/tanstack/table.mjs"
 		}
 	},

@@ -1,0 +1,46 @@
+{
+	"name": "@bastidood/eslint-config-tanstack-query",
+	"version": "0.4.0",
+	"description": "TanStack Query rules for @bastidood/eslint-config, including @tanstack/eslint-plugin-query.",
+	"license": "MIT",
+	"homepage": "https://github.com/BastiDood/slopstopper",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/BastiDood/slopstopper.git",
+		"directory": "configs/eslint-tanstack-query"
+	},
+	"type": "module",
+	"exports": {
+		"./svelte": "./src/svelte.ts"
+	},
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public",
+		"exports": {
+			"./svelte": "./dist/svelte.mjs"
+		}
+	},
+	"scripts": {
+		"prepack": "tsdown",
+		"check": "tsc"
+	},
+	"dependencies": {
+		"@tanstack/eslint-plugin-query": "catalog:"
+	},
+	"devDependencies": {
+		"@bastidood/eslint-config": "workspace:*",
+		"@bastidood/tsconfig": "workspace:*",
+		"@typescript/native": "catalog:",
+		"eslint": "catalog:",
+		"tsdown": "catalog:",
+		"typescript": "catalog:"
+	},
+	"peerDependencies": {
+		"@bastidood/eslint-config": "workspace:^",
+		"@bastidood/eslint-config-svelte": "workspace:^",
+		"eslint": "^10.0.0",
+		"typescript": ">=4.8.4 <6.1.0"
+	}
+}

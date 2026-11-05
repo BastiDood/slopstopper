@@ -5,8 +5,10 @@
 		{ "path": "./configs/eslint" },
 		{ "path": "./configs/eslint-astro" },
 		{ "path": "./configs/eslint-svelte" },
+		{ "path": "./configs/eslint-tanstack-query" },
 		{ "path": "./configs/oxfmt" },
 		{ "path": "./configs/oxlint" },
+		{ "path": "./configs/oxlint-tanstack-query" },
 		{ "path": "./plugins/slopstopper" }
 	]
 }

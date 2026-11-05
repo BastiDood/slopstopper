@@ -1,0 +1,47 @@
+{
+	"name": "@bastidood/oxlint-config-tanstack-query",
+	"version": "0.4.0",
+	"description": "TanStack Query rules for @bastidood/oxlint-config, including @tanstack/eslint-plugin-query.",
+	"license": "MIT",
+	"homepage": "https://github.com/BastiDood/slopstopper",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/BastiDood/slopstopper.git",
+		"directory": "configs/oxlint-tanstack-query"
+	},
+	"type": "module",
+	"exports": {
+		"./react": "./src/react.ts"
+	},
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public",
+		"exports": {
+			"./react": "./dist/react.mjs"
+		}
+	},
+	"scripts": {
+		"prepack": "tsdown",
+		"check": "tsc"
+	},
+	"dependencies": {
+		"@tanstack/eslint-plugin-query": "catalog:"
+	},
+	"devDependencies": {
+		"@bastidood/oxlint-config": "workspace:*",
+		"@bastidood/tsconfig": "workspace:*",
+		"@types/node": "catalog:",
+		"@typescript/native": "catalog:",
+		"oxlint": "catalog:",
+		"tsdown": "catalog:",
+		"typescript": "catalog:"
+	},
+	"peerDependencies": {
+		"@bastidood/oxlint-config": "workspace:^",
+		"eslint": "^10.0.0",
+		"oxlint": "catalog:",
+		"typescript": ">=4.8.4 <6.1.0"
+	}
+}

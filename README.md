@@ -21,9 +21,11 @@ This methodology is very much inspired by my foray into building MCP servers, wh
 To get started, refer to the respective installation guides for each plugin/configuration:
 
 - See the [base Oxlint configuration](./configs/oxlint/README.md) with (optional) experimental support for Svelte and Astro.
+  - See the optional [TanStack Query extension](./configs/oxlint-tanstack-query/README.md).
 - See the [base ESLint configuration](./configs/eslint/README.md).
   - See the optional [Svelte extension](./configs/eslint-svelte/README.md).
   - See the optional [Astro extension](./configs/eslint-astro/README.md).
+  - See the optional [TanStack Query extension](./configs/eslint-tanstack-query/README.md).
 - See the [Oxfmt configuration](./configs/oxfmt/README.md).
 - See the [base TypeScript configuration](./configs/tsconfig/README.md).
 
