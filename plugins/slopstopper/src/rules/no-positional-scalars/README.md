@@ -40,7 +40,7 @@ The rule reports a signature once any kind reaches its threshold. The defaults a
 
 ## Type Information
 
-With typescript-eslint type information, the rule resolves type references to their scalar kinds, so `type Id = string; function f(a: Id, b: Id, c: Id) {}` is reported.
+With typescript-eslint type information, the rule resolves type references to their scalar kinds, so `type Id = string; function f(a: Id, b: Id, c: Id) {}` is reported. A parameter that the syntax does not classify as scalar, such as `Id` or an unannotated parameter with a non-literal default value, counts by its resolved type under the same rules: each union member assignable to a scalar kind counts toward it, `null` and `undefined` count toward none, and any other member makes the parameter non-scalar. Intersections such as a branded `string & { brand: 'Id' }` are non-scalar, because callers cannot swap differently branded values. `any`, `unknown`, and `never` never count.
 
 ## Limitations
 

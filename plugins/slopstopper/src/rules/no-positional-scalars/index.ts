@@ -19,35 +19,17 @@ type ScalarKind = (typeof SCALAR_KINDS)[number];
 /** How many positional parameters of one kind a signature may take before it is reported. */
 const DEFAULT_THRESHOLDS = { boolean: 2, string: 3, number: 3, bigint: 3, symbol: 3 };
 
-/**
- * What every check in a file reads: the threshold of each scalar kind, the smallest of them, and the type services when
- * available.
- */
+/** What every check in a file reads: the threshold of each scalar kind, and the type services when available. */
 interface Settings {
 	thresholds: Record<ScalarKind, number>;
-	minimum: number;
 	services: TypeServices | null;
 }
 
 /**
  * Reports a signature whose positional parameters include too many of one scalar kind (`boolean`, `string`, `number`,
- * `bigint`, or `symbol`), since callers can swap same-kind values without a type error. Parameters of different kinds
- * cannot be swapped silently, so `(name: string, age: number)` is fine. By default, two `boolean` parameters (the
- * boolean trap) or three of any other kind are reported; each threshold is configurable, such as `{ string: 2 }`.
- *
- * Literal and template literal types count toward their base kind, and an unannotated parameter counts by its literal
- * default value. A union counts toward every scalar kind it contains, ignoring `null` and `undefined`, and does not
- * count at all when it has a non-scalar member.
- *
- * With type information, a parameter that the syntax does not classify as scalar, such as `Id` in `type Id = string`
- * or an unannotated parameter with a non-literal default value, counts by its resolved type under the same rules: each
- * union member assignable to a scalar kind counts toward it, `null` and `undefined` count toward none, and any other
- * member makes the parameter non-scalar. Intersections such as branded `string & { brand: 'Id' }` are non-scalar,
- * like their syntax, because callers cannot swap differently branded values. `any`, `unknown`, and `never` never
- * count.
- *
- * Callbacks passed directly to a call or `new` and JSX attribute handlers are exempt because the callee dictates their
- * signature. Exported APIs are not exempt.
+ * `bigint`, or `symbol`), since callers can swap same-kind values without a type error. By default, two `boolean`
+ * parameters (the boolean trap) or three of any other kind are reported. Callbacks passed directly to a call or `new`
+ * and JSX attribute handlers are exempt because the callee dictates their signature.
  */
 export const NO_POSITIONAL_SCALARS = defineRule({
 	meta: {
@@ -76,10 +58,8 @@ export const NO_POSITIONAL_SCALARS = defineRule({
 		defaultOptions: [DEFAULT_THRESHOLDS],
 	},
 	create(context) {
-		const thresholds = parseThresholds(context.options);
 		const settings = {
-			thresholds,
-			minimum: Math.min(...Object.values(thresholds)),
+			thresholds: parseThresholds(context.options),
 			services: typeServicesOf(context.sourceCode),
 		};
 
@@ -108,17 +88,15 @@ function checkFunction(
 	check(context, settings, node);
 }
 
-/**
- * Reports a signature that takes at least the threshold of positional parameters of one scalar kind. A parameter counts
- * at most once toward each kind, so a signature with fewer parameters than the smallest threshold is skipped.
- */
+/** Reports a signature that takes at least the threshold of positional parameters of one scalar kind. */
 function check(
 	context: Context,
-	{ thresholds, minimum, services }: Settings,
+	settings: Settings,
 	node: { params: ESTree.ParamPattern[] } & ESTree.Node,
 ) {
-	if (node.params.length < minimum) return;
-	const counts = countScalarKinds(services, node.params);
+	const counts = countScalarKinds(settings, node.params);
+	if (counts === null) return;
+	const { thresholds } = settings;
 	const kind = SCALAR_KINDS.find(candidate => counts[candidate] >= thresholds[candidate]);
 	if (typeof kind === 'string') {
 		context.report({
@@ -144,21 +122,40 @@ function parseThresholds(options: Readonly<Options>) {
 	return thresholds;
 }
 
-/** How many parameters count toward each scalar kind. A parameter that is not entirely scalar counts toward none. */
+/**
+ * How many parameters count toward each scalar kind, or `null` as soon as no kind can reach its threshold with the
+ * parameters left, which spares their classification and type resolution. A parameter counts at most once toward each
+ * kind, and a parameter that is not entirely scalar counts toward none.
+ */
 function countScalarKinds(
-	services: TypeServices | null,
+	{ thresholds, services }: Settings,
 	parameters: readonly ESTree.ParamPattern[],
 ) {
 	const counts = { boolean: 0, string: 0, number: 0, bigint: 0, symbol: 0 };
 	const kinds = new Set<ScalarKind>();
+	let remaining = parameters.length;
 
 	for (const parameter of parameters) {
+		if (!canReachThreshold(thresholds, counts, remaining)) return null;
+		--remaining;
 		kinds.clear();
 		if (addKinds(services, parameter, kinds)) {
 			for (const kind of kinds) ++counts[kind];
 		}
 	}
 	return counts;
+}
+
+/** Whether some kind reaches its threshold when every one of the `remaining` parameters counts toward it. */
+function canReachThreshold(
+	thresholds: Record<ScalarKind, number>,
+	counts: Record<ScalarKind, number>,
+	remaining: number,
+) {
+	for (const kind of SCALAR_KINDS) {
+		if (counts[kind] + remaining >= thresholds[kind]) return true;
+	}
+	return false;
 }
 
 /**

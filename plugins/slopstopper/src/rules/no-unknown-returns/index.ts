@@ -98,10 +98,8 @@ function promisedType(sourceCode: SourceCode, reference: ESTree.TSTypeReference)
 	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only the two promise types matter, so `default` covers `null` and every other name.
 	switch (globalTypeName(sourceCode, reference)) {
 		case 'Promise':
-		case 'PromiseLike': {
-			const [value] = reference.typeArguments?.params ?? [];
-			return value ?? null;
-		}
+		case 'PromiseLike':
+			return reference.typeArguments?.params[0] ?? null;
 		default:
 			return null;
 	}

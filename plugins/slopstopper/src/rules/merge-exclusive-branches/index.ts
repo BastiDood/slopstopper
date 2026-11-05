@@ -278,8 +278,9 @@ function branch(sourceCode: SourceCode, statement: ESTree.IfStatement, split: ES
 			: { text: body, hasRest: false };
 	}
 
-	// A split that is not the whole test is one of its top-level `&&` operands.
-	if (test.type !== 'LogicalExpression') throw new AssertionError('the test is an `&&` chain');
+	if (test.type !== 'LogicalExpression') {
+		throw new AssertionError('a split that is not the whole test is a top-level `&&` operand');
+	}
 	const rest = splitLeading(sourceCode, test);
 	if (rest?.leading !== split) return null;
 

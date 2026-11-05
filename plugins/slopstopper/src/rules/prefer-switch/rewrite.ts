@@ -195,13 +195,13 @@ interface Guarded {
 function guardedBody(layout: Layout, { decision, guard, kept }: Guarded) {
 	const { sourceCode } = layout;
 	const { statements, lastIndex } = decision;
-	const parts: string[] = [];
+	let text = '';
 	const { test } = guard;
 	if (test.type === 'LogicalExpression' && test.operator === '||') {
 		const rest = splitLeading(sourceCode, test);
 		if (rest === null) return null;
 		kept.push([rest.start, test.range[1]], guard.consequent.range);
-		parts.push(`if (${rest.text}) ${indented(sourceCode.getText(guard.consequent), 2)}`);
+		text = `if (${rest.text}) ${indented(sourceCode.getText(guard.consequent), 2)}`;
 	}
 
 	const first = statements[lastIndex + 1];
@@ -210,17 +210,19 @@ function guardedBody(layout: Layout, { decision, guard, kept }: Guarded) {
 	if (typeof first !== 'undefined') {
 		const last = assertDefined(statements.at(-1));
 		const range = [first.range[0], last.range[1]] satisfies Range;
-		for (const statement of statements.slice(lastIndex + 1)) {
+		for (let index = lastIndex + 1; index < statements.length; ++index) {
+			const statement = assertDefined(statements[index]);
 			if (!isConfined(sourceCode, { statement, range })) return null;
 			isScoped ||= isScopedDeclaration(statement);
 		}
 
 		kept.push(range);
-		parts.push(indented(sourceCode.text.slice(...range), 2));
+		if (text !== '') text += `\n${layout.caseIndent}\t`;
+		text += indented(sourceCode.text.slice(...range), 2);
 		exits = alwaysExits(last);
 	}
 
-	return { text: parts.join(`\n${layout.caseIndent}\t`), isScoped, exits };
+	return { text, isScoped, exits };
 }
 
 /** A later statement of a trailing guard's list, and the range of the later statements that move with it. */

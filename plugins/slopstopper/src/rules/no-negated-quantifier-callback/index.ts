@@ -55,13 +55,13 @@ export const NO_NEGATED_QUANTIFIER_CALLBACK = defineRule({
  */
 function quantifierOf(call: ESTree.CallExpression) {
 	const { callee, arguments: args } = call;
-	if (callee.type !== 'MemberExpression' || callee.computed || hasOptionalLink(call)) return null;
+	if (callee.type !== 'MemberExpression' || callee.computed) return null;
 
 	const { property } = callee;
 	if (property.type === 'PrivateIdentifier') return null;
 	const dual = dualOf(property.name);
 	const argument = onlyElement(args);
-	if (dual === null || argument === null) return null;
+	if (dual === null || argument === null || hasOptionalLink(call)) return null;
 	const predicate = predicateOf(argument);
 	if (predicate === null) return null;
 

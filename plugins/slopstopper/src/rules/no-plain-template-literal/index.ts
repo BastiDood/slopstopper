@@ -17,12 +17,11 @@ const TEMPLATE_ONLY_SPELLING_REGEX = /\\[`${]|'/u;
 const STRING_ESCAPE_REGEX = /[\\'\p{Cc}\u2028\u2029]/gu;
 
 /**
- * Reports an untagged template literal without expressions in favor of a quoted string. A template whose raw text holds
- * a line break reads better as a template, and one whose value spells a placeholder, as in `\${a}`, is left to
- * `no-template-curly-in-string`, which reports that string, so neither is reported. The fix spells the same cooked value as a
- * single-quoted string. A template holds no comments, so the fix drops none. A template that is a whole statement is never
- * fixed, because a quoted string there can become a directive. In a directive prologue, the rule suggests the quoted
- * directive that the template was likely meant to be.
+ * Reports an untagged template literal without expressions in favor of a quoted string, so that a backtick signals
+ * interpolation. A template whose raw text holds a line break reads better as a template, and one whose value spells a
+ * placeholder, as in `\${a}`, is left to `no-template-curly-in-string`. A template that is a whole statement is never
+ * fixed, because a quoted string there can become a directive; in a directive prologue, the rule suggests the quoted
+ * directive instead.
  */
 export const NO_PLAIN_TEMPLATE_LITERAL = defineRule({
 	meta: {
@@ -50,9 +49,7 @@ export const NO_PLAIN_TEMPLATE_LITERAL = defineRule({
 				const { cooked, raw } = value;
 				if (LINE_BREAK_REGEX.test(raw)) return;
 				// An untagged template with an invalid escape is a syntax error, so `cooked` is only `null` defensively.
-				if (cooked === null) return;
-				// `no-template-curly-in-string` reports a string that spells a placeholder, as an escaped `\${a}` does.
-				if (PLACEHOLDER_REGEX.test(cooked)) return;
+				if (cooked === null || PLACEHOLDER_REGEX.test(cooked)) return;
 
 				const text = quote({ cooked, raw });
 				const data = { replacement: messageLabel(text) };
@@ -67,7 +64,6 @@ export const NO_PLAIN_TEMPLATE_LITERAL = defineRule({
 					return;
 				}
 
-				// A quoted string statement in a directive prologue is a directive, which a template statement is not.
 				if (isInPrologue(parent)) {
 					context.report({
 						node,
