@@ -14,16 +14,25 @@ import { isUnsafeValue } from '#ast/dictionary-types.ts';
 import { unwrap } from '#ast/discriminant.ts';
 import { enclosingFunction } from '#ast/functions.ts';
 import { functionLabel, keyName, messageLabel } from '#ast/labels.ts';
+import { outermostWrapper } from '#ast/members.ts';
 import { written } from '#ast/type-aliases.ts';
 
 import { wideningTarget } from './widening-targets.ts';
 
-/** A value that flows into an annotated destination, and what the message calls the destination. */
+/** A value that flows into an annotated destination, and the destination that the message names (see `subjectLabel`). */
 interface Flow {
 	messageId: 'annotation' | 'assignment' | 'returnValue';
 	value: ESTree.Expression;
-	subject: string;
+	subject: Subject;
 }
+
+/** A destination of a flow: an annotated binding, a class property, or a function with a return type. */
+type Subject =
+	| ESTree.BindingIdentifier
+	| ESTree.PropertyDefinition
+	| ESTree.AccessorProperty
+	| ESTree.Function
+	| ESTree.ArrowFunctionExpression;
 
 /** The parameter that a type guard narrows: its position and the identifier that it binds. */
 interface NarrowedParameter {
@@ -69,13 +78,18 @@ export const NO_KNOWN_VALUE_WIDENING = defineRule({
 	},
 	create(context) {
 		const { sourceCode } = context;
+		/** The names that functions with a type predicate go by, so that only calls of these names can call a guard. */
+		const guardNames = new Set<string>();
+		/** The calls whose callee is a name, which wait until `guardNames` holds every guard of the file. */
+		const namedCalls: ESTree.CallExpression[] = [];
+
 		return {
 			VariableDeclarator({ id, init }) {
 				if (init === null || id.type !== 'Identifier') return;
 				checkAnnotated(context, id.typeAnnotation, {
 					messageId: 'annotation',
 					value: init,
-					subject: `\`${id.name}\``,
+					subject: id,
 				});
 			},
 			PropertyDefinition: node => checkProperty(context, node),
@@ -94,17 +108,18 @@ export const NO_KNOWN_VALUE_WIDENING = defineRule({
 				checkAnnotated(context, declarator.id.typeAnnotation, {
 					messageId: 'assignment',
 					value: right,
-					subject: `\`${declarator.id.name}\``,
+					subject: declarator.id,
 				});
 			},
 			ReturnStatement(node) {
 				const { argument } = node;
+				if (argument === null) return;
 				const owner = enclosingFunction(node);
-				if (argument === null || owner === null) return;
+				if (owner === null) return;
 				checkAnnotated(context, owner.returnType, {
 					messageId: 'returnValue',
 					value: argument,
-					subject: functionLabel(owner),
+					subject: owner,
 				});
 			},
 			ArrowFunctionExpression(node) {
@@ -113,29 +128,40 @@ export const NO_KNOWN_VALUE_WIDENING = defineRule({
 				checkAnnotated(context, returnType, {
 					messageId: 'returnValue',
 					value: body,
-					subject: functionLabel(node),
+					subject: node,
 				});
 			},
 			TSAsExpression: node => checkAssertion(context, node),
 			TSTypeAssertion: node => checkAssertion(context, node),
-			CallExpression: node => checkGuardCall(context, node),
+			TSTypePredicate(node) {
+				addGuardNames(guardNames, node);
+			},
+			CallExpression(node) {
+				if (node.arguments.length === 0) return;
+				const callee = unwrap(node.callee);
+				if (callee.type === 'Identifier') namedCalls.push(node);
+				else checkGuardCall(context, node);
+			},
+			'Program:exit'() {
+				if (guardNames.size === 0) return;
+				for (const call of namedCalls) {
+					const callee = unwrap(call.callee);
+					if (callee.type === 'Identifier' && guardNames.has(callee.name)) {
+						checkGuardCall(context, call);
+					}
+				}
+			},
 		};
 	},
 });
 
-/** Checks the value of a class property against its annotation. */
 function checkProperty(
 	context: Context,
 	node: ESTree.PropertyDefinition | ESTree.AccessorProperty,
 ) {
-	const { key, computed, value, typeAnnotation } = node;
+	const { value, typeAnnotation } = node;
 	if (value === null) return;
-	const name = keyName(key, computed) ?? context.sourceCode.getText(key);
-	checkAnnotated(context, typeAnnotation, {
-		messageId: 'annotation',
-		value,
-		subject: `\`${messageLabel(name)}\``,
-	});
+	checkAnnotated(context, typeAnnotation, { messageId: 'annotation', value, subject: node });
 }
 
 /** Reports a flow into an annotated destination when the annotation discards the known type of the value. */
@@ -156,9 +182,25 @@ function checkAnnotated(
 		data: {
 			type: messageLabel(sourceCode.getText(target)),
 			value: messageLabel(sourceCode.getText(value)),
-			subject,
+			subject: subjectLabel(sourceCode, subject),
 		},
 	});
+}
+
+/** How a message names the destination of a flow: a binding or property by its name, a function by `functionLabel`. */
+function subjectLabel(sourceCode: SourceCode, subject: Subject) {
+	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Every other subject is a function, which `default` covers.
+	switch (subject.type) {
+		case 'Identifier':
+			return `\`${subject.name}\``;
+		case 'PropertyDefinition':
+		case 'AccessorProperty': {
+			const { key, computed } = subject;
+			return `\`${messageLabel(keyName(key, computed) ?? sourceCode.getText(key))}\``;
+		}
+		default:
+			return functionLabel(subject);
+	}
 }
 
 /**
@@ -234,16 +276,16 @@ function isEmptyLiteral(node: ESTree.Expression) {
 }
 
 /**
- * Whether an explicit target type discards the known type of a value: the target widens it (see `wideningTarget`),
- * the value has a known type (see `hasKnownType`), and the value is no empty object literal that starts an open
- * dictionary.
+ * Whether an explicit target type discards the known type of a value: the value has a known type (see
+ * `hasKnownType`), the target widens it (see `wideningTarget`), and the value is no empty object literal that starts an
+ * open dictionary. The value goes first, because most values, such as calls, fail without resolving a name.
  */
 function widensKnownValue(sourceCode: SourceCode, target: ESTree.TSType, value: ESTree.Expression) {
-	const widening = wideningTarget(sourceCode, target);
-	if (widening === null) return false;
 	const node = unwrap(value);
-	if (widening === 'open dictionary' && isEmptyObject(node)) return false;
-	return hasKnownType(sourceCode, [], node);
+	if (!hasKnownType(sourceCode, [], node)) return false;
+	const widening = wideningTarget(sourceCode, target);
+	if (widening === 'open dictionary') return !isEmptyObject(node);
+	return widening !== null;
 }
 
 /** Whether an expression without wrappers (see `unwrap`) is an object literal without properties. */
@@ -267,6 +309,32 @@ function hasKnownType(
 	if (variable === null) return false;
 	const init = firstConstInitializer(variable);
 	return init !== null && hasKnownType(sourceCode, visited, init);
+}
+
+/**
+ * Adds the names that the function of a type predicate goes by: its own name, and the name of a variable that it
+ * initializes through wrappers (see `unwrap`). These are the names through which `calledFunction` can reach it.
+ */
+function addGuardNames(guardNames: Set<string>, { parent }: ESTree.TSTypePredicate) {
+	const owner = parent.parent;
+	if (owner === null) return;
+	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only functions can be called as guards, so `default` covers function types and signatures.
+	switch (owner.type) {
+		case 'FunctionDeclaration':
+		case 'TSDeclareFunction':
+			if (owner.id !== null) guardNames.add(owner.id.name);
+			break;
+		case 'FunctionExpression':
+		case 'ArrowFunctionExpression': {
+			if (owner.id !== null) guardNames.add(owner.id.name);
+			const { parent: declarator } = outermostWrapper(owner);
+			if (declarator.type === 'VariableDeclarator' && declarator.id.type === 'Identifier') {
+				guardNames.add(declarator.id.name);
+			}
+			break;
+		}
+		default:
+	}
 }
 
 /**

@@ -32,9 +32,8 @@ interface Frame {
  *
  * - `never` on a function whose own body has no `return`, so `tsc` verifies that the function cannot complete.
  * - A function with two or more value-returning `return` statements, where the annotation constrains the union.
- * - A recursive function (by its own name, its variable name, or `this.<method>` through any static key), which `tsc`
- *   cannot infer. With type information, a computed key whose type is one string literal, such as `[KEY]` and
- *   `this[KEY]` after `const KEY = 'walk'`, counts as the static key `walk`.
+ * - A recursive function (by its own name, its variable name, or `this.<method>` through any known key, see `keyOf`),
+ *   which `tsc` cannot infer.
  * - A type predicate or `asserts` signature, which `no-type-predicates` reports instead.
  *
  * The rule offers a suggestion, not an autofix, because removing the annotation can change the inferred public type.
@@ -81,7 +80,6 @@ export const NO_INFERRABLE_RETURN_TYPE = defineRule({
 	},
 });
 
-/** Opens the frame of a function. */
 function enter(
 	frames: Frame[],
 	services: TypeServices | null,
@@ -231,7 +229,6 @@ function bindingOf(sourceCode: SourceCode, declarator: ESTree.Node, id: ESTree.B
 		.find(({ identifiers }) => identifiers.includes(id));
 }
 
-/** Whether the variable has a reference inside the range. */
 function isReferencedWithin(variable: Variable | undefined, range: Range) {
 	return (
 		variable?.references.some(({ identifier }) => isWithin(identifier.range, range)) === true

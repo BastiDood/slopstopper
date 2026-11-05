@@ -46,10 +46,36 @@ export const NO_UNSAFE_DICTIONARY_TYPE = defineRule({
 	},
 	create(context) {
 		const { sourceCode } = context;
+		/** The names of the file's type aliases, the only local names that can declare a dictionary. */
+		const aliasNames = new Set<string>();
+		/** The references to other names, which wait until `aliasNames` holds every alias of the file. */
+		const localReferences: ESTree.TSTypeReference[] = [];
+
 		return {
-			TSTypeReference: node => checkDictionary(context, node),
-			TSTypeLiteral: node => checkDictionary(context, node),
+			TSTypeAliasDeclaration({ id }) {
+				aliasNames.add(id.name);
+			},
+			TSTypeReference(node) {
+				const { typeName } = node;
+				if (typeName.type !== 'Identifier') return;
+				if (isDictionaryGlobal(typeName.name)) checkDictionary(context, node);
+				else localReferences.push(node);
+			},
+			TSTypeLiteral(node) {
+				if (node.members.some(({ type }) => type === 'TSIndexSignature')) {
+					checkDictionary(context, node);
+				}
+			},
 			TSMappedType: node => checkDictionary(context, node),
+			'Program:exit'() {
+				if (aliasNames.size === 0) return;
+				for (const reference of localReferences) {
+					const { typeName } = reference;
+					if (typeName.type === 'Identifier' && aliasNames.has(typeName.name)) {
+						checkDictionary(context, reference);
+					}
+				}
+			},
 			TSIndexSignature(node) {
 				// The object type that holds an index signature reports it.
 				if (node.parent.type === 'TSTypeLiteral') return;
@@ -63,7 +89,29 @@ export const NO_UNSAFE_DICTIONARY_TYPE = defineRule({
 	},
 });
 
-/** Reports a dictionary type with an unsafe value type unless an exemption applies (see `NO_UNSAFE_DICTIONARY_TYPE`). */
+/**
+ * Whether a global type name can declare a dictionary (see `valueTypes`): `Record`, or a wrapper that `valueTypes` sees
+ * through. A reference to any other name declares a dictionary only through a same-file alias.
+ */
+function isDictionaryGlobal(name: string) {
+	switch (name) {
+		case 'Record':
+		case 'Readonly':
+		case 'Partial':
+		case 'Required':
+		case 'NonNullable':
+		case 'Pick':
+		case 'Omit':
+			return true;
+		default:
+			return false;
+	}
+}
+
+/**
+ * Reports a dictionary type with an unsafe value type unless an exemption applies (see `NO_UNSAFE_DICTIONARY_TYPE`).
+ * Expects an object type with an index signature, a mapped type, or a reference to a name that can declare a dictionary.
+ */
 function checkDictionary(context: Context, node: DictionaryCandidate) {
 	const { sourceCode } = context;
 	const { inConstraint, inAliasDeclaration, dictionaries } = ancestryOf(node);

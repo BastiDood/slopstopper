@@ -1,6 +1,6 @@
 import { defineRule, type ESTree, type SourceCode, type Variable } from '@oxlint/plugins';
 
-import { AssertionError } from '#assert.ts';
+import { AssertionError, assertNotNull } from '#assert.ts';
 import { firstConstInitializer, isNeverReassigned, unvisitedVariable } from '#ast/bindings.ts';
 import { unwrap } from '#ast/discriminant.ts';
 import { enclosingFunction } from '#ast/functions.ts';
@@ -8,6 +8,7 @@ import {
 	isKnownArrayExpression,
 	isStandardArrayMethod,
 	type MethodTarget,
+	methodName,
 	methodTarget,
 } from '#ast/known-arrays.ts';
 import { messageLabel } from '#ast/labels.ts';
@@ -54,10 +55,10 @@ export const NO_REDUCE_ACCUMULATOR_COPY = defineRule({
 		const services = typeServicesOf(sourceCode);
 		return {
 			CallExpression(node) {
-				const method = methodTarget(node.callee);
-				if (method === null) return;
-				const copy = copyMessage(method.name);
+				const name = methodName(node.callee);
+				const copy = name === null ? null : copyMessage(name);
 				if (copy === null) return;
+				const method = assertNotNull(methodTarget(node.callee));
 				const reducer = enclosingReducer(sourceCode, node);
 				if (
 					reducer === null ||

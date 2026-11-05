@@ -79,7 +79,6 @@ function checkUninitialized(context: Context, node: ESTree.VariableDeclarator) {
 	context.report({ node, messageId: 'uninitialized', data: { name: id.name } });
 }
 
-/** Whether a declaration is the head of a `for…in` or `for…of` loop. */
 function isLoopHead(declaration: ESTree.VariableDeclaration) {
 	const { parent } = declaration;
 	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only `for…in` and `for…of` loops assign their head, so `default` covers the rest.

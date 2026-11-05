@@ -1,10 +1,12 @@
 import { defineRule, type ESTree, type SourceCode } from '@oxlint/plugins';
 
+import { assertNotNull } from '#assert.ts';
 import { unwrap } from '#ast/discriminant.ts';
 import {
 	isKnownArrayExpression,
 	isStandardArrayMethod,
 	type MethodTarget,
+	methodName,
 	methodTarget,
 } from '#ast/known-arrays.ts';
 import { messageLabel } from '#ast/labels.ts';
@@ -61,13 +63,15 @@ export const NO_ARRAY_FILTER_MAP = defineRule({
 
 /** The passes of a call `xs.filter(f).map(g)` or `xs.map(f).filter(g)`, or `null` for any other call. */
 function passesOf({ callee }: ESTree.CallExpression) {
-	const outer = methodTarget(callee);
-	if (outer === null) return null;
-	const partner = partnerOf(outer.name);
+	const name = methodName(callee);
+	const partner = name === null ? null : partnerOf(name);
+	if (partner === null) return null;
+	const outer = assertNotNull(methodTarget(callee));
 	const innerCall = unwrap(outer.object);
-	if (partner === null || innerCall.type !== 'CallExpression') return null;
-	const inner = methodTarget(innerCall.callee);
-	return inner?.name === partner ? ({ inner, outer } satisfies Passes) : null;
+	if (innerCall.type !== 'CallExpression' || methodName(innerCall.callee) !== partner) {
+		return null;
+	}
+	return { inner: assertNotNull(methodTarget(innerCall.callee)), outer } satisfies Passes;
 }
 
 /** The method that forms a reported pair with a method name: `filter` for `map`, `map` for `filter`, otherwise `null`. */

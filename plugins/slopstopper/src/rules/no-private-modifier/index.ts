@@ -27,7 +27,6 @@ interface Edit {
 	text: string;
 }
 
-/** A property or rest element of a destructuring pattern. */
 type PatternElement = Destructuring['pattern']['properties'][number];
 
 /** A `const { name } = this;` declaration whose `name` property must become a separate `this.#name` read. */
@@ -61,12 +60,9 @@ interface ClassState {
  * are enforced at runtime instead of only at compile time. Parameter properties are left to
  * `typescript/parameter-properties`, and private constructors are allowed because they have no `#private` equivalent.
  *
- * The autofix renames the member to `#name` and rewrites every `this.name` (and `ClassName.name` for static members)
- * inside the class body, splitting `const { name } = this;` destructuring into `const name = this.#name;`. It bails
- * out whenever a reference cannot be proven to target the class's own member: access through another object,
- * computed or string-keyed access, `in` checks, optional chaining, `delete`, a rebound `this`, a conflicting
- * `#name`, overloads or accessor pairs that are not all private, and ambient declarations. It assumes ECMAScript
- * decorators, which accept `#private` members, so decorated members are fixed too.
+ * The autofix renames the member to `#name` along with its references inside the class body, and bails out whenever a
+ * reference cannot be proven to target the class's own member. It assumes ECMAScript decorators, which accept
+ * `#private` members, so decorated members are fixed too.
  */
 export const NO_PRIVATE_MODIFIER = defineRule({
 	meta: {
@@ -148,10 +144,14 @@ function enter(context: Context, stack: ClassState[], node: ESTree.Class) {
 	}
 
 	// A group without a private member is never reported, so neither its references nor the class binding matter.
-	const ambient = isAmbient(node, context.filename);
+	let ambient: boolean | null = null;
 	for (const [name, group] of groups) {
-		if (!group.members.some(isPrivate)) groups.delete(name);
-		else if (ambient || !isConvertible(group.members)) group.fixable = false;
+		if (!group.members.some(isPrivate)) {
+			groups.delete(name);
+			continue;
+		}
+		ambient ??= isAmbient(node, context.filename);
+		if (ambient || !isConvertible(group.members)) group.fixable = false;
 	}
 
 	const bindings = new Set<ESTree.Node>();

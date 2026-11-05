@@ -22,11 +22,8 @@ interface Vertex {
 	/** The declaration, statement, or class member whose range holds the uses of other vertices. */
 	readonly owner: ESTree.Node;
 	readonly position: number;
-	/**
-	 * The text that moves with this vertex when the scope is reordered: its overload signatures, `export` wrapper, and
-	 * comments, or null when a comment next to it cannot be assigned to it unambiguously.
-	 */
-	readonly range: Range | null;
+	/** The siblings that move with this vertex when the scope is reordered: its overload signatures and itself (see `extentRange`). */
+	readonly extent: Extent;
 	/** Sibling vertices that use this one. */
 	readonly users: Vertex[];
 	/** Uses of sibling vertices inside this one. */
@@ -55,7 +52,6 @@ interface MemberUse {
 /** A statement or class member, classified for grouping overload signatures with their implementation. */
 interface Element<Implementation> {
 	readonly node: ESTree.Node;
-	/** How reports refer to the element. */
 	readonly label: string;
 	/** The name that overload signatures share with their implementation, or null for anything else. */
 	readonly key: string | null;
@@ -114,7 +110,6 @@ interface Reordering {
 	readonly order: readonly Vertex[];
 }
 
-/** The text that replaces a range of the source. */
 interface Replacement {
 	readonly range: Range;
 	readonly text: string;
@@ -126,12 +121,8 @@ interface Replacement {
  * counts as a user of the function declarations in that list, and every member of a class body counts as a user of the
  * methods that it reaches through `this` or the class name. Recursion and mutual recursion impose no order.
  *
- * The autofix moves each function just below its last user, depth-first in the order of first use, and keeps every
- * other statement or class member in its relative order, so hoisting keeps the behavior intact. Each function moves with
- * its overload signatures, `export` wrapper, the comments directly above it, and the comments that trail its last line.
- * It bails out when a comment shares a line with two neighbors, when names repeat or overload signatures are detached,
- * when a namespace or a sloppy-mode block would move a function across another statement, and in class bodies with
- * decorators, computed method keys, or a member without a semicolon next to a moved member.
+ * The autofix moves each function just below its last user (see `stepdownOrder`) and keeps every other statement or
+ * class member in its relative order, so hoisting keeps the behavior intact. It bails out wherever it cannot prove that.
  */
 export const STEPDOWN_ORDER = defineRule({
 	meta: {
@@ -148,27 +139,18 @@ export const STEPDOWN_ORDER = defineRule({
 		schema: [],
 	},
 	create(context) {
-		const { sourceCode } = context;
+		/** The statement lists already checked, since every function implementation in a list leads to it. */
+		const checkedLists = new Set<ESTree.Node>();
 		/** Uses of `this.name` grouped by the class body of the member that they appear in. */
 		const thisUses = new Map<ESTree.ClassBody, MemberUse[]>();
 
 		return {
-			Program({ body }) {
-				checkStatements(context, body, false);
-			},
-			BlockStatement({ parent, body }) {
-				const functionBody = isFunction(parent);
-				checkStatements(
-					context,
-					body,
-					!functionBody && sourceCode.ast.sourceType !== 'module',
-				);
-			},
-			StaticBlock({ body }) {
-				checkStatements(context, body, false);
-			},
-			TSModuleBlock({ body }) {
-				checkStatements(context, body, true);
+			FunctionDeclaration(node) {
+				if (node.id === null || node.body === null) return;
+				const list = holdingList(node);
+				if (checkedLists.has(list)) return;
+				checkedLists.add(list);
+				checkList(context, list);
 			},
 			ThisExpression(node) {
 				const found = thisMemberUse(node);
@@ -186,46 +168,75 @@ export const STEPDOWN_ORDER = defineRule({
 	},
 });
 
+/** The node whose statement list holds a function declaration, looking through an `export` or `export default`. */
+function holdingList({ parent }: ESTree.Function) {
+	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only the two export statements wrap a declaration, so `default` covers the rest.
+	switch (parent.type) {
+		case 'ExportNamedDeclaration':
+		case 'ExportDefaultDeclaration':
+			return parent.parent;
+		default:
+			return parent;
+	}
+}
+
+/** Checks a statement list that holds a function implementation, when it is a scope that the rule orders. */
+function checkList(context: Context, list: ESTree.Node) {
+	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only these four statement lists form a scope that the rule orders, so `default` covers the rest.
+	switch (list.type) {
+		case 'Program':
+		case 'StaticBlock':
+			checkStatements(context, list.body, false);
+			break;
+		case 'BlockStatement':
+			checkStatements(
+				context,
+				list.body,
+				!isFunction(list.parent) && context.sourceCode.ast.sourceType !== 'module',
+			);
+			break;
+		case 'TSModuleBlock':
+			checkStatements(context, list.body, true);
+			break;
+		default:
+	}
+}
+
 /**
  * Checks the function declarations of a statement list against every statement in it. A guarded list (a namespace,
  * whose exports are assigned where they are declared, or a sloppy-mode block, whose functions are copied to the
- * enclosing scope where they are declared) only lets functions move across other functions.
+ * enclosing scope where they are declared) only lets functions move across other functions. Expects a list that holds
+ * a function implementation.
  */
 function checkStatements(
 	context: Context,
 	statements: readonly (ESTree.Directive | ESTree.Statement)[],
 	guarded: boolean,
 ) {
-	if (!statements.some(statement => isImplementation(statement))) return;
-
 	const { sourceCode } = context;
-	const { groups, orphans } = groupOverloads(
-		statements.values().map(statement => statementElement(statement)),
-	);
+	const { groups, orphans } = groupOverloads(statements, statementElement);
 
 	const vertices: Vertex[] = [];
 	const helpers: { vertex: Vertex; key: string; implementation: ESTree.BindingIdentifier }[] = [];
 	const loose: ESTree.Node[] = [];
 	for (const [position, { first, last, label, unit }] of groups.entries()) {
-		const range = unitRange(sourceCode, { first, last });
+		const extent = { first, last };
 		if (unit === null) {
-			vertices.push(createVertex({ label, node: first, owner: first, position, range }));
+			vertices.push(createVertex({ label, node: first, owner: first, position, extent }));
 			loose.push(first);
 		} else {
-			const { implementation } = unit;
+			const { key, implementation } = unit;
 			const vertex = createVertex({
 				label,
 				node: implementation,
 				owner: implementation.parent,
 				position,
-				range,
+				extent,
 			});
 			vertices.push(vertex);
-			helpers.push({ vertex, ...unit });
+			helpers.push({ vertex, key, implementation });
 		}
 	}
-
-	if (helpers.length === 0) return;
 
 	for (const { vertex: helper, implementation } of helpers) {
 		for (const identifier of valueUses(sourceCode, implementation)) {
@@ -244,23 +255,12 @@ function checkStatements(
 			names.add(key);
 		}
 
-		const replacement = rewrite(sourceCode.text, { vertices, order });
+		const replacement = rewrite(sourceCode, { vertices, order });
 		if (replacement === null) return null;
 		return guarded && loose.some(({ range }) => isWithin(range, replacement.range))
 			? null
 			: replacement;
 	});
-}
-
-/** Whether a statement is a function implementation with a name, unwrapping `export` and `export default` (see `statementElement`). */
-function isImplementation(statement: ESTree.Directive | ESTree.Statement) {
-	const declared = declaredFunction(exportedDeclaration(statement));
-	return (
-		declared !== null &&
-		declared.id !== null &&
-		declared.body !== null &&
-		typeof declared.body !== 'undefined'
-	);
 }
 
 /** Classifies a statement as a function implementation or overload signature, unwrapping `export` and `export default`. */
@@ -328,9 +328,22 @@ function isValueUse(reference: Reference) {
 	);
 }
 
-/** The vertex whose owner contains a node. */
-function enclosingVertex(vertices: readonly Vertex[], node: ESTree.Node) {
-	return vertices.find(({ owner }) => isWithin(node.range, owner.range)) ?? null;
+/**
+ * The vertex whose owner contains an identifier, found by binary search on its start. Expects vertices in source order
+ * whose owners do not overlap, as the siblings of one scope are, so an identifier that starts in an owner lies within it.
+ */
+function enclosingVertex(vertices: readonly Vertex[], { range: [start] }: ESTree.Node) {
+	let low = 0;
+	let high = vertices.length - 1;
+	while (low <= high) {
+		const middle = Math.floor((low + high) / 2);
+		const vertex = assertDefined(vertices[middle]);
+		const [ownerStart, ownerEnd] = vertex.owner.range;
+		if (start < ownerStart) high = middle - 1;
+		else if (start >= ownerEnd) low = middle + 1;
+		else return vertex;
+	}
+	return null;
 }
 
 /** The class member whose `this` a `this.name` access refers to, and the class body that holds it. */
@@ -395,8 +408,8 @@ function checkClass(context: Context, body: ESTree.ClassBody, thisUses: readonly
 	}
 
 	const { sourceCode } = context;
-	const { groups, orphans } = groupOverloads(
-		body.body.values().map(member => memberElement(sourceCode, member)),
+	const { groups, orphans } = groupOverloads(body.body, member =>
+		memberElement(sourceCode, member),
 	);
 	const units: { key: string; implementation: ESTree.MethodDefinition }[] = [];
 	/** Whether a method has a computed key or detached overload signatures, which keeps the fix from moving it. */
@@ -416,7 +429,7 @@ function checkClass(context: Context, body: ESTree.ClassBody, thisUses: readonly
 			node: unit?.implementation.key ?? first,
 			owner,
 			position,
-			range: unitRange(sourceCode, { first, last }),
+			extent: { first, last },
 		});
 		const aboveUnit = groups[position - 1]?.unit;
 		vertices.push(vertex);
@@ -453,7 +466,7 @@ function checkClass(context: Context, body: ESTree.ClassBody, thisUses: readonly
 	report(context, vertices, order => {
 		if (pinned || body.body.some(isDecorated) || !hasDistinctKeys(units)) return null;
 
-		const replacement = rewrite(sourceCode.text, { vertices, order });
+		const replacement = rewrite(sourceCode, { vertices, order });
 		if (replacement === null) return null;
 
 		const [start, end] = replacement.range;
@@ -485,7 +498,10 @@ function link(
  * Groups every implementation with the overload signatures directly above it into one unit. Every other element is
  * a group of its own, and signatures that are not directly followed by their implementation are orphans.
  */
-function groupOverloads<Implementation>(elements: Iterable<Element<Implementation>>) {
+function groupOverloads<Item, Implementation>(
+	items: readonly Item[],
+	classify: (item: Item) => Element<Implementation>,
+) {
 	const walk: OverloadWalk<Implementation> = {
 		groups: [],
 		orphans: new Set<string>(),
@@ -493,7 +509,8 @@ function groupOverloads<Implementation>(elements: Iterable<Element<Implementatio
 		pending: null,
 	};
 
-	for (const element of elements) {
+	for (const item of items) {
+		const element = classify(item);
 		const { node, label, key, implementation } = element;
 		if (key !== walk.pending) release(walk);
 		walk.pending = key;
@@ -515,10 +532,11 @@ function groupOverloads<Implementation>(elements: Iterable<Element<Implementatio
 	return { groups, orphans };
 }
 
-/** Turns the pending signatures into groups of their own, marking them as orphans. */
+/** Turns the pending signatures, if any, into groups of their own, marking them as orphans. */
 function release<Implementation>(walk: OverloadWalk<Implementation>) {
 	const { groups, orphans, signatures, pending } = walk;
-	if (pending !== null && signatures.length > 0) orphans.add(pending);
+	if (signatures.length === 0) return;
+	if (pending !== null) orphans.add(pending);
 	for (const { node, label } of signatures) {
 		groups.push({ first: node, last: node, label, unit: null });
 	}
@@ -561,7 +579,7 @@ function memberElement(sourceCode: SourceCode, member: ESTree.ClassElement) {
 	}
 }
 
-function createVertex(fields: Pick<Vertex, 'label' | 'node' | 'owner' | 'position' | 'range'>) {
+function createVertex(fields: Pick<Vertex, 'label' | 'node' | 'owner' | 'position' | 'extent'>) {
 	const users: Vertex[] = [];
 	const uses: Use[] = [];
 
@@ -574,39 +592,6 @@ function createVertex(fields: Pick<Vertex, 'label' | 'node' | 'owner' | 'positio
 		component: -1,
 		onStack: false,
 	};
-}
-
-/**
- * The range of an extent, extended up to the comments directly above it (without a blank line in between) and over
- * the comments that start on its last line. Returns null when a comment shares a line with a token on both sides, since
- * it belongs to neither neighbor unambiguously.
- */
-function unitRange(sourceCode: SourceCode, { first, last }: Extent) {
-	const previous = sourceCode.getTokenBefore(first);
-	let top: ESTree.Node | ESTree.Comment = first;
-	const above = sourceCode.getCommentsBefore(first);
-	for (let index = above.length - 1; index >= 0; --index) {
-		const comment = assertDefined(above[index]);
-		if (comment.loc.end.line + 1 < top.loc.start.line) break;
-		if (comment.type === 'Shebang' || comment.loc.start.line === previous?.loc.end.line) {
-			if (comment.loc.end.line === top.loc.start.line) return null;
-			break;
-		}
-		top = comment;
-	}
-
-	let bottom: ESTree.Node | ESTree.Comment = last;
-	for (const comment of sourceCode.getCommentsAfter(last)) {
-		if (comment.loc.start.line !== last.loc.end.line) break;
-		bottom = comment;
-	}
-
-	const next = sourceCode.getTokenAfter(last);
-	if (bottom !== last && next !== null && next.loc.start.line <= bottom.loc.end.line) {
-		return null;
-	}
-
-	return [top.range[0], bottom.range[1]] satisfies Range;
 }
 
 /** Uses of `ClassName.name` inside a class body, attributed to the members that contain them. */
@@ -647,7 +632,6 @@ function directMember(node: ESTree.Node, body: ESTree.ClassBody) {
 	return null;
 }
 
-/** Records that `user` uses the helper of `use`. */
 function addUse(user: Vertex, use: Use) {
 	use.helper.users.push(user);
 	user.uses.push(use);
@@ -858,11 +842,16 @@ function isAccessorPair(left: ESTree.MethodDefinition, right: ESTree.MethodDefin
 
 /**
  * Rewrites the span from the first to the last slot that `order` changes: each changed slot receives the vertex that
- * `order` puts there, and the text around changed slots stays in place. Returns null when a changed slot or the vertex
- * that it receives has no range. A reported scope always changes a slot, because the stepdown order moves every helper
- * below its users.
+ * `order` puts there, and the text around changed slots stays in place. Returns null when the range of a changed slot
+ * or of the vertex that it receives is ambiguous (see `extentRange`). A reported scope always changes a slot, because
+ * the stepdown order moves every helper below its users.
  */
-function rewrite(source: string, { vertices, order }: Reordering) {
+function rewrite(sourceCode: SourceCode, reordering: Reordering) {
+	const ranges = movedRanges(sourceCode, reordering);
+	if (ranges === null) return null;
+
+	const { vertices, order } = reordering;
+	const { text: source } = sourceCode;
 	let text = '';
 	let start: number | null = null;
 	let end = 0;
@@ -870,14 +859,61 @@ function rewrite(source: string, { vertices, order }: Reordering) {
 	for (const [index, slot] of vertices.entries()) {
 		const unit = assertDefined(order[index]);
 		if (unit === slot) continue;
-		if (slot.range === null || unit.range === null) return null;
-		const [slotStart, slotEnd] = slot.range;
+		const [slotStart, slotEnd] = assertDefined(ranges.get(slot));
 		if (start === null) start = slotStart;
 		else text += source.slice(end, slotStart);
-		text += source.slice(...unit.range);
+		text += source.slice(...assertDefined(ranges.get(unit)));
 		end = slotEnd;
 	}
 
 	if (start === null) throw new AssertionError('a reported scope changes a slot');
 	return { range: [start, end] satisfies Range, text };
+}
+
+/**
+ * The range of every vertex that `order` moves (see `extentRange`), or null when one of them is ambiguous. A vertex
+ * moves exactly when its slot receives another vertex, so every changed slot and every vertex that it receives has one.
+ */
+function movedRanges(sourceCode: SourceCode, { vertices, order }: Reordering) {
+	const ranges = new Map<Vertex, Range>();
+	for (const [index, slot] of vertices.entries()) {
+		if (order[index] === slot) continue;
+		const range = extentRange(sourceCode, slot.extent);
+		if (range === null) return null;
+		ranges.set(slot, range);
+	}
+	return ranges;
+}
+
+/**
+ * The range of an extent, extended up to the comments directly above it (without a blank line in between) and over
+ * the comments that start on its last line. Returns null when a comment shares a line with a token on both sides, since
+ * it belongs to neither neighbor unambiguously.
+ */
+function extentRange(sourceCode: SourceCode, { first, last }: Extent) {
+	const previous = sourceCode.getTokenBefore(first);
+	let top: ESTree.Node | ESTree.Comment = first;
+	const above = sourceCode.getCommentsBefore(first);
+	for (let index = above.length - 1; index >= 0; --index) {
+		const comment = assertDefined(above[index]);
+		if (comment.loc.end.line + 1 < top.loc.start.line) break;
+		if (comment.type === 'Shebang' || comment.loc.start.line === previous?.loc.end.line) {
+			if (comment.loc.end.line === top.loc.start.line) return null;
+			break;
+		}
+		top = comment;
+	}
+
+	let bottom: ESTree.Node | ESTree.Comment = last;
+	for (const comment of sourceCode.getCommentsAfter(last)) {
+		if (comment.loc.start.line !== last.loc.end.line) break;
+		bottom = comment;
+	}
+
+	const next = sourceCode.getTokenAfter(last);
+	if (bottom !== last && next !== null && next.loc.start.line <= bottom.loc.end.line) {
+		return null;
+	}
+
+	return [top.range[0], bottom.range[1]] satisfies Range;
 }

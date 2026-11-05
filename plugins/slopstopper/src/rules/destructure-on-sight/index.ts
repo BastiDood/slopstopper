@@ -34,16 +34,16 @@ interface PropertyRead {
 	isNarrowing: boolean;
 }
 
-/** A binding whose every use reads a property, with its distinct property names in the order of their first read. */
-interface Reader {
-	variable: Variable;
-	id: ESTree.BindingIdentifier;
+/** The property reads of a binding whose every use reads a property, with its distinct property names in the order of their first read. */
+interface Reads {
 	reads: PropertyRead[];
 	names: string[];
 }
 
-/** A reader that destructuring can rewrite, with the kind of its binding. */
-interface Candidate extends Reader {
+/** A binding that destructuring can rewrite, with its reads and the kind of its binding. */
+interface Candidate extends Reads {
+	variable: Variable;
+	id: ESTree.BindingIdentifier;
 	binding: Binding;
 }
 
@@ -55,24 +55,13 @@ interface Rewrite {
 }
 
 /**
- * Reports a binding whose every use reads a static property off it, as in `x.p`, in favor of destructuring it where
- * it is bound. The binding is a function parameter, with or without a type annotation or a default value, or the
- * identifier of a `const` declarator. Any other use takes the value whole and exempts the binding: passing, returning,
- * assigning, spreading, or comparing it, a method call `x.m()` that needs `this`, a member write, update, or `delete`,
- * an optional read `x?.p`, a computed read `x[k]`, and any use from a nested function, which would capture a snapshot
- * instead of reading the property live.
+ * Reports a function parameter or `const` binding whose every use reads a static property off it, as in `x.p`, in
+ * favor of destructuring it where it is bound. A use that takes the value whole exempts the binding (see
+ * `propertyRead`), and so does a narrowing read, unless type information proves that destructuring type-checks (see
+ * `destructurableReads`).
  *
- * A read that narrows, such as `x.type === 'a'`, usually narrows a union whose other properties only some members
- * have, so destructuring them would not type-check. Without type information, a narrowing read exempts the binding.
- * With it, the rule reports a binding exactly when every read property exists on every member of its type.
- *
- * A binding whose only read is `length` destructures it under the binding's name, as in `{ length: trimmedLength }`.
- * Two or more parameters of one function that each read only the same property, as a comparator does, are reported
- * together and destructure it under their own names, as in `({ position: left }, { position: right })`.
- *
- * Destructuring reads each property once, at the binding, while `x.p` reads it at each use, so a mutation or a getter
- * in between changes the result, and so does a `Proxy` that returns a different value on each read. The rule cannot
- * prove that none happens, so the rewrite is a suggestion.
+ * Destructuring reads each property once, at the binding, while `x.p` reads it at each use, so a mutation, a getter, or
+ * a `Proxy` in between changes the result. The rule cannot prove that none happens, so the rewrite is a suggestion.
  */
 export const DESTRUCTURE_ON_SIGHT = defineRule({
 	meta: {
@@ -116,8 +105,10 @@ export const DESTRUCTURE_ON_SIGHT = defineRule({
 				const variable = onlyElement(sourceCode.getDeclaredVariables(node));
 				if (variable === null) return;
 
-				const reader = readerOf(services, variable, id);
-				if (reader !== null) reportCandidate(context, { ...reader, binding: 'declarator' });
+				const found = destructurableReads(services, variable, id);
+				if (found === null) return;
+				const { reads, names } = found;
+				reportCandidate(context, { variable, id, reads, names, binding: 'declarator' });
 			},
 		};
 	},
@@ -129,37 +120,44 @@ function checkFunction(
 	services: TypeServices | null,
 	node: ESTree.Function | ESTree.ArrowFunctionExpression,
 ) {
+	const { params } = node;
+	if (params.length === 0) return;
+
 	const { sourceCode } = context;
 	const { set } = sourceCode.getScope(node);
-	const found: Reader[] = [];
+	const candidates: Candidate[] = [];
+	let isStrict: boolean | null = null;
 
-	for (const parameter of node.params) {
+	for (const parameter of params) {
 		const id = parameterIdentifier(parameter);
 		if (id === null) continue;
 
 		const variable = set.get(id.name);
 		if (typeof variable === 'undefined') continue;
 
-		const reader = readerOf(services, variable, id);
-		if (reader !== null) found.push(reader);
-	}
-	if (found.length === 0) return;
+		const found = destructurableReads(services, variable, id);
+		if (found === null) continue;
 
-	const isStrict = hasUseStrict(node);
-	const candidates: Candidate[] = [];
-	for (const reader of found) {
-		candidates.push({ ...reader, binding: parameterBinding(sourceCode, reader.id, isStrict) });
+		isStrict ??= hasUseStrict(node);
+		const { reads, names } = found;
+		const binding = parameterBinding(sourceCode, id, isStrict);
+		candidates.push({ variable, id, reads, names, binding });
 	}
+	if (candidates.length === 0) return;
 
-	const groups = sharedPropertyGroups(candidates);
-	const grouped = new Set(groups.flatMap(([, members]) => members));
-	for (const [property, members] of groups) reportGroup(context, property, members);
+	const groups = soleReadGroups(candidates);
 	for (const candidate of candidates) {
-		if (!grouped.has(candidate)) reportCandidate(context, candidate);
+		if (!isGrouped(groups, candidate)) reportCandidate(context, candidate);
+	}
+	for (const [property, members] of groups) {
+		if (members.length >= 2) reportGroup(context, property, members);
 	}
 }
 
-/** Reports a candidate on its own, suggesting a pattern of every property it reads. */
+/**
+ * Reports a candidate on its own, suggesting a pattern of every property it reads. A sole `length` read destructures
+ * under the binding's name, as in `{ length: trimmedLength }`.
+ */
 function reportCandidate(context: Context, candidate: Candidate) {
 	const { sourceCode } = context;
 	const { id, names, binding } = candidate;
@@ -218,20 +216,27 @@ function reportGroup(context: Context, property: string, members: readonly Candi
 }
 
 /**
- * The reader that a binding makes, or `null` when a use takes it whole or destructuring it would not type-check.
+ * The property reads of a binding, or `null` when a use takes it whole or destructuring it would not type-check.
  * Without type information, a narrowing read stands for a union that destructuring would not type-check. With it, every
  * read property must exist on every member of the binding's type.
  */
-function readerOf(services: TypeServices | null, variable: Variable, id: ESTree.BindingIdentifier) {
+function destructurableReads(
+	services: TypeServices | null,
+	variable: Variable,
+	id: ESTree.BindingIdentifier,
+) {
 	const reads = propertyReads(variable);
 	if (reads === null || reads.length === 0) return null;
 
-	const names = [...new Set(reads.map(({ name }) => name))];
+	const names: string[] = [];
+	let isNarrowing = false;
+	for (const read of reads) {
+		if (!names.includes(read.name)) names.push(read.name);
+		isNarrowing ||= read.isNarrowing;
+	}
 	const isDestructurable =
-		services === null
-			? !reads.some(({ isNarrowing }) => isNarrowing)
-			: hasEveryProperty(services, id, names);
-	return isDestructurable ? ({ variable, id, reads, names } satisfies Reader) : null;
+		services === null ? !isNarrowing : hasEveryProperty(services, id, names);
+	return isDestructurable ? ({ reads, names } satisfies Reads) : null;
 }
 
 /** Whether every property name exists on every member of the type of a binding, or on the type when it is no union. */
@@ -252,19 +257,27 @@ function hasEveryProperty(
 }
 
 /**
- * The groups of two or more parameters that each read only the same property, keyed by that property, in parameter
- * order. A comparator such as `(left, right) => left.position - right.position` makes one group.
+ * The parameters that read only one property, grouped by that property in parameter order. A group of two or more,
+ * such as `(left, right) => left.position - right.position`, is reported together.
  */
-function sharedPropertyGroups(candidates: readonly Candidate[]) {
-	const byProperty = new Map<string, Candidate[]>();
+function soleReadGroups(candidates: readonly Candidate[]) {
+	const groups = new Map<string, Candidate[]>();
 	for (const candidate of candidates) {
 		const property = onlyElement(candidate.names);
 		if (property === null) continue;
-		const members = byProperty.get(property) ?? [];
-		byProperty.set(property, [...members, candidate]);
+		const members = groups.get(property);
+		if (typeof members === 'undefined') groups.set(property, [candidate]);
+		else members.push(candidate);
 	}
+	return groups;
+}
 
-	return [...byProperty].filter(([, members]) => members.length >= 2);
+/** Whether a candidate belongs to a group of two or more parameters (see `soleReadGroups`). */
+function isGrouped(groups: ReadonlyMap<string, readonly Candidate[]>, { names }: Candidate) {
+	const property = onlyElement(names);
+	if (property === null) return false;
+	const members = groups.get(property);
+	return typeof members !== 'undefined' && members.length >= 2;
 }
 
 /** How a parameter takes the pattern, by whether its function is strict and whether parentheses enclose it. */
@@ -408,7 +421,8 @@ function destructuring(sourceCode: SourceCode, rewrites: readonly Rewrite[]) {
 
 	for (const { candidate, pattern, localOf } of rewrites) {
 		const { variable, id, binding, reads, names } = candidate;
-		const scopes = [...new Set([variable.scope, ...reads.map(({ scope }) => scope)])];
+		const scopes = [variable.scope];
+		for (const { scope } of reads) if (!scopes.includes(scope)) scopes.push(scope);
 		const isSafe = names.every(name => {
 			const local = localOf(name);
 			if (local === name && isReservedWord(name)) return false;
@@ -425,10 +439,10 @@ function destructuring(sourceCode: SourceCode, rewrites: readonly Rewrite[]) {
 		}
 
 		const text = binding === 'bareArrowParameter' ? `(${pattern})` : pattern;
-		fixes.push(
-			{ range: token.range, text },
-			...reads.map(({ member, name }) => ({ range: member.range, text: localOf(name) })),
-		);
+		fixes.push({ range: token.range, text });
+		for (const { member, name } of reads) {
+			fixes.push({ range: member.range, text: localOf(name) });
+		}
 	}
 
 	return fixes;
