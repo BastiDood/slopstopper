@@ -39,6 +39,8 @@
 		"@typescript/native": "catalog:",
 		"eslint": "catalog:",
 		"oxlint": "catalog:",
+		"svelte": "^5.57.3",
+		"svelte-eslint-parser": "^1.10.0",
 		"tsdown": "catalog:",
 		"typescript": "catalog:",
 		"typescript-eslint": "catalog:",

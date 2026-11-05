@@ -2,6 +2,7 @@ import { join } from 'node:path';
 
 import type { Rule as OxlintRule } from '@oxlint/plugins';
 import { type Rule, RuleTester } from 'eslint';
+import * as svelteParser from 'svelte-eslint-parser';
 import tseslint from 'typescript-eslint';
 import { describe, it } from 'vitest';
 
@@ -15,13 +16,17 @@ RuleTester.it = (text: string, fn: () => void) => {
 
 /**
  * Runs rule tests through ESLint with typescript-eslint's parser and project service, so that every case has type
- * information. Each case parses as a virtual `estree.ts` in `fixture/`, whose `tsconfig.json` sets the compiler options.
+ * information. Each case parses as a virtual `estree.ts` in `fixture/`, whose `tsconfig.json` sets the compiler options. A
+ * JSX case sets a `filename` that ends in `.tsx`.
  */
 export const TYPED_RULE_TESTER = new RuleTester({
 	languageOptions: {
 		parser: tseslint.parser,
 		parserOptions: {
-			projectService: { allowDefaultProject: ['*.ts'], defaultProject: 'tsconfig.json' },
+			projectService: {
+				allowDefaultProject: ['*.ts', '*.tsx'],
+				defaultProject: 'tsconfig.json',
+			},
 			tsconfigRootDir: join(import.meta.dirname, 'fixture'),
 		},
 	},
@@ -29,6 +34,14 @@ export const TYPED_RULE_TESTER = new RuleTester({
 
 /** Runs rule tests through ESLint with typescript-eslint's parser but no TypeScript program, so without type information. */
 export const UNTYPED_RULE_TESTER = new RuleTester({ languageOptions: { parser: tseslint.parser } });
+
+/**
+ * Runs rule tests on Svelte components through ESLint with `svelte-eslint-parser`, which parses `<script lang="ts">` with
+ * typescript-eslint's parser, without type information. Each case must set a `filename` that ends in `.svelte`.
+ */
+export const SVELTE_RULE_TESTER = new RuleTester({
+	languageOptions: { parser: svelteParser, parserOptions: { parser: tseslint.parser } },
+});
 
 /** A slopstopper rule typed for ESLint's `RuleTester`. */
 export function eslintRule(rule: OxlintRule) {

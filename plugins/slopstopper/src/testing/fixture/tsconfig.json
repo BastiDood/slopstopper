@@ -1,5 +1,5 @@
 {
 	"extends": "@bastidood/tsconfig",
-	"compilerOptions": { "lib": ["ESNext"] },
+	"compilerOptions": { "lib": ["ESNext"], "jsx": "preserve" },
 	"files": []
 }
