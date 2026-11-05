@@ -1,12 +1,12 @@
 import type { ESTree, SourceCode, Variable } from '@oxlint/plugins';
 
+import { assertNotNull } from '#assert.ts';
 import { firstConstInitializer, isNeverReassigned, unvisitedVariable } from '#ast/bindings.ts';
 import { unwrap } from '#ast/discriminant.ts';
 import { propertyName } from '#ast/property-keys.ts';
 import { isDefaultLibraryMember, type TypeServices } from '#type-services.ts';
 
 /** The interfaces of the default library that declare the standard array methods. */
-const ARRAY_RECEIVERS = new Set(['Array', 'ReadonlyArray']);
 
 /** A method that a callee names statically: its name, the property node that names it, and the receiver. */
 export interface MethodTarget {
@@ -29,7 +29,7 @@ export function isKnownArrayExpression(sourceCode: SourceCode, expression: ESTre
  * `isDefaultLibraryMember`).
  */
 export function isStandardArrayMethod(services: TypeServices, property: ESTree.Node) {
-	return isDefaultLibraryMember(services, ARRAY_RECEIVERS, property);
+	return isDefaultLibraryMember(services, isArrayTypeName, property);
 }
 
 /**
@@ -47,12 +47,10 @@ function isKnownArray(
 		case 'ArrayExpression':
 			return true;
 		case 'CallExpression': {
-			const method = methodTarget(node.callee);
-			return (
-				method !== null &&
-				returnsNewArray(method.name) &&
-				isKnownArray(sourceCode, visited, method.object)
-			);
+			const name = methodName(node.callee);
+			if (name === null || !returnsNewArray(name)) return false;
+			const { object } = assertNotNull(methodTarget(node.callee));
+			return isKnownArray(sourceCode, visited, object);
 		}
 		case 'Identifier':
 			return isKnownArrayBinding(sourceCode, visited, node);
@@ -65,6 +63,14 @@ function isKnownArray(
  * The method that a callee names statically, as in `xs.map` or `xs['map']`, through optional chains and TypeScript
  * assertions (see `unwrap`). Returns `null` for any other callee, such as a private name or a dynamic computed key.
  */
+/** The static name of the method that a callee reads, as `map` in `xs.map`, or `null` when the callee is no member. */
+export function methodName(callee: ESTree.Expression) {
+	const member = unwrap(callee);
+	return member.type === 'MemberExpression'
+		? propertyName(member.property, member.computed)
+		: null;
+}
+
 export function methodTarget(callee: ESTree.Expression) {
 	const member = unwrap(callee);
 	if (member.type !== 'MemberExpression') return null;
@@ -73,7 +79,6 @@ export function methodTarget(callee: ESTree.Expression) {
 	return name === null ? null : ({ name, property, object } satisfies MethodTarget);
 }
 
-/** Whether an array method returns a new array. */
 function returnsNewArray(name: string) {
 	switch (name) {
 		case 'map':
@@ -102,8 +107,10 @@ function isKnownArrayBinding(
 	const variable = unvisitedVariable(sourceCode, visited, identifier);
 	if (variable === null || !isNeverReassigned(variable)) return false;
 
-	const [annotation] = variable.identifiers.flatMap(({ typeAnnotation }) => typeAnnotation ?? []);
-	if (typeof annotation !== 'undefined') return isArrayAnnotation(annotation.typeAnnotation);
+	for (const { typeAnnotation } of variable.identifiers) {
+		const annotation = typeAnnotation ?? null;
+		if (annotation !== null) return isArrayAnnotation(annotation.typeAnnotation);
+	}
 	const init = firstConstInitializer(variable);
 	return init !== null && isKnownArray(sourceCode, visited, init);
 }
@@ -126,7 +133,6 @@ function isArrayAnnotation(type: ESTree.TSType): boolean {
 	}
 }
 
-/** Whether a type name is `Array` or `ReadonlyArray`. */
 function isArrayTypeName(name: string) {
 	switch (name) {
 		case 'Array':

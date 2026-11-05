@@ -126,12 +126,12 @@ export function isNeverOrTopType(checker: TypeChecker, type: Type) {
 
 /**
  * Whether the type checker resolves a member to one of the default library: every declaration of the member sits in a
- * default library file, inside an interface whose name `receivers` holds. A union receiver resolves to the declarations
+ * default library file, inside an interface whose name `isReceiver` accepts. A union receiver resolves to the declarations
  * of every member. A member of a user-defined type, or of an `any` receiver, does not count.
  */
 export function isDefaultLibraryMember(
 	services: TypeServices,
-	receivers: ReadonlySet<string>,
+	isReceiver: (name: string) => boolean,
 	property: ESTree.Node,
 ) {
 	const { program } = services;
@@ -142,7 +142,7 @@ export function isDefaultLibraryMember(
 			const name = declaration.parent.name?.text;
 			return (
 				typeof name === 'string' &&
-				receivers.has(name) &&
+				isReceiver(name) &&
 				program.isSourceFileDefaultLibrary(declaration.getSourceFile())
 			);
 		})

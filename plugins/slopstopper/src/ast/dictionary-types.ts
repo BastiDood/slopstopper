@@ -88,10 +88,8 @@ export function transparentArgument(
 		case 'Readonly':
 		case 'Partial':
 		case 'Required':
-		case 'NonNullable': {
-			const [argument] = typeArguments?.params ?? [];
-			return argument ?? null;
-		}
+		case 'NonNullable':
+			return typeArguments?.params[0] ?? null;
 		default:
 			return null;
 	}

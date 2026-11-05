@@ -18,8 +18,8 @@ type StatementList = readonly (ESTree.Directive | ESTree.Statement)[];
 /**
  * A decision that reads better as a `switch`: `if` statements that compare one discriminant against two or more
  * distinct case values with `===`, as the whole test or as the leading operand of an `&&` chain, owned by
- * `prefer-switch`. The decision covers the statements from `firstIndex`
- * to `lastIndex` of its list; `branches` holds its cases in source order, and `ending` says what becomes `default`.
+ * `prefer-switch`. The decision covers the statements from `firstIndex` to `lastIndex` of its list; `branches` holds
+ * its cases in source order, and `ending` says what becomes `default`.
  */
 export interface SwitchDecision {
 	kind: 'switch';
@@ -406,13 +406,11 @@ export function alwaysExits(statement: ESTree.Directive | ESTree.Statement): boo
  * other, keeping the positive one as the condition. An operand is the whole test or a top-level `&&` operand.
  */
 function findSplit(first: ESTree.IfStatement, second: ESTree.IfStatement) {
-	const secondOperands = logicalOperands(second.test, '&&').map(operand => ({
-		operand,
-		target: unwrap(operand),
-	}));
+	const secondOperands = logicalOperands(second.test, '&&');
 	for (const left of logicalOperands(first.test, '&&')) {
 		const leftTarget = unwrap(left);
-		for (const { operand: right, target: rightTarget } of secondOperands) {
+		for (const right of secondOperands) {
+			const rightTarget = unwrap(right);
 			if (negates(rightTarget, leftTarget)) {
 				return {
 					kind: 'split',

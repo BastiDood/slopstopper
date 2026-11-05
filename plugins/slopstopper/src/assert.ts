@@ -25,7 +25,7 @@ export function assertNotNull<T>(value: T | null) {
 }
 
 /** @throws {AssertionError} */
-export function assertOptional<T>([value, ...values]: T[]) {
-	if (values.length > 0) throw new AssertionError('expected at most one value');
-	return value;
+export function assertOptional<T>(values: T[]) {
+	if (values.length > 1) throw new AssertionError('expected at most one value');
+	return values[0];
 }

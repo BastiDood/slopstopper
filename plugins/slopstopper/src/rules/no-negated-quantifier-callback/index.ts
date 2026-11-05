@@ -5,25 +5,6 @@ import { negate } from '#ast/negation.ts';
 import { dropsComment } from '#ast/ranges.ts';
 import { isDefaultLibraryMember, type TypeServices, typeServicesOf } from '#type-services.ts';
 
-/** The interfaces of the default library that declare the standard `some` and `every` methods (see `isDefaultLibraryMember`). */
-const STANDARD_RECEIVERS = new Set([
-	'Array',
-	'ReadonlyArray',
-	'Int8Array',
-	'Uint8Array',
-	'Uint8ClampedArray',
-	'Int16Array',
-	'Uint16Array',
-	'Int32Array',
-	'Uint32Array',
-	'Float16Array',
-	'Float32Array',
-	'Float64Array',
-	'BigInt64Array',
-	'BigUint64Array',
-	'IteratorObject',
-]);
-
 /** A `.some` or `.every` call whose callback returns a `!` negation, and the parts of the call that the rewrite edits. */
 interface Quantifier {
 	call: ESTree.CallExpression;
@@ -37,7 +18,7 @@ interface Quantifier {
  * quantifier with one negation outside the call. De Morgan's law turns `xs.every(x => !p)` into `!xs.some(x => p)` and
  * `xs.some(x => !p)` into `!xs.every(x => p)`, and a negated call drops both negations: `!xs.some(x => !p)` becomes
  * `xs.every(x => p)`. The rewrite is a fix when the type checker resolves the method to the standard one of an array,
- * a typed array, or an iterator (see `STANDARD_RECEIVERS`), and a suggestion otherwise.
+ * a typed array, or an iterator (see `isStandardReceiver`), and a suggestion otherwise.
  */
 export const NO_NEGATED_QUANTIFIER_CALLBACK = defineRule({
 	meta: {
@@ -174,7 +155,7 @@ function reportQuantifier(context: Context, services: TypeServices | null, quant
 	const rewritten = dualCall(sourceCode, quantifier);
 	const text = outer === null ? negatedCall(call, rewritten) : rewritten;
 
-	if (services !== null && isDefaultLibraryMember(services, STANDARD_RECEIVERS, property)) {
+	if (services !== null && isDefaultLibraryMember(services, isStandardReceiver, property)) {
 		context.report({
 			node: target,
 			messageId: 'negatedQuantifierCallback',
@@ -235,6 +216,30 @@ function bindsTighterThanNot(call: ESTree.CallExpression) {
 			return parent.tag === call;
 		case 'BinaryExpression':
 			return parent.operator === '**' && parent.left === call;
+		default:
+			return false;
+	}
+}
+
+/** Whether an interface of the default library declares the standard `some` and `every` methods. */
+function isStandardReceiver(name: string) {
+	switch (name) {
+		case 'Array':
+		case 'ReadonlyArray':
+		case 'Int8Array':
+		case 'Uint8Array':
+		case 'Uint8ClampedArray':
+		case 'Int16Array':
+		case 'Uint16Array':
+		case 'Int32Array':
+		case 'Uint32Array':
+		case 'Float16Array':
+		case 'Float32Array':
+		case 'Float64Array':
+		case 'BigInt64Array':
+		case 'BigUint64Array':
+		case 'IteratorObject':
+			return true;
 		default:
 			return false;
 	}

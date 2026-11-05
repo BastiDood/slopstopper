@@ -17,12 +17,19 @@ export interface ResolvedType {
 	expanding: ReadonlySet<ESTree.TSTypeAliasDeclaration>;
 }
 
+/** The substitutions outside any alias expansion, shared by every such type. */
+const NO_SUBSTITUTIONS: Substitutions = new Map<ESTree.TSTypeParameter, ResolvedType>();
+
+/** The aliases that expand outside any alias expansion, shared by every such type. */
+const NO_EXPANSIONS: ReadonlySet<ESTree.TSTypeAliasDeclaration> =
+	new Set<ESTree.TSTypeAliasDeclaration>();
+
 /** A type as written, outside any alias expansion. */
 export function written(type: ESTree.TSType) {
 	return {
 		type,
-		substitutions: new Map<ESTree.TSTypeParameter, ResolvedType>(),
-		expanding: new Set<ESTree.TSTypeAliasDeclaration>(),
+		substitutions: NO_SUBSTITUTIONS,
+		expanding: NO_EXPANSIONS,
 	} satisfies ResolvedType;
 }
 
@@ -79,12 +86,18 @@ function aliasExpansion(
 	{ typeArguments }: ESTree.TSTypeReference,
 ) {
 	const expanding = new Set(reference.expanding).add(alias);
-	const substitutions = new Map<ESTree.TSTypeParameter, ResolvedType>();
-	const parameters = alias.typeParameters?.params ?? [];
-	const explicitArguments = typeArguments?.params ?? [];
+	const parameters = alias.typeParameters?.params;
+	if (typeof parameters === 'undefined') {
+		return {
+			type: alias.typeAnnotation,
+			substitutions: NO_SUBSTITUTIONS,
+			expanding,
+		} satisfies ResolvedType;
+	}
 
+	const substitutions = new Map<ESTree.TSTypeParameter, ResolvedType>();
 	for (const [index, parameter] of parameters.entries()) {
-		const argument = explicitArguments[index];
+		const argument = typeArguments?.params[index];
 		const fallback = parameter.default ?? null;
 		if (typeof argument !== 'undefined') {
 			substitutions.set(parameter, within(reference, argument));
@@ -103,8 +116,8 @@ function aliasExpansion(
 }
 
 /** A child type of a resolved type, in the same context. */
-export function within(parent: ResolvedType, type: ESTree.TSType) {
-	return { ...parent, type } satisfies ResolvedType;
+export function within({ substitutions, expanding }: ResolvedType, type: ESTree.TSType) {
+	return { type, substitutions, expanding } satisfies ResolvedType;
 }
 
 /**

@@ -5,12 +5,22 @@ import { propertyName } from '#ast/property-keys.ts';
 /** The longest source text that a message shows, including the `…` that ends a cut text. */
 const MAX_LABEL_LENGTH = 40;
 
-/** Matches a run of whitespace characters. */
+/**
+ * The length of the head of a source text that a label collapses first. The collapsed head is a prefix of the collapsed
+ * text, so a collapsed head that is already too long yields the label, and a long text is collapsed in full only when
+ * whitespace runs fill most of its head.
+ */
+const LABEL_HEAD_LENGTH = 4 * MAX_LABEL_LENGTH;
+
 const WHITESPACE_RUN_REGEX = /\s+/gu;
 
 /** A source text for a message: whitespace runs collapse to one space, and a longer text is cut to end in `…`. */
 export function messageLabel(text: string) {
-	const flat = text.replaceAll(WHITESPACE_RUN_REGEX, ' ');
+	const head = text.slice(0, LABEL_HEAD_LENGTH).replaceAll(WHITESPACE_RUN_REGEX, ' ');
+	const flat =
+		head.length > MAX_LABEL_LENGTH || text.length <= LABEL_HEAD_LENGTH
+			? head
+			: text.replaceAll(WHITESPACE_RUN_REGEX, ' ');
 	return flat.length > MAX_LABEL_LENGTH ? `${flat.slice(0, MAX_LABEL_LENGTH - 1)}…` : flat;
 }
 
