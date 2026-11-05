@@ -2,15 +2,13 @@ import type { Entry } from '#compose/index.ts';
 
 /** TanStack Query rules that apply to every framework adapter. */
 export const TANSTACK_QUERY = {
-	config: { rules: {} },
-	restrictions: {
-		syntax: [
-			{
-				selector:
-					'CallExpression:matches([callee.name="mutate"], [callee.property.name="mutate"]) > ObjectExpression:nth-child(2) CallExpression[callee.property.name=/^(?:invalidateQueries|refetchQueries|resetQueries|removeQueries|cancelQueries|setQueryData|setQueriesData)$/]',
-				message:
-					'Move this cache update into the callbacks of the mutation definition. Callbacks passed to `mutate` do not run when the component unmounts first or when a later call replaces this one, so keep only UI consequences here.',
-			},
-		],
+	config: {
+		jsPlugins: [{ name: 'slopstopper', specifier: '@bastidood/eslint-plugin-slopstopper' }],
+		rules: {
+			'slopstopper/no-defaulted-query-key': 'error',
+			'slopstopper/no-mutate-callback-cache-update': 'error',
+			'slopstopper/no-standalone-mutate-async': 'error',
+			'slopstopper/prefer-query-key-context': 'error',
+		},
 	},
 } satisfies Entry;

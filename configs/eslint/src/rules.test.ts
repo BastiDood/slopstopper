@@ -6,6 +6,8 @@ import { CORE } from './core.ts';
 import { JSDOC } from './jsdoc.ts';
 import { NODE } from './node.ts';
 import { PROMISE } from './promise.ts';
+import { TANSTACK_QUERY } from './tanstack/query.ts';
+import { TANSTACK_TABLE } from './tanstack/table.ts';
 import { UNICORN } from './unicorn.ts';
 import { VITEST } from './vitest.ts';
 
@@ -14,7 +16,16 @@ const PLUGINS: Record<string, ESLint.Plugin> = {};
 const SYNTAX_RULES: Linter.RulesRecord = {};
 const TYPE_AWARE_RULE_NAMES: string[] = [];
 
-for (const config of compose(CORE, UNICORN, PROMISE, NODE, VITEST, JSDOC)) {
+for (const config of compose(
+	CORE,
+	UNICORN,
+	PROMISE,
+	NODE,
+	VITEST,
+	JSDOC,
+	TANSTACK_QUERY,
+	TANSTACK_TABLE,
+)) {
 	Object.assign(PLUGINS, config.plugins);
 	const { rules } = config;
 	if (typeof rules === 'undefined') continue;

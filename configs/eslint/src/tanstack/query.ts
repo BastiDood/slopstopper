@@ -10,5 +10,4 @@ writeEslintRules(RULES, OXLINT_TANSTACK_QUERY.config.rules);
 /** TanStack Query rules for every framework adapter, generated from the Oxlint `tanstack/query` entry point. */
 export const TANSTACK_QUERY: Entry = {
 	configs: [{ name: '@bastidood/eslint-config/tanstack/query', rules: RULES }],
-	restrictions: OXLINT_TANSTACK_QUERY.restrictions,
 };

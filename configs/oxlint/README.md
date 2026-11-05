@@ -28,22 +28,22 @@ Combine entry points with `compose`, not `extends`, so that `no-restricted-*` li
 
 ## Entry Points
 
-| Entry point                                     | Contents                                                                               |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `@bastidood/oxlint-config`                      | `compose`                                                                              |
-| `@bastidood/oxlint-config/core`                 | ESLint core, `import`, `oxc`, and `typescript` rules                                   |
-| `@bastidood/oxlint-config/node`                 | Node.js rules                                                                          |
-| `@bastidood/oxlint-config/unicorn`              | `unicorn` rules                                                                        |
-| `@bastidood/oxlint-config/promise`              | `promise` rules                                                                        |
-| `@bastidood/oxlint-config/react`                | React rules; bans effect hooks                                                         |
-| `@bastidood/oxlint-config/react/compiler`       | Turns off memoization rules made obsolete by the React Compiler; compose after `REACT` |
-| `@bastidood/oxlint-config/react/tanstack/table` | Reserved for React Table rules; compose with `TANSTACK_TABLE`                          |
-| `@bastidood/oxlint-config/jsx-a11y`             | JSX accessibility rules                                                                |
-| `@bastidood/oxlint-config/tanstack/query`       | Bans cache updates in per-call `mutate` callbacks                                      |
-| `@bastidood/oxlint-config/tanstack/table`       | Bans `stockFeatures` and reading column templates outside `FlexRender`                 |
-| `@bastidood/oxlint-config/next`                 | Next.js rules                                                                          |
-| `@bastidood/oxlint-config/vitest`               | Vitest rules                                                                           |
-| `@bastidood/oxlint-config/jsdoc`                | JSDoc rules for documentation that TypeScript does not cover                           |
+| Entry point                                     | Contents                                                                                                                                                                                                                                        |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@bastidood/oxlint-config`                      | `compose`                                                                                                                                                                                                                                       |
+| `@bastidood/oxlint-config/core`                 | ESLint core, `import`, `oxc`, and `typescript` rules                                                                                                                                                                                            |
+| `@bastidood/oxlint-config/node`                 | Node.js rules                                                                                                                                                                                                                                   |
+| `@bastidood/oxlint-config/unicorn`              | `unicorn` rules                                                                                                                                                                                                                                 |
+| `@bastidood/oxlint-config/promise`              | `promise` rules                                                                                                                                                                                                                                 |
+| `@bastidood/oxlint-config/react`                | React rules; bans effect hooks                                                                                                                                                                                                                  |
+| `@bastidood/oxlint-config/react/compiler`       | Turns off memoization rules made obsolete by the React Compiler; compose after `REACT`                                                                                                                                                          |
+| `@bastidood/oxlint-config/react/tanstack/table` | Reserved for React Table rules; compose with `TANSTACK_TABLE`                                                                                                                                                                                   |
+| `@bastidood/oxlint-config/jsx-a11y`             | JSX accessibility rules                                                                                                                                                                                                                         |
+| `@bastidood/oxlint-config/tanstack/query`       | Enables the slopstopper TanStack Query rules: `prefer-query-key-context`, `no-defaulted-query-key`, `no-standalone-mutate-async`, and `no-mutate-callback-cache-update`                                                                         |
+| `@bastidood/oxlint-config/tanstack/table`       | Enables the slopstopper TanStack Table rules: `prefer-table-atoms`, `require-table-state-pairs`, `no-render-scoped-table-schema`, and `require-exclusive-indeterminate`; bans `stockFeatures` and reading column templates outside `FlexRender` |
+| `@bastidood/oxlint-config/next`                 | Next.js rules                                                                                                                                                                                                                                   |
+| `@bastidood/oxlint-config/vitest`               | Vitest rules                                                                                                                                                                                                                                    |
+| `@bastidood/oxlint-config/jsdoc`                | JSDoc rules for documentation that TypeScript does not cover                                                                                                                                                                                    |
 
 ## Limitations
 

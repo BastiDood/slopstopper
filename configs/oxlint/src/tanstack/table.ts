@@ -8,7 +8,15 @@ const RAW_TEMPLATE_MESSAGE =
 
 /** TanStack Table rules that apply to every framework adapter. */
 export const TANSTACK_TABLE = {
-	config: { rules: {} },
+	config: {
+		jsPlugins: [{ name: 'slopstopper', specifier: '@bastidood/eslint-plugin-slopstopper' }],
+		rules: {
+			'slopstopper/no-render-scoped-table-schema': 'error',
+			'slopstopper/prefer-table-atoms': 'error',
+			'slopstopper/require-exclusive-indeterminate': 'error',
+			'slopstopper/require-table-state-pairs': 'error',
+		},
+	},
 	restrictions: {
 		importPaths: [
 			{
