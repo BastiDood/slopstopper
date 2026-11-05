@@ -50,6 +50,8 @@ Rules marked as derived from `anti-slop` are vendored from [`dmmulroy/anti-slop`
 | [`no-defaulted-query-key`](./src/rules/no-defaulted-query-key/README.md)                         | A `??`, `\|\|`, or defaulted binding in a TanStack Query `queryKey`, which shares a cache entry with a real value                                                                                             |
 | [`no-standalone-mutate-async`](./src/rules/no-standalone-mutate-async/README.md)                 | A TanStack Query `mutateAsync` outside a `Promise.all`, `allSettled`, `race`, or `any` of concurrent mutations, tracked through renames and aliases                                                           |
 | [`no-mutate-callback-cache-update`](./src/rules/no-mutate-callback-cache-update/README.md)       | A `QueryClient` cache update in the per-call callbacks of a TanStack Query `mutate`, tracked through renames and aliases                                                                                      |
+| [`no-render-scoped-table-schema`](./src/rules/no-render-scoped-table-schema/README.md)           | A TanStack Table `tableFeatures`, `createColumnHelper`, or `helper.columns` call inside a component, hook, or Svelte instance script                                                                          |
+| [`require-exclusive-indeterminate`](./src/rules/require-exclusive-indeterminate/README.md)       | A TanStack Table `getIsSomeRowsSelected()` indeterminate value without `&& !getIsAllRowsSelected()`; suggests the exclusion                                                                                   |
 
 ## Compatibility
 

@@ -19,6 +19,7 @@ import { NO_PLAIN_TEMPLATE_LITERAL } from './rules/no-plain-template-literal/ind
 import { NO_POSITIONAL_SCALARS } from './rules/no-positional-scalars/index.ts';
 import { NO_PRIVATE_MODIFIER } from './rules/no-private-modifier/index.ts';
 import { NO_REDUCE_ACCUMULATOR_COPY } from './rules/no-reduce-accumulator-copy/index.ts';
+import { NO_RENDER_SCOPED_TABLE_SCHEMA } from './rules/no-render-scoped-table-schema/index.ts';
 import { NO_STANDALONE_MUTATE_ASYNC } from './rules/no-standalone-mutate-async/index.ts';
 import { NO_TEMPORARY_ACCESS } from './rules/no-temporary-access/index.ts';
 import { NO_TYPE_PREDICATES } from './rules/no-type-predicates/index.ts';
@@ -33,6 +34,7 @@ import { PREFER_QUERY_KEY_CONTEXT } from './rules/prefer-query-key-context/index
 import { PREFER_SWITCH } from './rules/prefer-switch/index.ts';
 import { PREFER_TYPEOF_UNDEFINED } from './rules/prefer-typeof-undefined/index.ts';
 import { PREFER_WHILE_TRUE } from './rules/prefer-while-true/index.ts';
+import { REQUIRE_EXCLUSIVE_INDETERMINATE } from './rules/require-exclusive-indeterminate/index.ts';
 import { STEPDOWN_ORDER } from './rules/stepdown-order/index.ts';
 
 /** The slopstopper rules, loadable as an Oxlint JS plugin and as an ESLint plugin. */
@@ -58,6 +60,7 @@ export default definePlugin({
 		'no-positional-scalars': NO_POSITIONAL_SCALARS,
 		'no-private-modifier': NO_PRIVATE_MODIFIER,
 		'no-reduce-accumulator-copy': NO_REDUCE_ACCUMULATOR_COPY,
+		'no-render-scoped-table-schema': NO_RENDER_SCOPED_TABLE_SCHEMA,
 		'no-standalone-mutate-async': NO_STANDALONE_MUTATE_ASYNC,
 		'no-temporary-access': NO_TEMPORARY_ACCESS,
 		'no-type-predicates': NO_TYPE_PREDICATES,
@@ -72,6 +75,7 @@ export default definePlugin({
 		'prefer-switch': PREFER_SWITCH,
 		'prefer-typeof-undefined': PREFER_TYPEOF_UNDEFINED,
 		'prefer-while-true': PREFER_WHILE_TRUE,
+		'require-exclusive-indeterminate': REQUIRE_EXCLUSIVE_INDETERMINATE,
 		'stepdown-order': STEPDOWN_ORDER,
 	},
 });
