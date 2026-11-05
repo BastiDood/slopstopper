@@ -41,6 +41,29 @@ export class Counter {
 	}
 }
 
+// A variant adds members with `extends`.
+export class LabeledCounter extends Counter {
+	label: string;
+
+	constructor(start: number, label: string) {
+		super(start);
+		this.label = label;
+	}
+}
+
+// A structural contract uses `implements`.
+export class FileReader implements Reader {
+	#path: string;
+
+	constructor(path: string) {
+		this.#path = path;
+	}
+
+	read() {
+		return readFileSync(this.#path);
+	}
+}
+
 // Only data members.
 function span(range: Range, text: string) {
 	return { range, text };
@@ -53,6 +76,14 @@ export const RULE = defineRule({
 	},
 });
 ```
+
+## Call Sites That Add Members
+
+A spread copies only own enumerable properties, so `{ ...new Counter(0), label: 'a' }` drops `increment` and `value`. Do not spread an instance. Declare the added member as a field of the class, `extends` the class for a variant, or `implements` an interface when a consumer expects a structural type.
+
+`implements` checks the class against the interface, but it does not infer method parameter types from it. Annotate the method parameters.
+
+A consumer that reads own enumerable properties, such as a lint visitor that is read with `Object.keys` and spread into another visitor, needs a plain object. Keep the factory and suppress the diagnostic with a reason.
 
 ## Limitations
 

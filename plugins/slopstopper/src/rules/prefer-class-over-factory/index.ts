@@ -34,7 +34,7 @@ export const PREFER_CLASS_OVER_FACTORY = defineRule({
 		},
 		messages: {
 			preferClass:
-				'Turn {{factory}} into {{class}} whose constructor takes {{parameters}}, so the shape and its state have a name.',
+				'Turn {{factory}} into {{class}} whose constructor takes {{parameters}}, so the shape and its state have a name. Do not spread an instance to add members; a spread drops its methods and accessors. Declare a field in the class, `extends` it for a variant, or `implements` an interface for a structural contract. If the consumer genuinely necessitates own enumerable properties (which should rarely be the case), keep the factory and suppress this diagnostic.',
 		},
 		schema: [],
 	},
