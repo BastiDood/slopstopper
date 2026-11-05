@@ -12,12 +12,14 @@ import { NO_EQUALITY_CHAIN } from './rules/no-equality-chain/index.ts';
 import { NO_INFERRABLE_RETURN_TYPE } from './rules/no-inferrable-return-type/index.ts';
 import { NO_KNOWN_VALUE_WIDENING } from './rules/no-known-value-widening/index.ts';
 import { NO_MULTIPLE_OPTIONAL_PARAMETERS } from './rules/no-multiple-optional-parameters/index.ts';
+import { NO_MUTATE_CALLBACK_CACHE_UPDATE } from './rules/no-mutate-callback-cache-update/index.ts';
 import { NO_NEGATED_GROUP } from './rules/no-negated-group/index.ts';
 import { NO_NEGATED_QUANTIFIER_CALLBACK } from './rules/no-negated-quantifier-callback/index.ts';
 import { NO_PLAIN_TEMPLATE_LITERAL } from './rules/no-plain-template-literal/index.ts';
 import { NO_POSITIONAL_SCALARS } from './rules/no-positional-scalars/index.ts';
 import { NO_PRIVATE_MODIFIER } from './rules/no-private-modifier/index.ts';
 import { NO_REDUCE_ACCUMULATOR_COPY } from './rules/no-reduce-accumulator-copy/index.ts';
+import { NO_STANDALONE_MUTATE_ASYNC } from './rules/no-standalone-mutate-async/index.ts';
 import { NO_TEMPORARY_ACCESS } from './rules/no-temporary-access/index.ts';
 import { NO_TYPE_PREDICATES } from './rules/no-type-predicates/index.ts';
 import { NO_UNKNOWN_RETURNS } from './rules/no-unknown-returns/index.ts';
@@ -49,12 +51,14 @@ export default definePlugin({
 		'no-inferrable-return-type': NO_INFERRABLE_RETURN_TYPE,
 		'no-known-value-widening': NO_KNOWN_VALUE_WIDENING,
 		'no-multiple-optional-parameters': NO_MULTIPLE_OPTIONAL_PARAMETERS,
+		'no-mutate-callback-cache-update': NO_MUTATE_CALLBACK_CACHE_UPDATE,
 		'no-negated-group': NO_NEGATED_GROUP,
 		'no-negated-quantifier-callback': NO_NEGATED_QUANTIFIER_CALLBACK,
 		'no-plain-template-literal': NO_PLAIN_TEMPLATE_LITERAL,
 		'no-positional-scalars': NO_POSITIONAL_SCALARS,
 		'no-private-modifier': NO_PRIVATE_MODIFIER,
 		'no-reduce-accumulator-copy': NO_REDUCE_ACCUMULATOR_COPY,
+		'no-standalone-mutate-async': NO_STANDALONE_MUTATE_ASYNC,
 		'no-temporary-access': NO_TEMPORARY_ACCESS,
 		'no-type-predicates': NO_TYPE_PREDICATES,
 		'no-unknown-returns': NO_UNKNOWN_RETURNS,

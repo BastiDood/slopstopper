@@ -48,6 +48,8 @@ Rules marked as derived from `anti-slop` are vendored from [`dmmulroy/anti-slop`
 | [`no-untyped-empty-initializer`](./src/rules/no-untyped-empty-initializer/README.md)             | A binding without an annotation that has no initializer or starts as `[]`, `{}`, or `null`, a `new Map()`, `new WeakMap()`, or `new Set()` without type arguments, or an assertion on an empty literal        |
 | [`prefer-query-key-context`](./src/rules/prefer-query-key-context/README.md)                     | A TanStack Query `queryFn` that captures a value its sibling `queryKey` also holds, instead of reading it from the query function context                                                                     |
 | [`no-defaulted-query-key`](./src/rules/no-defaulted-query-key/README.md)                         | A `??`, `\|\|`, or defaulted binding in a TanStack Query `queryKey`, which shares a cache entry with a real value                                                                                             |
+| [`no-standalone-mutate-async`](./src/rules/no-standalone-mutate-async/README.md)                 | A TanStack Query `mutateAsync` outside a `Promise.all`, `allSettled`, `race`, or `any` of concurrent mutations, tracked through renames and aliases                                                           |
+| [`no-mutate-callback-cache-update`](./src/rules/no-mutate-callback-cache-update/README.md)       | A `QueryClient` cache update in the per-call callbacks of a TanStack Query `mutate`, tracked through renames and aliases                                                                                      |
 
 ## Compatibility
 
