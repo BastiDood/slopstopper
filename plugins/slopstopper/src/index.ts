@@ -7,6 +7,7 @@ import { NEEDLESS_TYPE_INTERSECTION } from './rules/needless-type-intersection/i
 import { NO_ALIAS_OBJECT_TYPE } from './rules/no-alias-object-type/index.ts';
 import { NO_ARRAY_FILTER_MAP } from './rules/no-array-filter-map/index.ts';
 import { NO_CONDITIONAL_EMPTY_OBJECT_SPREAD } from './rules/no-conditional-empty-object-spread/index.ts';
+import { NO_DEFAULTED_QUERY_KEY } from './rules/no-defaulted-query-key/index.ts';
 import { NO_EQUALITY_CHAIN } from './rules/no-equality-chain/index.ts';
 import { NO_INFERRABLE_RETURN_TYPE } from './rules/no-inferrable-return-type/index.ts';
 import { NO_KNOWN_VALUE_WIDENING } from './rules/no-known-value-widening/index.ts';
@@ -26,6 +27,7 @@ import { NO_UNTYPED_EMPTY_INITIALIZER } from './rules/no-untyped-empty-initializ
 import { PREFER_CLASS_OVER_FACTORY } from './rules/prefer-class-over-factory/index.ts';
 import { PREFER_DE_MORGAN } from './rules/prefer-de-morgan/index.ts';
 import { PREFER_PREFIX_INCREMENT } from './rules/prefer-prefix-increment/index.ts';
+import { PREFER_QUERY_KEY_CONTEXT } from './rules/prefer-query-key-context/index.ts';
 import { PREFER_SWITCH } from './rules/prefer-switch/index.ts';
 import { PREFER_TYPEOF_UNDEFINED } from './rules/prefer-typeof-undefined/index.ts';
 import { PREFER_WHILE_TRUE } from './rules/prefer-while-true/index.ts';
@@ -42,6 +44,7 @@ export default definePlugin({
 		'no-alias-object-type': NO_ALIAS_OBJECT_TYPE,
 		'no-array-filter-map': NO_ARRAY_FILTER_MAP,
 		'no-conditional-empty-object-spread': NO_CONDITIONAL_EMPTY_OBJECT_SPREAD,
+		'no-defaulted-query-key': NO_DEFAULTED_QUERY_KEY,
 		'no-equality-chain': NO_EQUALITY_CHAIN,
 		'no-inferrable-return-type': NO_INFERRABLE_RETURN_TYPE,
 		'no-known-value-widening': NO_KNOWN_VALUE_WIDENING,
@@ -61,6 +64,7 @@ export default definePlugin({
 		'prefer-class-over-factory': PREFER_CLASS_OVER_FACTORY,
 		'prefer-de-morgan': PREFER_DE_MORGAN,
 		'prefer-prefix-increment': PREFER_PREFIX_INCREMENT,
+		'prefer-query-key-context': PREFER_QUERY_KEY_CONTEXT,
 		'prefer-switch': PREFER_SWITCH,
 		'prefer-typeof-undefined': PREFER_TYPEOF_UNDEFINED,
 		'prefer-while-true': PREFER_WHILE_TRUE,

@@ -19,6 +19,12 @@ export function assertDefined<T>(value: T | undefined) {
 }
 
 /** @throws {AssertionError} */
+export function assertNotNull<T>(value: T | null) {
+	if (value === null) throw new AssertionError('value must not be null');
+	return value;
+}
+
+/** @throws {AssertionError} */
 export function assertOptional<T>([value, ...values]: T[]) {
 	if (values.length > 0) throw new AssertionError('expected at most one value');
 	return value;

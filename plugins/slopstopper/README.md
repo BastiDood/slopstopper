@@ -46,6 +46,8 @@ Rules marked as derived from `anti-slop` are vendored from [`dmmulroy/anti-slop`
 | [`no-unknown-type-aliases`](./src/rules/no-unknown-type-aliases/README.md)                       | A type alias that resolves to `unknown` (derived from [anti-slop](./THIRD-PARTY-NOTICES.md))                                                                                                                  |
 | [`no-unsafe-dictionary-type`](./src/rules/no-unsafe-dictionary-type/README.md)                   | A dictionary type whose value type is `unknown`, `any`, `object`, `{}`, or a union or alias that holds one (derived from [anti-slop](./THIRD-PARTY-NOTICES.md))                                               |
 | [`no-untyped-empty-initializer`](./src/rules/no-untyped-empty-initializer/README.md)             | A binding without an annotation that has no initializer or starts as `[]`, `{}`, or `null`, a `new Map()`, `new WeakMap()`, or `new Set()` without type arguments, or an assertion on an empty literal        |
+| [`prefer-query-key-context`](./src/rules/prefer-query-key-context/README.md)                     | A TanStack Query `queryFn` that captures a value its sibling `queryKey` also holds, instead of reading it from the query function context                                                                     |
+| [`no-defaulted-query-key`](./src/rules/no-defaulted-query-key/README.md)                         | A `??`, `\|\|`, or defaulted binding in a TanStack Query `queryKey`, which shares a cache entry with a real value                                                                                             |
 
 ## Compatibility
 
