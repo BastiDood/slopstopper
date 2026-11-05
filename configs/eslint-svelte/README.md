@@ -24,11 +24,11 @@ List `SVELTE` after `CORE`.
 
 ## Entry Points
 
-| Entry point                                      | Contents                                                                                                                         |
-| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `@bastidood/eslint-config-svelte`                | Svelte rules and type-aware parsing; bans `$effect`                                                                              |
-| `@bastidood/eslint-config-svelte/tanstack/query` | TanStack Svelte Query rules; bans `useQueryClient`; compose with `TANSTACK_QUERY` from `@bastidood/eslint-config/tanstack/query` |
-| `@bastidood/eslint-config-svelte/tanstack/table` | TanStack Svelte Table rules; compose with `TANSTACK_TABLE` from `@bastidood/eslint-config/tanstack/table`                        |
+| Entry point                                      | Contents                                                                                                                                                                                               |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@bastidood/eslint-config-svelte`                | Svelte rules and type-aware parsing; bans `$effect`                                                                                                                                                    |
+| `@bastidood/eslint-config-svelte/tanstack/query` | Bans `useQueryClient`, destructuring query results, inline `queryFn` in `createQuery`, and `use:enhance` with `onsubmit`; compose with `TANSTACK_QUERY` from `@bastidood/eslint-config/tanstack/query` |
+| `@bastidood/eslint-config-svelte/tanstack/table` | Reserved for Svelte Table rules; compose with `TANSTACK_TABLE` from `@bastidood/eslint-config/tanstack/table`                                                                                          |
 
 ## Limitations
 

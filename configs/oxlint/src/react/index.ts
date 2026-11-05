@@ -107,7 +107,7 @@ export const REACT = {
 				name: 'react',
 				importNames: ['useEffect', 'useInsertionEffect', 'useLayoutEffect'],
 				message:
-					'Keep side effects in event handlers or the owner of external synchronization instead of an effect hook.',
+					'Delete this effect instead of working around the ban. Fetch server data through a query library such as TanStack Query, derive values during render, handle user actions in the event handler that causes them, reset state by changing the component `key`, and subscribe to external stores with `useSyncExternalStore`. Suppress this only to synchronize with a system outside React, and name that system in the suppression reason.',
 			},
 			{
 				name: 'react',
