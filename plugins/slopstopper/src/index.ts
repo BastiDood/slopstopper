@@ -32,9 +32,11 @@ import { PREFER_DE_MORGAN } from './rules/prefer-de-morgan/index.ts';
 import { PREFER_PREFIX_INCREMENT } from './rules/prefer-prefix-increment/index.ts';
 import { PREFER_QUERY_KEY_CONTEXT } from './rules/prefer-query-key-context/index.ts';
 import { PREFER_SWITCH } from './rules/prefer-switch/index.ts';
+import { PREFER_TABLE_ATOMS } from './rules/prefer-table-atoms/index.ts';
 import { PREFER_TYPEOF_UNDEFINED } from './rules/prefer-typeof-undefined/index.ts';
 import { PREFER_WHILE_TRUE } from './rules/prefer-while-true/index.ts';
 import { REQUIRE_EXCLUSIVE_INDETERMINATE } from './rules/require-exclusive-indeterminate/index.ts';
+import { REQUIRE_TABLE_STATE_PAIRS } from './rules/require-table-state-pairs/index.ts';
 import { STEPDOWN_ORDER } from './rules/stepdown-order/index.ts';
 
 /** The slopstopper rules, loadable as an Oxlint JS plugin and as an ESLint plugin. */
@@ -73,9 +75,11 @@ export default definePlugin({
 		'prefer-prefix-increment': PREFER_PREFIX_INCREMENT,
 		'prefer-query-key-context': PREFER_QUERY_KEY_CONTEXT,
 		'prefer-switch': PREFER_SWITCH,
+		'prefer-table-atoms': PREFER_TABLE_ATOMS,
 		'prefer-typeof-undefined': PREFER_TYPEOF_UNDEFINED,
 		'prefer-while-true': PREFER_WHILE_TRUE,
 		'require-exclusive-indeterminate': REQUIRE_EXCLUSIVE_INDETERMINATE,
+		'require-table-state-pairs': REQUIRE_TABLE_STATE_PAIRS,
 		'stepdown-order': STEPDOWN_ORDER,
 	},
 });
