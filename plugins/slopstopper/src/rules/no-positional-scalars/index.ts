@@ -132,15 +132,16 @@ function countScalarKinds(
 	parameters: readonly ESTree.ParamPattern[],
 ) {
 	const counts = { boolean: 0, string: 0, number: 0, bigint: 0, symbol: 0 };
-	const kinds = new Set<ScalarKind>();
 	let remaining = parameters.length;
 
 	for (const parameter of parameters) {
 		if (!canReachThreshold(thresholds, counts, remaining)) return null;
 		--remaining;
-		kinds.clear();
-		if (addKinds(services, parameter, kinds)) {
-			for (const kind of kinds) ++counts[kind];
+		const kinds = kindsOf(services, parameter);
+		if (kinds === null) continue;
+		for (const kind of SCALAR_KINDS) {
+			// oxlint-disable-next-line no-bitwise -- A kind mask is a bit set, so `&` tests membership.
+			if ((kinds & kindBit(kind)) !== 0) ++counts[kind];
 		}
 	}
 	return counts;
@@ -159,80 +160,73 @@ function canReachThreshold(
 }
 
 /**
- * Adds the scalar kinds of a parameter to `kinds` by its syntax and, when the syntax does not classify it as scalar,
- * by its resolved type. Returns whether the parameter is entirely scalar.
+ * The kind mask of a parameter by its syntax and, when the syntax does not classify it as scalar, by its resolved type.
+ * `null` when the parameter is not entirely scalar.
  */
-function addKinds(
-	services: TypeServices | null,
-	parameter: ESTree.ParamPattern,
-	kinds: Set<ScalarKind>,
-) {
-	if (addParameterKinds(parameter, kinds)) return true;
-	kinds.clear();
-	if (services === null) return false;
+function kindsOf(services: TypeServices | null, parameter: ESTree.ParamPattern) {
+	const kinds = parameterKinds(parameter);
+	if (kinds !== null) return kinds;
+	if (services === null) return null;
 
 	const identifier = positionalIdentifierOf(parameter);
-	if (identifier === null) return false;
+	if (identifier === null) return null;
 	const type = typeAtLocation(services, identifier);
-	return type !== null && addResolvedKinds(services.checker, type, kinds);
+	return type === null ? null : resolvedKinds(services.checker, type);
 }
 
 /**
- * Adds the scalar kinds of a parameter to `kinds`, by its type annotation or, without one, by its literal default value.
- * Returns whether the parameter is entirely scalar; otherwise, the caller discards `kinds`. The `this` parameter is not
- * a positional argument, so it never counts.
+ * The kind mask of a parameter by its type annotation or, without one, by its literal default value. `null` when the
+ * parameter is not entirely scalar. The `this` parameter is not a positional argument, so it never counts.
  */
-function addParameterKinds(parameter: ESTree.ParamPattern, kinds: Set<ScalarKind>) {
+function parameterKinds(parameter: ESTree.ParamPattern): number | null {
 	switch (parameter.type) {
 		case 'Identifier': {
 			const type = parameter.typeAnnotation?.typeAnnotation;
-			return (
-				parameter.name !== 'this' && typeof type === 'object' && addTypeKinds(type, kinds)
-			);
+			return parameter.name !== 'this' && typeof type === 'object' ? typeKinds(type) : null;
 		}
 		case 'AssignmentPattern': {
 			const { left } = parameter;
-			if (left.type !== 'Identifier') return false;
+			if (left.type !== 'Identifier') return null;
 			const type = left.typeAnnotation?.typeAnnotation;
-			if (typeof type === 'object') return addTypeKinds(type, kinds);
-			return addLiteralKind(parameter.right, kinds);
+			if (typeof type === 'object') return typeKinds(type);
+			return literalKind(parameter.right);
 		}
 		case 'TSParameterProperty':
-			return addParameterKinds(parameter.parameter, kinds);
+			return parameterKinds(parameter.parameter);
 		case 'ObjectPattern':
 		case 'ArrayPattern':
 		case 'RestElement':
-			return false;
+			return null;
 	}
 }
 
 /**
- * Adds the scalar kinds of a type annotation to `kinds` and returns whether it is entirely scalar: a primitive keyword,
- * a literal or template literal type, `null`, `undefined`, or a union of those. Type references are never scalars.
+ * The kind mask of a type annotation, or `null` when it is not entirely scalar: a primitive keyword, a literal or
+ * template literal type, `null`, `undefined`, or a union of those. Type references are never scalars.
  */
-function addTypeKinds(type: ESTree.TSType, kinds: Set<ScalarKind>): boolean {
+function typeKinds(type: ESTree.TSType): number | null {
 	const kind = typeKindOf(type.type);
-	if (kind !== null) {
-		kinds.add(kind);
-		return true;
-	}
+	if (kind !== null) return kindBit(kind);
 
 	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only a few of the several dozen type node types matter, so `default` covers the rest.
 	switch (type.type) {
 		case 'TSNullKeyword':
 		case 'TSUndefinedKeyword':
-			return true;
+			return 0;
 		case 'TSLiteralType':
-			return addLiteralKind(type.literal, kinds);
+			return literalKind(type.literal);
 		case 'TSUnionType':
-			return type.types.every(member => addTypeKinds(member, kinds));
+			return unionKinds(type.types, typeKinds);
 		default:
-			return false;
+			return null;
 	}
 }
 
-/** Adds the kind of a string, number, boolean, bigint, or template literal to `kinds`, including negated numbers. */
-function addLiteralKind(expression: ESTree.Expression, kinds: Set<ScalarKind>) {
+/**
+ * The kind mask of a string, number, boolean, bigint, or template literal, including negated numbers, or `null` for any
+ * other expression.
+ */
+function literalKind(expression: ESTree.Expression) {
 	const literal =
 		expression.type === 'UnaryExpression' && expression.operator === '-'
 			? expression.argument
@@ -241,16 +235,13 @@ function addLiteralKind(expression: ESTree.Expression, kinds: Set<ScalarKind>) {
 	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only template literals and literals hold literal values, so `default` covers the rest.
 	switch (literal.type) {
 		case 'TemplateLiteral':
-			kinds.add('string');
-			return true;
+			return kindBit('string');
 		case 'Literal': {
 			const kind = scalarKindOf(literal.value);
-			if (kind === null) return false;
-			kinds.add(kind);
-			return true;
+			return kind === null ? null : kindBit(kind);
 		}
 		default:
-			return false;
+			return null;
 	}
 }
 
@@ -271,33 +262,45 @@ function positionalIdentifierOf(parameter: ESTree.ParamPattern) {
 }
 
 /**
- * Adds the scalar kinds of a resolved type to `kinds` and returns whether it is entirely scalar: each of its union
- * members is scalar, `null`, or `undefined`. `never` and top types such as `any` and `unknown` are not.
+ * The kind mask of a resolved type, or `null` when it is not entirely scalar: each of its union members must be scalar,
+ * `null`, or `undefined`. `never` and top types such as `any` and `unknown` are not.
  */
-function addResolvedKinds(checker: TypeChecker, type: Type, kinds: Set<ScalarKind>) {
-	if (isNeverOrTopType(checker, type)) return false;
+function resolvedKinds(checker: TypeChecker, type: Type) {
+	if (isNeverOrTopType(checker, type)) return null;
 	return type.isUnion()
-		? assertDefined(type.types).every(member => addMemberKind(checker, member, kinds))
-		: addMemberKind(checker, type, kinds);
+		? unionKinds(assertDefined(type.types), member => memberKind(checker, member))
+		: memberKind(checker, type);
+}
+
+/** The kind mask of a union: its members' masks combined, or `null` as soon as one member is not entirely scalar. */
+function unionKinds<Member>(
+	members: readonly Member[],
+	memberKinds: (member: Member) => number | null,
+) {
+	let kinds = 0;
+	for (const member of members) {
+		const kindsOfMember = memberKinds(member);
+		if (kindsOfMember === null) return null;
+		// oxlint-disable-next-line no-bitwise -- A kind mask is a bit set, so `|` takes the union.
+		kinds |= kindsOfMember;
+	}
+	return kinds;
 }
 
 /**
- * Adds the scalar kind of a type that is not a union to `kinds` and returns whether it is scalar, `null`, or
- * `undefined`. An intersection is not scalar even when it is assignable to one, such as a branded `string`.
+ * The kind mask of a type that is not a union: the bit of its scalar kind, `0` for `null` or `undefined`, or `null`
+ * otherwise. An intersection is not scalar even when it is assignable to one, such as a branded `string`.
  */
-function addMemberKind(checker: TypeChecker, type: Type, kinds: Set<ScalarKind>) {
-	if (type.isIntersection()) return false;
+function memberKind(checker: TypeChecker, type: Type) {
+	if (type.isIntersection()) return null;
 	for (const kind of SCALAR_KINDS) {
-		if (checker.isTypeAssignableTo(type, scalarTypeOf(checker, kind))) {
-			kinds.add(kind);
-			return true;
-		}
+		if (checker.isTypeAssignableTo(type, scalarTypeOf(checker, kind))) return kindBit(kind);
 	}
 
-	return (
+	const isNullish =
 		checker.isTypeAssignableTo(type, checker.getNullType()) ||
-		checker.isTypeAssignableTo(type, checker.getUndefinedType())
-	);
+		checker.isTypeAssignableTo(type, checker.getUndefinedType());
+	return isNullish ? 0 : null;
 }
 
 /** The type checker's type for a scalar kind. */
@@ -351,5 +354,21 @@ function typeKindOf(type: ESTree.TSType['type']) {
 			return 'symbol';
 		default:
 			return null;
+	}
+}
+
+/** The bit of a scalar kind in a kind mask, the integer that holds a set of kinds without hashing. */
+function kindBit(kind: ScalarKind) {
+	switch (kind) {
+		case 'boolean':
+			return 1;
+		case 'string':
+			return 2;
+		case 'number':
+			return 4;
+		case 'bigint':
+			return 8;
+		case 'symbol':
+			return 16;
 	}
 }

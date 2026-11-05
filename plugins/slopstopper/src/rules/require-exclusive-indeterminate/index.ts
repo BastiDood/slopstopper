@@ -18,12 +18,6 @@ const SVELTE_INDETERMINATE_HOLDER_SELECTOR = [
 	'SvelteDirective[kind="Binding"][key.name.name="indeterminate"] > SvelteFunctionBindingsExpression',
 ].join(', ');
 
-/** The partial selection checks of TanStack Table, keyed by method name, with the full selection check of each. */
-const FULL_SELECTION_CHECKS = new Map([
-	['getIsSomeRowsSelected', 'getIsAllRowsSelected'],
-	['getIsSomePageRowsSelected', 'getIsAllPageRowsSelected'],
-]);
-
 /**
  * Reports a TanStack Table `getIsSomeRowsSelected()` or `getIsSomePageRowsSelected()` call that sets the indeterminate
  * state of a checkbox without excluding the full selection. Both are `true` when every row is selected, so the checkbox
@@ -55,8 +49,8 @@ export const REQUIRE_EXCLUSIVE_INDETERMINATE = defineRule({
 			CallExpression(node) {
 				const name = methodName(node.callee);
 				if (name === null) return;
-				const full = FULL_SELECTION_CHECKS.get(name);
-				if (typeof full === 'undefined') return;
+				const full = fullSelectionCheck(name);
+				if (full === null) return;
 				const { object } = assertNotNull(methodTarget(node.callee));
 				const receiver = sourceCode.getText(unwrap(object));
 				const call = outermostWrapper(node);
@@ -184,5 +178,17 @@ function isIndeterminateValue(value: ESTree.Expression) {
 			);
 		default:
 			return false;
+	}
+}
+
+/** The full selection check of TanStack Table that matches a partial selection check, or `null` for any other method. */
+function fullSelectionCheck(partial: string) {
+	switch (partial) {
+		case 'getIsSomeRowsSelected':
+			return 'getIsAllRowsSelected';
+		case 'getIsSomePageRowsSelected':
+			return 'getIsAllPageRowsSelected';
+		default:
+			return null;
 	}
 }
