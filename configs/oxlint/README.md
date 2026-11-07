@@ -14,12 +14,10 @@ pnpm add --save-dev @bastidood/oxlint-config @bastidood/eslint-plugin-slopstoppe
 // oxlint.config.ts
 import { compose } from '@bastidood/oxlint-config';
 import { CORE } from '@bastidood/oxlint-config/core';
-import { PROMISE } from '@bastidood/oxlint-config/promise';
-import { UNICORN } from '@bastidood/oxlint-config/unicorn';
 import { defineConfig } from 'oxlint';
 
 export default defineConfig({
-	extends: [compose(CORE, UNICORN, PROMISE)],
+	extends: [compose(CORE)],
 	env: { node: true },
 });
 ```
@@ -31,10 +29,8 @@ Combine entry points with `compose`, not `extends`, so that `no-restricted-*` li
 | Entry point                                     | Contents                                                                                                                                                                                                                                        |
 | ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@bastidood/oxlint-config`                      | `compose`                                                                                                                                                                                                                                       |
-| `@bastidood/oxlint-config/core`                 | ESLint core, `import`, `oxc`, and `typescript` rules                                                                                                                                                                                            |
+| `@bastidood/oxlint-config/core`                 | ESLint core, `import`, `jsdoc`, `oxc`, `promise`, `typescript`, and `unicorn` rules                                                                                                                                                             |
 | `@bastidood/oxlint-config/node`                 | Node.js rules                                                                                                                                                                                                                                   |
-| `@bastidood/oxlint-config/unicorn`              | `unicorn` rules                                                                                                                                                                                                                                 |
-| `@bastidood/oxlint-config/promise`              | `promise` rules                                                                                                                                                                                                                                 |
 | `@bastidood/oxlint-config/react`                | React rules; bans effect hooks                                                                                                                                                                                                                  |
 | `@bastidood/oxlint-config/react/compiler`       | Turns off memoization rules made obsolete by the React Compiler; compose after `REACT`                                                                                                                                                          |
 | `@bastidood/oxlint-config/react/tanstack/table` | Reserved for React Table rules; compose with `TANSTACK_TABLE`                                                                                                                                                                                   |
@@ -43,7 +39,6 @@ Combine entry points with `compose`, not `extends`, so that `no-restricted-*` li
 | `@bastidood/oxlint-config/tanstack/table`       | Enables the slopstopper TanStack Table rules: `prefer-table-atoms`, `require-table-state-pairs`, `no-render-scoped-table-schema`, and `require-exclusive-indeterminate`; bans `stockFeatures` and reading column templates outside `FlexRender` |
 | `@bastidood/oxlint-config/next`                 | Next.js rules                                                                                                                                                                                                                                   |
 | `@bastidood/oxlint-config/vitest`               | Vitest rules                                                                                                                                                                                                                                    |
-| `@bastidood/oxlint-config/jsdoc`                | JSDoc rules for documentation that TypeScript does not cover                                                                                                                                                                                    |
 
 ## Limitations
 

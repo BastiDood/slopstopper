@@ -16,11 +16,8 @@
 	"exports": {
 		".": "./src/compose/index.ts",
 		"./core": "./src/core.ts",
-		"./unicorn": "./src/unicorn.ts",
-		"./promise": "./src/promise.ts",
 		"./node": "./src/node.ts",
 		"./vitest": "./src/vitest.ts",
-		"./jsdoc": "./src/jsdoc.ts",
 		"./tanstack/query": "./src/tanstack/query.ts",
 		"./tanstack/table": "./src/tanstack/table.ts"
 	},
@@ -32,11 +29,8 @@
 		"exports": {
 			".": "./dist/compose/index.mjs",
 			"./core": "./dist/core.mjs",
-			"./unicorn": "./dist/unicorn.mjs",
-			"./promise": "./dist/promise.mjs",
 			"./node": "./dist/node.mjs",
 			"./vitest": "./dist/vitest.mjs",
-			"./jsdoc": "./dist/jsdoc.mjs",
 			"./tanstack/query": "./dist/tanstack/query.mjs",
 			"./tanstack/table": "./dist/tanstack/table.mjs"
 		}

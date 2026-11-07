@@ -14,11 +14,9 @@ pnpm add --save-dev @bastidood/eslint-config eslint typescript
 // eslint.config.ts
 import { compose } from '@bastidood/eslint-config';
 import { CORE } from '@bastidood/eslint-config/core';
-import { PROMISE } from '@bastidood/eslint-config/promise';
-import { UNICORN } from '@bastidood/eslint-config/unicorn';
 import { defineConfig } from 'eslint/config';
 
-export default defineConfig({ files: ['**/*.ts'] }, compose(CORE, UNICORN, PROMISE));
+export default defineConfig({ files: ['**/*.ts'] }, compose(CORE));
 ```
 
 List `CORE` first.
@@ -28,12 +26,9 @@ List `CORE` first.
 | Entry point                               | Contents                                                                                                                                                                                                                                        |
 | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@bastidood/eslint-config`                | `compose`                                                                                                                                                                                                                                       |
-| `@bastidood/eslint-config/core`           | ESLint core, `import`, and `@typescript-eslint` rules                                                                                                                                                                                           |
-| `@bastidood/eslint-config/unicorn`        | `unicorn` rules                                                                                                                                                                                                                                 |
-| `@bastidood/eslint-config/promise`        | `promise` rules                                                                                                                                                                                                                                 |
+| `@bastidood/eslint-config/core`           | ESLint core, `import`, `jsdoc`, `promise`, `@typescript-eslint`, and `unicorn` rules                                                                                                                                                            |
 | `@bastidood/eslint-config/node`           | Node.js rules                                                                                                                                                                                                                                   |
 | `@bastidood/eslint-config/vitest`         | Vitest rules                                                                                                                                                                                                                                    |
-| `@bastidood/eslint-config/jsdoc`          | JSDoc rules for documentation that TypeScript does not cover                                                                                                                                                                                    |
 | `@bastidood/eslint-config/tanstack/query` | Enables the slopstopper TanStack Query rules: `prefer-query-key-context`, `no-defaulted-query-key`, `no-standalone-mutate-async`, and `no-mutate-callback-cache-update`                                                                         |
 | `@bastidood/eslint-config/tanstack/table` | Enables the slopstopper TanStack Table rules: `prefer-table-atoms`, `require-table-state-pairs`, `no-render-scoped-table-schema`, and `require-exclusive-indeterminate`; bans `stockFeatures` and reading column templates outside `FlexRender` |
 

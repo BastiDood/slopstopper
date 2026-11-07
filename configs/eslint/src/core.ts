@@ -3,6 +3,9 @@ import { CORE as OXLINT_CORE } from '@bastidood/oxlint-config/core';
 import type { ESLint, Linter } from 'eslint';
 import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
 import { importX } from 'eslint-plugin-import-x';
+import jsdocPlugin from 'eslint-plugin-jsdoc';
+import promisePlugin from 'eslint-plugin-promise';
+import unicornPlugin from 'eslint-plugin-unicorn';
 import tseslint from 'typescript-eslint';
 
 import type { Entry, Restrictions } from './compose/index.ts';
@@ -37,8 +40,11 @@ for (const { files, rules } of OVERRIDES) {
 const PLUGIN_DEFINITIONS = {
 	'@typescript-eslint': TYPESCRIPT_ESLINT,
 	import: importX,
+	jsdoc: jsdocPlugin,
+	promise: promisePlugin,
 	// oxlint-disable-next-line typescript/no-unsafe-type-assertion
 	slopstopper: SLOPSTOPPER as unknown as ESLint.Plugin,
+	unicorn: unicornPlugin,
 };
 
 // ESLint has no equivalent of the `oxc/*` rules, so the ones that a selector can express fall back to syntax restrictions:
@@ -66,8 +72,9 @@ const RESTRICTIONS: Restrictions = {
 };
 
 /**
- * ESLint core, `import`, and type-aware `@typescript-eslint` rules, generated from the Oxlint `core` entry point. The
- * TypeScript project service finds the `tsconfig.json` nearest each file, searching up to the working directory.
+ * ESLint core, `import`, `jsdoc`, `promise`, type-aware `@typescript-eslint`, and `unicorn` rules, generated from the
+ * Oxlint `core` entry point. The TypeScript project service finds the `tsconfig.json` nearest each file, searching up
+ * to the working directory.
  */
 export const CORE: Entry = {
 	configs: [
