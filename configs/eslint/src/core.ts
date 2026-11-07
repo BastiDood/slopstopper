@@ -90,7 +90,6 @@ export const CORE: Entry = {
 		OVERRIDE_CONFIGS,
 	],
 	importExtensions: ['.ts', '.tsx', '.cts', '.mts', '.js', '.jsx', '.cjs', '.mjs'],
-	importExternalModuleFolders: ['node_modules', 'node_modules/@types'],
 	importParsers: { '@typescript-eslint/parser': ['.ts', '.tsx', '.cts', '.mts'] },
 	importResolvers: [createTypeScriptImportResolver()],
 	restrictions: RESTRICTIONS,
