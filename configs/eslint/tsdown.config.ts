@@ -1,6 +1,12 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-	entry: ['src/*.ts', 'src/compose/index.ts', 'src/tanstack/*.ts', '!src/*.test.ts'],
+	entry: [
+		'src/*.ts',
+		'src/compose/index.ts',
+		'src/tanstack/*.ts',
+		'!src/*.test.ts',
+		'!src/*.spec.ts',
+	],
 	dts: true,
 });

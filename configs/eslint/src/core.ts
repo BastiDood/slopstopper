@@ -1,6 +1,7 @@
 import SLOPSTOPPER from '@bastidood/eslint-plugin-slopstopper';
 import { CORE as OXLINT_CORE } from '@bastidood/oxlint-config/core';
 import type { ESLint, Linter } from 'eslint';
+import { createTypeScriptImportResolver } from 'eslint-import-resolver-typescript';
 import { importX } from 'eslint-plugin-import-x';
 import tseslint from 'typescript-eslint';
 
@@ -81,5 +82,9 @@ export const CORE: Entry = {
 		},
 		OVERRIDE_CONFIGS,
 	],
+	importExtensions: ['.ts', '.tsx', '.cts', '.mts', '.js', '.jsx', '.cjs', '.mjs'],
+	importExternalModuleFolders: ['node_modules', 'node_modules/@types'],
+	importParsers: { '@typescript-eslint/parser': ['.ts', '.tsx', '.cts', '.mts'] },
+	importResolvers: [createTypeScriptImportResolver()],
 	restrictions: RESTRICTIONS,
 };

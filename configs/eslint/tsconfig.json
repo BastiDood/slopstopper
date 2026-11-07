@@ -3,6 +3,7 @@
 	"include": ["src/**/*.ts", "types/*.d.ts", "*.ts"],
 	"compilerOptions": {
 		"lib": ["ESNext"],
+		"types": ["node"],
 		"module": "nodenext",
 		"noEmit": true,
 		"allowImportingTsExtensions": true,
