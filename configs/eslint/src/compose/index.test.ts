@@ -67,6 +67,35 @@ describe('compose', () => {
 		});
 	});
 
+	test('combines the import extensions and parsers of every entry into one final configuration', () => {
+		const configs = compose(
+			{
+				importExtensions: ['.ts', '.js'],
+				importParsers: { '@typescript-eslint/parser': ['.ts'] },
+			},
+			{ importExtensions: ['.vue'], importParsers: { 'vue-eslint-parser': ['.vue'] } },
+			{
+				importExtensions: ['.mts'],
+				importParsers: { '@typescript-eslint/parser': ['.mts'] },
+			},
+		);
+		expect(configs.at(-1)).toEqual({
+			name: '@bastidood/eslint-config/import-extensions',
+			settings: {
+				'import-x/extensions': ['.ts', '.js', '.vue', '.mts'],
+				'import-x/parsers': {
+					'@typescript-eslint/parser': ['.ts', '.mts'],
+					'vue-eslint-parser': ['.vue'],
+				},
+			},
+		});
+	});
+
+	test('omits the import configuration without import extensions', () => {
+		const last = compose(BASE).at(-1);
+		expect(last?.name).toBe('@bastidood/eslint-config/restrictions');
+	});
+
 	test('repeats the top-level restrictions in each scoped configuration', () => {
 		expect(scoped).toEqual({
 			name: '@bastidood/eslint-config/scoped-restrictions',
