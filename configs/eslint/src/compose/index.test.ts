@@ -10,6 +10,18 @@ const BASE = {
 	},
 };
 
+const NOT_FOUND = { found: false as const };
+const TYPESCRIPT_RESOLVER = {
+	interfaceVersion: 3,
+	name: 'typescript',
+	resolve: () => NOT_FOUND,
+};
+const VIRTUAL_RESOLVER = {
+	interfaceVersion: 3,
+	name: 'virtual',
+	resolve: () => NOT_FOUND,
+};
+
 const SVELTE = {
 	scopedRestrictions: [
 		{
@@ -67,31 +79,45 @@ describe('compose', () => {
 		});
 	});
 
-	test('combines the import extensions and parsers of every entry into one final configuration', () => {
+	test('combines the import settings lists of every entry into one final configuration', () => {
 		const configs = compose(
 			{
 				importExtensions: ['.ts', '.js'],
+				importExternalModuleFolders: ['node_modules'],
 				importParsers: { '@typescript-eslint/parser': ['.ts'] },
+				importResolvers: [TYPESCRIPT_RESOLVER],
 			},
 			{ importExtensions: ['.vue'], importParsers: { 'vue-eslint-parser': ['.vue'] } },
 			{
 				importExtensions: ['.mts'],
+				importExternalModuleFolders: ['vendor'],
 				importParsers: { '@typescript-eslint/parser': ['.mts'] },
+				importResolvers: [VIRTUAL_RESOLVER],
 			},
 		);
 		expect(configs.at(-1)).toEqual({
-			name: '@bastidood/eslint-config/import-extensions',
+			name: '@bastidood/eslint-config/import',
 			settings: {
 				'import-x/extensions': ['.ts', '.js', '.vue', '.mts'],
+				'import-x/external-module-folders': ['node_modules', 'vendor'],
 				'import-x/parsers': {
 					'@typescript-eslint/parser': ['.ts', '.mts'],
 					'vue-eslint-parser': ['.vue'],
 				},
+				'import-x/resolver-next': [TYPESCRIPT_RESOLVER, VIRTUAL_RESOLVER],
 			},
 		});
 	});
 
-	test('omits the import configuration without import extensions', () => {
+	test('writes only the import settings that an entry contributes to', () => {
+		const configs = compose({ importResolvers: [VIRTUAL_RESOLVER] });
+		expect(configs.at(-1)).toEqual({
+			name: '@bastidood/eslint-config/import',
+			settings: { 'import-x/resolver-next': [VIRTUAL_RESOLVER] },
+		});
+	});
+
+	test('omits the import configuration without import settings', () => {
 		const last = compose(BASE).at(-1);
 		expect(last?.name).toBe('@bastidood/eslint-config/restrictions');
 	});

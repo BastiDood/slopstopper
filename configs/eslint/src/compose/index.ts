@@ -1,5 +1,6 @@
 import { RestrictionLists } from '@bastidood/oxlint-config/restrictions';
 import type { Linter } from 'eslint';
+import type { NewResolver } from 'eslint-plugin-import-x';
 
 export interface RestrictedImportPath {
 	readonly name: string;
@@ -37,6 +38,11 @@ export interface Restrictions {
 	readonly syntax?: RestrictedSyntax[];
 }
 
+/** An `import-x/resolver-next` resolver. `eslint-import-resolver-typescript` widens `interfaceVersion` to `number`. */
+export interface ImportResolver extends Omit<NewResolver, 'interfaceVersion'> {
+	readonly interfaceVersion: number;
+}
+
 export interface ScopedRestrictions {
 	readonly files: string[];
 	readonly restrictions: Restrictions;
@@ -45,22 +51,27 @@ export interface ScopedRestrictions {
 /**
  * An entry point: ESLint configuration objects plus the lists that `compose` concatenates, namely the
  * restriction lists, the non-standard file extensions that the TypeScript project service must resolve, and the
- * file extensions that the `import` rules follow, with the parser of each extension that the linted file's parser
- * cannot parse. `configs` may nest a configuration list one level deep, such as a plugin's `recommended` list.
+ * `import-x` settings lists. `configs` may nest a configuration list one level deep, such as a plugin's
+ * `recommended` list.
  */
 export interface Entry {
 	readonly configs?: (Linter.Config | Linter.Config[])[];
 	readonly extraFileExtensions?: string[];
+	/** The file extensions that the `import` rules follow, as in `import-x/extensions`. */
 	readonly importExtensions?: string[];
+	/** The folders whose modules the `import` rules treat as external, as in `import-x/external-module-folders`. */
+	readonly importExternalModuleFolders?: string[];
 	/** Maps the module name of a parser to the file extensions that it parses, as in `import-x/parsers`. */
 	readonly importParsers?: Record<string, string[]>;
+	/** The resolvers that the `import` rules try in order, as in `import-x/resolver-next`. */
+	readonly importResolvers?: ImportResolver[];
 	readonly restrictions?: Restrictions;
 	readonly scopedRestrictions?: ScopedRestrictions[];
 }
 
 /**
- * Compose entry points into one ESLint flat configuration for `extends`. Restriction lists and file extension
- * lists are concatenated instead of replaced, and every scoped configuration repeats the top-level restrictions
+ * Compose entry points into one ESLint flat configuration for `extends`. Restriction lists, file extension
+ * lists, and `import-x` settings lists are concatenated instead of replaced, and every scoped configuration repeats the top-level restrictions
  * so that it cannot drop them.
  */
 // oxlint-disable-next-line slopstopper/no-inferrable-return-type -- `tsdown` cannot emit the inferred type, which references ESLint's unexported `RulesConfig` (TS2883).
@@ -68,25 +79,33 @@ export function compose(...entries: Entry[]): Linter.Config[] {
 	const configs: Linter.Config[] = [];
 	const extraFileExtensions: string[] = [];
 	const importExtensions: string[] = [];
+	const importExternalModuleFolders: string[] = [];
 	const importParsers: Record<string, string[]> = {};
+	const importResolvers: ImportResolver[] = [];
+	let hasImportParsers = false;
 	const restrictions = new RestrictionLists();
 
 	for (const {
 		configs: entryConfigs,
 		extraFileExtensions: entryExtensions,
 		importExtensions: entryImportExtensions,
+		importExternalModuleFolders: entryImportExternalModuleFolders,
 		importParsers: entryImportParsers,
+		importResolvers: entryImportResolvers,
 		restrictions: entryRestrictions,
 	} of entries) {
 		appendConfigs(configs, entryConfigs);
 		appendAll(extraFileExtensions, entryExtensions);
 		appendAll(importExtensions, entryImportExtensions);
+		appendAll(importExternalModuleFolders, entryImportExternalModuleFolders);
+		appendAll(importResolvers, entryImportResolvers);
 		if (typeof entryImportParsers !== 'undefined') {
 			for (const parser in entryImportParsers) {
 				if (!Object.hasOwn(entryImportParsers, parser)) continue;
 				const extensions = importParsers[parser] ?? [];
 				appendAll(extensions, entryImportParsers[parser]);
 				importParsers[parser] = extensions;
+				hasImportParsers = true;
 			}
 		}
 		if (typeof entryRestrictions !== 'undefined') restrictions.append(entryRestrictions);
@@ -117,14 +136,25 @@ export function compose(...entries: Entry[]): Linter.Config[] {
 		});
 	}
 
+	// Each `import-x` setting is written only when an entry contributes to it, so that an empty list does not replace
+	// the plugin's default.
+	const importSettings: NonNullable<Linter.Config['settings']> = {};
+	let hasImportSettings = hasImportParsers;
+	if (hasImportParsers) importSettings['import-x/parsers'] = importParsers;
 	if (importExtensions.length > 0) {
-		configs.push({
-			name: '@bastidood/eslint-config/import-extensions',
-			settings: {
-				'import-x/extensions': importExtensions,
-				'import-x/parsers': importParsers,
-			},
-		});
+		importSettings['import-x/extensions'] = importExtensions;
+		hasImportSettings = true;
+	}
+	if (importExternalModuleFolders.length > 0) {
+		importSettings['import-x/external-module-folders'] = importExternalModuleFolders;
+		hasImportSettings = true;
+	}
+	if (importResolvers.length > 0) {
+		importSettings['import-x/resolver-next'] = importResolvers;
+		hasImportSettings = true;
+	}
+	if (hasImportSettings) {
+		configs.push({ name: '@bastidood/eslint-config/import', settings: importSettings });
 	}
 
 	return configs;
