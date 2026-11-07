@@ -62,7 +62,7 @@ export const CORE = {
 			'import/no-amd': 'error',
 			'import/no-anonymous-default-export': 'error',
 			'import/no-commonjs': 'error',
-			'import/no-cycle': 'error',
+			'import/no-cycle': ['error', { ignoreExternal: true }],
 			'import/no-default-export': 'off',
 			'import/no-dynamic-require': 'error',
 			'import/no-empty-named-blocks': 'error',
