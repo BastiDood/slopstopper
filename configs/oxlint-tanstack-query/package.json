@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/oxlint-config-tanstack-query",
-	"version": "0.6.1",
+	"version": "0.6.2",
 	"description": "TanStack Query rules for @bastidood/oxlint-config, including @tanstack/eslint-plugin-query.",
 	"license": "MIT",
 	"homepage": "https://github.com/BastiDood/slopstopper",
