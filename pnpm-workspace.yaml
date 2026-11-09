@@ -6,7 +6,7 @@ catalog:
   '@types/node': ^26.6.6
   '@typescript/native': npm:typescript@^7.0.2
   '@oxlint/plugins': ^1.92.0
-  '@tanstack/eslint-plugin-query': ^5.106.1
+  '@tanstack/eslint-plugin-query': ^5.107.1
   eslint: ^10.14.0
   eslint-plugin-oxlint: ^1.92.0
   oxfmt: ^0.77.0
