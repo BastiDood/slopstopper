@@ -485,7 +485,6 @@ export const CORE = {
 			'unicorn/explicit-timer-delay': 'error',
 			'unicorn/filename-case': ['error', { case: 'kebabCase' }],
 			'unicorn/import-style': 'off',
-			'unicorn/max-nested-calls': 'error',
 			'unicorn/new-for-builtins': 'error',
 			'unicorn/no-abusive-eslint-disable': 'error',
 			'unicorn/no-accessor-recursion': 'error',
