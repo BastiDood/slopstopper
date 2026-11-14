@@ -5,17 +5,17 @@ packages:
 catalog:
   '@types/node': ^26.6.6
   '@typescript/native': npm:typescript@^7.0.2
-  '@oxlint/plugins': ^1.92.0
+  '@oxlint/plugins': ^1.93.0
   '@tanstack/eslint-plugin-query': ^5.107.1
   eslint: ^10.14.0
-  eslint-plugin-oxlint: ^1.92.0
-  oxfmt: ^0.77.0
-  oxlint: ^1.92.0
-  oxlint-plugin-eslint: ^1.92.0
-  oxlint-tsgolint: ^7.0.2006
+  eslint-plugin-oxlint: ^1.93.0
+  oxfmt: ^0.78.0
+  oxlint: ^1.93.0
+  oxlint-plugin-eslint: ^1.93.0
+  oxlint-tsgolint: ^7.0.2007
   tsdown: 0.23.5
   typescript: npm:@typescript/typescript6@^6.0.2
-  typescript-eslint: ^8.72.1
+  typescript-eslint: ^8.72.2
   vitest: ^5.1.0
 
 allowBuilds:
@@ -29,9 +29,6 @@ engineStrict: true
 
 lockfile:
   includeResolutionSettings: true
-
-minimumReleaseAgeExclude:
-  - eslint-plugin-oxlint@1.92.0
 
 minimumReleaseAgeStrict: true
 
