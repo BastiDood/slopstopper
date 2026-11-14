@@ -1,6 +1,6 @@
 {
 	"name": "@bastidood/oxlint-config",
-	"version": "0.6.1",
+	"version": "0.7.0",
 	"description": "Strict baseline Oxlint configuration for type-aware TypeScript projects.",
 	"license": "MIT",
 	"homepage": "https://github.com/BastiDood/slopstopper",
