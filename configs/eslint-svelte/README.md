@@ -17,10 +17,15 @@ import { SVELTE } from '@bastidood/eslint-config-svelte';
 import { CORE } from '@bastidood/eslint-config/core';
 import { defineConfig } from 'eslint/config';
 
-export default defineConfig({ files: ['**/*.ts'] }, compose(CORE, SVELTE));
+export default defineConfig({
+	files: ['**/*.{js,cjs,mjs,jsx,ts,cts,mts,tsx,svelte}'],
+	extends: compose(CORE, SVELTE),
+});
 ```
 
-List `SVELTE` after `CORE`.
+Compose `SVELTE` after `CORE` so its parser handles `.svelte`, `.svelte.js`, and `.svelte.ts` files. The single call shares `.svelte` parser extension metadata across the block.
+
+If you also lint Astro, add `ignores: ['**/*.astro/**']` to this block to exclude Astro's virtual scripts. Import `ASTRO` from `@bastidood/eslint-config-astro` and add a separate block with `files: ['**/*.astro', '**/*.astro/*.{js,ts}']` and `extends: compose(ASTRO)`.
 
 ## Entry Points
 
@@ -33,5 +38,4 @@ List `SVELTE` after `CORE`.
 
 - Requires Svelte 5.
 - Rules are not configurable.
-- Covers `.svelte`, `.svelte.js`, and `.svelte.ts` files. List your other files yourself.
 - SvelteKit's inferred route props are invisible to ESLint due to differences between `eslint-plugin-svelte` and `svelte-check`. Annotate them (e.g., `const { params }: PageProps = $props()` via `./$types`) or turn off the respective `@typescript-eslint/no-unsafe-*` rules for route files in your own configuration.

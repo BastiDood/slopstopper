@@ -16,10 +16,15 @@ import { compose } from '@bastidood/eslint-config';
 import { CORE } from '@bastidood/eslint-config/core';
 import { defineConfig } from 'eslint/config';
 
-export default defineConfig({ files: ['**/*.ts'] }, compose(CORE));
+export default defineConfig({
+	files: ['**/*.{js,cjs,mjs,jsx,ts,cts,mts,tsx}'],
+	extends: compose(CORE),
+});
 ```
 
-List `CORE` first.
+List `CORE` first in `compose()` and include other presets that apply to the same files in that call. This combines their `no-restricted-*` lists.
+
+If you also lint Astro, add `ignores: ['**/*.astro/**']` to this block to exclude Astro's virtual scripts. Import `ASTRO` from `@bastidood/eslint-config-astro` and add a separate block with `files: ['**/*.astro', '**/*.astro/*.{js,ts}']` and `extends: compose(ASTRO)`.
 
 ## Entry Points
 
@@ -36,7 +41,6 @@ List `CORE` first.
 
 - Prefer `@bastidood/oxlint-config` wherever Oxlint can run.
 - Rules are not configurable. Supply only project-specific settings, such as `files` and globals.
-- No `files` are set. ESLint lints only JavaScript files unless you list others.
 - `typescript-eslint` supports TypeScript up to 6.0. On TypeScript 7, alias `typescript` to `@typescript/typescript6`.
 - Requires ESLint 10.
 - Run ESLint from the directory that contains `tsconfig.json` or a parent directory. Type-aware rules search for `tsconfig.json` only up to the working directory.
