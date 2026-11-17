@@ -34,8 +34,25 @@ describe('writeEslintRules', () => {
 
 	test('renames rules that an ESLint plugin publishes under another name', () => {
 		const rules: Linter.RulesRecord = {};
-		writeEslintRules(rules, { 'node/no-sync': 'error', 'unicorn/no-array-for-each': 'error' });
-		expect(rules).toEqual({ 'n/no-sync': 'error', 'unicorn/no-for-each': 'error' });
+		writeEslintRules(rules, {
+			'node/no-sync': 'error',
+			'unicorn/no-array-for-each': 'error',
+			'unicorn/prefer-dom-node-dataset': 'error',
+		});
+		expect(rules).toEqual({
+			'n/no-sync': 'error',
+			'unicorn/no-for-each': 'error',
+			'unicorn/dom-node-dataset': 'error',
+		});
+	});
+
+	test('expands a rule that an ESLint plugin splits into several rules', () => {
+		const rules: Linter.RulesRecord = {};
+		writeEslintRules(rules, { 'unicorn/no-hex-escape': 'error' });
+		expect(rules).toEqual({
+			'unicorn/prefer-literal-ascii': 'error',
+			'unicorn/prefer-unicode-code-point-escapes': 'error',
+		});
 	});
 
 	test('translates severities and keeps rule options', () => {

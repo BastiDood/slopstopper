@@ -40,6 +40,13 @@ const TYPESCRIPT = ['@typescript-eslint'];
 const UNICORN = ['unicorn'];
 const VITEST = ['vitest'];
 
+const UNICORN_DOM_NODE_DATASET = ['unicorn/dom-node-dataset'];
+const UNICORN_NO_FOR_EACH = ['unicorn/no-for-each'];
+const UNICORN_LITERAL_ESCAPES = [
+	'unicorn/prefer-literal-ascii',
+	'unicorn/prefer-unicode-code-point-escapes',
+];
+
 /** Write the ESLint equivalents of explicitly configured Oxlint rules, skipping rules that ESLint cannot run. */
 export function writeEslintRules(target: Linter.RulesRecord, rules: OxlintRules) {
 	for (const name in rules) {
@@ -47,7 +54,10 @@ export function writeEslintRules(target: Linter.RulesRecord, rules: OxlintRules)
 		const rule = rules[name];
 		if (typeof rule === 'undefined') continue;
 		const eslintName = toEslintRuleName(name);
-		if (isSupportedInEslint(eslintName)) target[eslintName] = toEslintRuleEntry(rule);
+		if (!isSupportedInEslint(eslintName)) continue;
+		for (const replacement of renamedInEslint(eslintName)) {
+			target[replacement] = toEslintRuleEntry(rule);
+		}
 	}
 }
 
@@ -63,8 +73,6 @@ export function toEslintRuleName(name: string) {
 			return `@typescript-eslint/${rule}`;
 		case 'node':
 			return `n/${rule}`;
-		case 'unicorn':
-			return renamedInEslint(name);
 		case 'react': {
 			const hook = `react-hooks/${rule}`;
 			return Object.hasOwn(reactHooksRules, hook) ? hook : name;
@@ -95,10 +103,12 @@ function indexByNamespace(...ruleSets: Record<string, 'off'>[]) {
 		for (const name in ruleSet) {
 			if (!Object.hasOwn(ruleSet, name) || !isSupportedInEslint(name)) continue;
 			const namespace = namespaceOf(name);
-			const eslintName = renamedInEslint(name);
-			const names = byNamespace.get(namespace);
-			if (typeof names === 'undefined') byNamespace.set(namespace, [eslintName]);
-			else names.push(eslintName);
+			let names = byNamespace.get(namespace);
+			if (typeof names === 'undefined') {
+				names = [];
+				byNamespace.set(namespace, names);
+			}
+			names.push(...renamedInEslint(name));
 		}
 	}
 	return byNamespace;
@@ -125,13 +135,20 @@ function namespaceOf(eslintName: string) {
 	return separator === -1 ? 'eslint' : eslintName.slice(0, separator);
 }
 
-/** Rename the rules that an ESLint 10 plugin publishes under a different name than Oxlint's `eslint-plugin-oxlint` lists. */
+/**
+ * The ESLint rules that run an Oxlint rule, given its ESLint name. An ESLint 10 plugin can publish a rule under a
+ * different name than Oxlint's `eslint-plugin-oxlint` lists, or split it into several rules.
+ */
 function renamedInEslint(eslintName: string) {
 	switch (eslintName) {
 		case 'unicorn/no-array-for-each':
-			return 'unicorn/no-for-each';
+			return UNICORN_NO_FOR_EACH;
+		case 'unicorn/no-hex-escape':
+			return UNICORN_LITERAL_ESCAPES;
+		case 'unicorn/prefer-dom-node-dataset':
+			return UNICORN_DOM_NODE_DATASET;
 		default:
-			return eslintName;
+			return [eslintName];
 	}
 }
 
