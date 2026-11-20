@@ -3,8 +3,8 @@ import { defineRule, type ESTree, type Reference, type SourceCode } from '@oxlin
 import { onlyElement } from '#arrays.ts';
 import { assertNotNull } from '#assert.ts';
 import { unwrap } from '#ast/discriminant.ts';
-import { enclosingFunction } from '#ast/functions.ts';
-import { methodName, methodTarget } from '#ast/known-arrays.ts';
+import { returnedCallback } from '#ast/functions.ts';
+import { callbackCall, methodName, methodTarget } from '#ast/known-arrays.ts';
 import { outermostWrapper } from '#ast/members.ts';
 import { variableMethodOf } from '#ast/tanstack-mutations.ts';
 
@@ -150,23 +150,9 @@ function isConcurrent(sourceCode: SourceCode, wrapper: ESTree.Node) {
  */
 function isConcurrentCall(sourceCode: SourceCode, call: ESTree.Expression) {
 	const { parent } = call;
-	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only an array literal, an arrow body, and a `return` hold a concurrent call, so `default` covers the rest.
-	switch (parent.type) {
-		case 'ArrayExpression':
-			return isCombinatorArgument(sourceCode, parent);
-		case 'ArrowFunctionExpression':
-			return parent.body === call && isMapCallback(sourceCode, outermostWrapper(parent));
-		case 'ReturnStatement': {
-			const callback = enclosingFunction(parent);
-			return (
-				callback !== null &&
-				callback.type !== 'FunctionDeclaration' &&
-				isMapCallback(sourceCode, outermostWrapper(callback))
-			);
-		}
-		default:
-			return false;
-	}
+	if (parent.type === 'ArrayExpression') return isCombinatorArgument(sourceCode, parent);
+	const callback = returnedCallback(call);
+	return callback !== null && isMapCallback(sourceCode, callback);
 }
 
 /**
@@ -174,13 +160,8 @@ function isConcurrentCall(sourceCode: SourceCode, call: ESTree.Expression) {
  * around the callback.
  */
 function isMapCallback(sourceCode: SourceCode, wrapper: ESTree.Node) {
-	const { parent } = wrapper;
-	if (parent?.type !== 'CallExpression') return false;
-	return (
-		parent.arguments[0] === wrapper &&
-		methodName(parent.callee) === 'map' &&
-		isCombinatorArgument(sourceCode, parent)
-	);
+	const map = callbackCall(wrapper, 'map');
+	return map !== null && isCombinatorArgument(sourceCode, map);
 }
 
 /**

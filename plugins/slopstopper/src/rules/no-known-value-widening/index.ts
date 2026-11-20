@@ -14,6 +14,7 @@ import { isUnsafeValue } from '#ast/dictionary-types.ts';
 import { unwrap } from '#ast/discriminant.ts';
 import { enclosingFunction } from '#ast/functions.ts';
 import { functionLabel, keyName, messageLabel } from '#ast/labels.ts';
+import { isEmptyLiteral, isEmptyObject, isNullLiteral } from '#ast/literals.ts';
 import { outermostWrapper } from '#ast/members.ts';
 import { written } from '#ast/type-aliases.ts';
 
@@ -211,9 +212,11 @@ function subjectLabel(sourceCode: SourceCode, subject: Subject) {
 function checkAssertion(context: Context, node: ESTree.TSAsExpression | ESTree.TSTypeAssertion) {
 	const { sourceCode } = context;
 	const { expression, typeAnnotation, parent } = node;
+	const value = unwrap(expression);
 	if (
 		isAssertion(parent) ||
-		isEmptyLiteral(unwrap(expression)) ||
+		isEmptyLiteral(value) ||
+		isNullLiteral(value) ||
 		!widensKnownValue(sourceCode, typeAnnotation, expression)
 	) {
 		return;
@@ -260,21 +263,6 @@ function isAssertion({ type }: ESTree.Node) {
 	}
 }
 
-/** Whether an expression without wrappers (see `unwrap`) is an empty array literal, an empty object literal, or `null`. */
-function isEmptyLiteral(node: ESTree.Expression) {
-	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only array, object, and `null` literals can be empty, so `default` covers the rest.
-	switch (node.type) {
-		case 'ArrayExpression':
-			return node.elements.length === 0;
-		case 'ObjectExpression':
-			return isEmptyObject(node);
-		case 'Literal':
-			return node.value === null && !('regex' in node);
-		default:
-			return false;
-	}
-}
-
 /**
  * Whether an explicit target type discards the known type of a value: the value has a known type (see
  * `hasKnownType`), the target widens it (see `wideningTarget`), and the value is no empty object literal that starts an
@@ -286,11 +274,6 @@ function widensKnownValue(sourceCode: SourceCode, target: ESTree.TSType, value: 
 	const widening = wideningTarget(sourceCode, target);
 	if (widening === 'open dictionary') return !isEmptyObject(node);
 	return widening !== null;
-}
-
-/** Whether an expression without wrappers (see `unwrap`) is an object literal without properties. */
-function isEmptyObject(node: ESTree.Expression) {
-	return node.type === 'ObjectExpression' && node.properties.length === 0;
 }
 
 /**

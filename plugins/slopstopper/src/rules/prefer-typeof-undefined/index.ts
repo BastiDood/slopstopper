@@ -1,5 +1,6 @@
 import { defineRule, type ESTree, type SourceCode } from '@oxlint/plugins';
 
+import { isUndefined } from '#ast/literals.ts';
 import { isStrictEquality } from '#ast/operators.ts';
 import { dropsComment } from '#ast/ranges.ts';
 
@@ -58,18 +59,6 @@ function otherOperand(sourceCode: SourceCode, left: ESTree.Expression, right: ES
 	if (isUndefined(sourceCode, right)) return isTypeof(left) ? null : left;
 	if (isUndefined(sourceCode, left)) return isTypeof(right) ? null : right;
 	return null;
-}
-
-/** Whether an expression is the global `undefined` or `void` of a literal, as in `void 0`. */
-function isUndefined(sourceCode: SourceCode, node: ESTree.Expression) {
-	if (node.type === 'Identifier') {
-		return node.name === 'undefined' && sourceCode.isGlobalReference(node);
-	}
-	return (
-		node.type === 'UnaryExpression' &&
-		node.operator === 'void' &&
-		node.argument.type === 'Literal'
-	);
 }
 
 function isTypeof(node: ESTree.Expression) {

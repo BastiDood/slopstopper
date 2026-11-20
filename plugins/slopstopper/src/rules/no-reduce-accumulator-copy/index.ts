@@ -3,7 +3,7 @@ import { defineRule, type ESTree, type SourceCode, type Variable } from '@oxlint
 import { AssertionError, assertNotNull } from '#assert.ts';
 import { firstConstInitializer, isNeverReassigned, unvisitedVariable } from '#ast/bindings.ts';
 import { unwrap } from '#ast/discriminant.ts';
-import { enclosingFunction } from '#ast/functions.ts';
+import { enclosingCallback } from '#ast/functions.ts';
 import {
 	isKnownArrayExpression,
 	isStandardArrayMethod,
@@ -153,15 +153,6 @@ function reducerMethod(name: string) {
 		default:
 			return null;
 	}
-}
-
-/**
- * The function expression or arrow function that is the nearest function around a node, or `null` when that function
- * is a declaration or no function encloses the node.
- */
-function enclosingCallback(node: ESTree.Node) {
-	const callback = enclosingFunction(node);
-	return callback?.type === 'FunctionDeclaration' ? null : callback;
 }
 
 /**

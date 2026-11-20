@@ -6,8 +6,6 @@ import { unwrap } from '#ast/discriminant.ts';
 import { propertyName } from '#ast/property-keys.ts';
 import { isDefaultLibraryMember, type TypeServices } from '#type-services.ts';
 
-/** The interfaces of the default library that declare the standard array methods. */
-
 /** A method that a callee names statically: its name, the property node that names it, and the receiver. */
 export interface MethodTarget {
 	name: string;
@@ -60,9 +58,18 @@ function isKnownArray(
 }
 
 /**
- * The method that a callee names statically, as in `xs.map` or `xs['map']`, through optional chains and TypeScript
- * assertions (see `unwrap`). Returns `null` for any other callee, such as a private name or a dynamic computed key.
+ * The call that takes a callback as its first argument and names the given method, as `xs.map` in `xs.map(callback)`,
+ * or `null` for a callback anywhere else. Expects the outermost wrapper around the callback (see `outermostWrapper`).
  */
+export function callbackCall(wrapper: ESTree.Node, method: string) {
+	const { parent } = wrapper;
+	return parent?.type === 'CallExpression' &&
+		parent.arguments[0] === wrapper &&
+		methodName(parent.callee) === method
+		? parent
+		: null;
+}
+
 /** The static name of the method that a callee reads, as `map` in `xs.map`, or `null` when the callee is no member. */
 export function methodName(callee: ESTree.Expression) {
 	const member = unwrap(callee);
@@ -71,6 +78,10 @@ export function methodName(callee: ESTree.Expression) {
 		: null;
 }
 
+/**
+ * The method that a callee names statically, as in `xs.map` or `xs['map']`, through optional chains and TypeScript
+ * assertions (see `unwrap`). Returns `null` for any other callee, such as a private name or a dynamic computed key.
+ */
 export function methodTarget(callee: ESTree.Expression) {
 	const member = unwrap(callee);
 	if (member.type !== 'MemberExpression') return null;

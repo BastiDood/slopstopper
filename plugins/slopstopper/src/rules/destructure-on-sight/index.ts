@@ -17,7 +17,7 @@ import { isReservedWord } from '#ast/names.ts';
 import { isEquality } from '#ast/operators.ts';
 import { isOptionalParameter } from '#ast/parameters.ts';
 import { dropsComment } from '#ast/ranges.ts';
-import { typeAtLocation, type TypeServices, typeServicesOf } from '#type-services.ts';
+import { typeAtLocation, type TypeServices, typeServicesOf, unionMembers } from '#type-services.ts';
 
 /**
  * Where a binding takes the destructuring pattern: a declarator or a parameter, an arrow parameter without parentheses,
@@ -248,8 +248,7 @@ function hasEveryProperty(
 	const type = typeAtLocation(services, id);
 	if (type === null) return false;
 
-	const members = type.isUnion() ? assertDefined(type.types) : [type];
-	return members.every(member =>
+	return unionMembers(type).every(member =>
 		names.every(
 			name => typeof services.checker.getPropertyOfType(member, name) !== 'undefined',
 		),

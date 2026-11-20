@@ -1,5 +1,7 @@
 import type { ESTree, SourceCode } from '@oxlint/plugins';
 
+import { assertDefined } from '#assert.ts';
+
 /** An opaque handle to a TypeScript AST node. */
 interface Node {
 	readonly kind: number;
@@ -159,4 +161,9 @@ export function typeAtLocation({ nodeMap, checker }: TypeServices, node: ESTree.
 export function symbolAtLocation({ nodeMap, checker }: TypeServices, node: ESTree.Node) {
 	const tsNode = nodeMap.get(node);
 	return typeof tsNode === 'undefined' ? null : (checker.getSymbolAtLocation(tsNode) ?? null);
+}
+
+/** The members of a union type, or the type itself when it is no union. */
+export function unionMembers(type: Type) {
+	return type.isUnion() ? assertDefined(type.types) : [type];
 }
