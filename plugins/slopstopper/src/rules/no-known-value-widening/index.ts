@@ -55,7 +55,7 @@ interface AnnotatedNode {
  */
 export const NO_KNOWN_VALUE_WIDENING = defineRule({
 	meta: {
-		type: 'problem',
+		type: 'suggestion',
 		hasSuggestions: true,
 		docs: {
 			description:
@@ -63,7 +63,7 @@ export const NO_KNOWN_VALUE_WIDENING = defineRule({
 		},
 		messages: {
 			annotation:
-				'The annotation `{{type}}` on {{subject}} discards the known type of `{{value}}`. Remove the annotation, and append `satisfies {{type}}` to the value if it must still conform.',
+				'The annotation `{{type}}` on {{subject}} discards the known type of `{{value}}`. To keep that exact type, remove the annotation and append `satisfies {{type}}` to the value. If later code assigns more members to {{subject}}, as in `if (c) o.b = 2;`, annotate it with a named interface instead.',
 			assignment:
 				'The annotation `{{type}}` on {{subject}} discards the known type of the assigned `{{value}}`. Declare {{subject}} where it gets this value, without the annotation, or annotate it with a named interface.',
 			returnValue:
