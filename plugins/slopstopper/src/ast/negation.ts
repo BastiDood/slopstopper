@@ -1,6 +1,6 @@
 import type { ESTree, SourceCode } from '@oxlint/plugins';
 
-import { AssertionError } from '#assert.ts';
+import { AssertionError, assertNotNull } from '#assert.ts';
 import { type CaseComparand, isCaseChain } from '#ast/discriminant.ts';
 import { logicalOperands } from '#ast/logical-operands.ts';
 import { flipEquality } from '#ast/operators.ts';
@@ -57,10 +57,57 @@ export function readsTruthiness(node: ESTree.Expression) {
 }
 
 /**
+ * The text of a condition's negation for an `if` test, which reads only its truthiness. A chain that
+ * `distributableGroup` accepts gets the negation distributed over its operands, nested chains included (see
+ * `distributedText`), as `no-negated-group` asks. So `a && b` becomes `!a || !b`, and `(a && b) || c` becomes
+ * `(!a || !b) && !c`. Any other test gets the edit of `negate`. So `!x` becomes `x`, `a === b` becomes `a !== b`, and
+ * `k === 1 || k === 2` becomes `!(k === 1 || k === 2)`. When the edit puts the `!` before the test's own grouping
+ * parentheses, the text spans them, as in `!(a + b)` for `(a + b)`.
+ */
+export function negatedText(
+	sourceCode: SourceCode,
+	isCaseComparand: CaseComparand,
+	test: ESTree.Expression,
+) {
+	const group = distributableGroup(isCaseComparand, test);
+	if (group !== null) return distributedText(sourceCode, isCaseComparand, group);
+	const { text } = sourceCode;
+	const { start, end, text: replacement } = negate(sourceCode, true, test);
+	const [testStart, testEnd] = test.range;
+	if (start >= testStart) {
+		return text.slice(testStart, start) + replacement + text.slice(end, testEnd);
+	}
+	const {
+		range: [, closingEnd],
+	} = assertNotNull(sourceCode.getTokenAfter(test));
+	return replacement + text.slice(end, closingEnd);
+}
+
+/**
+ * The text of a chain in an `if` test with its negation distributed over every operand. A nested chain that
+ * `distributableGroup` accepts is distributed too, inside its own parentheses or new ones, so no negated group remains.
+ * Any other operand gets the edit of `negate`, which puts its `!` before the operand's own parentheses.
+ */
+function distributedText(
+	sourceCode: SourceCode,
+	isCaseComparand: CaseComparand,
+	chain: ESTree.LogicalExpression,
+): string {
+	return distributeNegation(sourceCode, chain, operand => {
+		const group = distributableGroup(isCaseComparand, operand);
+		if (group === null) return negate(sourceCode, true, operand);
+		const [start, end] = group.range;
+		const text = distributedText(sourceCode, isCaseComparand, group);
+		const grouped = openingParenthesis(sourceCode, operand) !== null;
+		return { start, end, text: grouped ? text : `(${text})` } satisfies Edit;
+	});
+}
+
+/**
  * The text of a logical chain with `&&` and `||` swapped and every operand negated by `negateOperand`, which De Morgan's
  * law equates with the negated chain. Edits the source in place, so that comments, grouping parentheses, and line
  * breaks survive, and keeps the operand order, so that the result evaluates the same operands and short-circuits at the
- * same point. Callers pass the edit of `negate`.
+ * same point. Callers pass the edit of `negate`, or one that also distributes over a nested chain (see `distributedText`).
  */
 export function distributeNegation(
 	sourceCode: SourceCode,

@@ -24,16 +24,29 @@ interface NamedNode {
 	readonly name?: { readonly text?: string };
 }
 
-/** A TypeScript node that declares a symbol, with the node that holds it and its source file. */
+/** A modifier keyword of a TypeScript declaration, such as `readonly`. */
+interface Modifier {
+	readonly getText: () => string;
+}
+
+/** A TypeScript node that declares a symbol, with the node that holds it, its source file, and its modifiers. */
 interface Declaration {
 	readonly parent: NamedNode;
 	readonly getSourceFile: () => SourceFile;
+	/** The modifier keywords of a declaration that can carry them; absent on other declarations. */
+	readonly modifiers?: readonly Modifier[];
 }
 
 /** An opaque handle to a TypeScript symbol, such as a property of a type. */
 interface TypeSymbol {
 	readonly name: string;
 	readonly getDeclarations: () => readonly Declaration[] | undefined;
+}
+
+/** An index signature of a type: the key type it takes, and whether it is read-only. */
+interface IndexInfo {
+	readonly keyType: Type;
+	readonly isReadonly: boolean;
 }
 
 /** The members of TypeScript's `Type` that the rules read. Every other member stays opaque. */
@@ -51,6 +64,12 @@ export interface TypeChecker {
 	readonly getTypeAtLocation: (node: Node) => Type;
 	readonly isTypeAssignableTo: (source: Type, target: Type) => boolean;
 	readonly getPropertyOfType: (type: Type, name: string) => TypeSymbol | undefined;
+	readonly getTypeOfSymbol: (symbol: TypeSymbol) => Type;
+	readonly getIndexInfosOfType: (type: Type) => readonly IndexInfo[];
+	readonly getStringLiteralType: (value: string) => Type;
+	readonly getNumberLiteralType: (value: number) => Type;
+	/** A type without `null` and `undefined`. */
+	readonly getNonNullableType: (type: Type) => Type;
 	readonly getSymbolAtLocation: (node: Node) => TypeSymbol | undefined;
 	readonly getStringType: () => Type;
 	readonly getNumberType: () => Type;
@@ -163,7 +182,61 @@ export function symbolAtLocation({ nodeMap, checker }: TypeServices, node: ESTre
 	return typeof tsNode === 'undefined' ? null : (checker.getSymbolAtLocation(tsNode) ?? null);
 }
 
+/**
+ * Whether an assignment can write a key of a type. The key is either a property that every member writes (see
+ * `writableInEveryMember`), or it fits an index signature that is not read-only. A numeric key also fits a `number`
+ * index signature. The public checker API does not expose a `Readonly<T>` behind an alias or nested in another type, a
+ * property from `as const`, or a getter without a setter. Those count as writable. It also does not expose a mapped type
+ * that removes `readonly`. Its keys count as read-only.
+ */
+export function isWritableKey(checker: TypeChecker, type: Type, key: string) {
+	const property = checker.getPropertyOfType(type, key);
+	if (typeof property !== 'undefined') {
+		return writableInEveryMember(checker, type, key, checker.getTypeOfSymbol(property));
+	}
+	const keyTypes = keyTypesOf(checker, key);
+	return checker
+		.getIndexInfosOfType(type)
+		.some(
+			({ keyType: accepted, isReadonly }) =>
+				!isReadonly &&
+				keyTypes.some(keyType => checker.isTypeAssignableTo(keyType, accepted)),
+		);
+}
+
+/**
+ * Whether every member of a type declares a key without a `readonly` modifier. Each member's key type must also take
+ * `whole`, the key's type across the type. A declaration narrows a union variable to the members that its base literal
+ * fits. An assigned value that fits the union can still miss the key type of that member. For example, `b: 2` misses
+ * `{ b?: string } | { b: number }` once a base `{}` narrows to the first member. A member that takes the key only
+ * through an index signature fails too. Its value type can reject the assigned value.
+ */
+function writableInEveryMember(checker: TypeChecker, type: Type, key: string, whole: Type) {
+	return unionMembers(type).every(member => {
+		const own = checker.getPropertyOfType(member, key);
+		if (typeof own === 'undefined') return false;
+		const declarations = own.getDeclarations() ?? [];
+		return (
+			!declarations.some(declaration => isReadonlyDeclaration(declaration)) &&
+			checker.isTypeAssignableTo(whole, checker.getTypeOfSymbol(own))
+		);
+	});
+}
+
 /** The members of a union type, or the type itself when it is no union. */
 export function unionMembers(type: Type) {
 	return type.isUnion() ? assertDefined(type.types) : [type];
+}
+
+/** Whether a declaration carries a `readonly` modifier. Its text stays stable across TypeScript versions. Its syntax kind does not. */
+function isReadonlyDeclaration({ modifiers }: Declaration) {
+	return (modifiers ?? []).some(modifier => modifier.getText() === 'readonly');
+}
+
+/** The literal types that an index signature can take a key as: its string, and its number when the key is numeric. */
+function keyTypesOf(checker: TypeChecker, key: string) {
+	const keyTypes = [checker.getStringLiteralType(key)];
+	const numeric = Number(key);
+	if (String(numeric) === key) keyTypes.push(checker.getNumberLiteralType(numeric));
+	return keyTypes;
 }

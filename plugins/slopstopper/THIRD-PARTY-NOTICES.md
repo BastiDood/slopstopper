@@ -4,22 +4,22 @@
 
 ## Derived Rules
 
-| File                                                         | Upstream source                                        |
-| ------------------------------------------------------------ | ------------------------------------------------------ |
-| `src/rules/no-array-filter-map/index.ts`                     | `src/rules/no-array-filter-map.ts`                     |
-| `src/rules/no-array-filter-map/index.spec.ts`                | `src/rules/no-array-filter-map.test.ts`                |
-| `src/rules/no-reduce-accumulator-copy/index.ts`              | `src/rules/no-reduce-accumulator-copy.ts`              |
-| `src/rules/no-reduce-accumulator-copy/index.spec.ts`         | `src/rules/no-reduce-accumulator-copy.test.ts`         |
-| `src/rules/no-conditional-empty-object-spread/index.ts`      | `src/rules/no-conditional-empty-object-spread.ts`      |
-| `src/rules/no-conditional-empty-object-spread/index.spec.ts` | `src/rules/no-conditional-empty-object-spread.test.ts` |
-| `src/rules/no-known-value-widening/index.ts`                 | `src/rules/no-known-value-widening.ts`                 |
-| `src/rules/no-known-value-widening/index.spec.ts`            | `src/rules/no-known-value-widening.test.ts`            |
-| `src/rules/no-unknown-returns/index.ts`                      | `src/rules/no-unknown-returns.ts`                      |
-| `src/rules/no-unknown-returns/index.spec.ts`                 | `src/rules/no-unknown-returns.test.ts`                 |
-| `src/rules/no-unknown-type-aliases/index.ts`                 | `src/rules/no-unknown-type-aliases.ts`                 |
-| `src/rules/no-unknown-type-aliases/index.spec.ts`            | `src/rules/no-unknown-type-aliases.test.ts`            |
-| `src/rules/no-unsafe-dictionary-type/index.ts`               | `src/rules/no-unsafe-dictionary-type.ts`               |
-| `src/rules/no-unsafe-dictionary-type/index.spec.ts`          | `src/rules/no-unsafe-dictionary-type.test.ts`          |
+| File                                                 | Upstream source                                        |
+| ---------------------------------------------------- | ------------------------------------------------------ |
+| `src/rules/no-array-filter-map/index.ts`             | `src/rules/no-array-filter-map.ts`                     |
+| `src/rules/no-array-filter-map/index.spec.ts`        | `src/rules/no-array-filter-map.test.ts`                |
+| `src/rules/no-reduce-accumulator-copy/index.ts`      | `src/rules/no-reduce-accumulator-copy.ts`              |
+| `src/rules/no-reduce-accumulator-copy/index.spec.ts` | `src/rules/no-reduce-accumulator-copy.test.ts`         |
+| `src/rules/no-conditional-spread/index.ts`           | `src/rules/no-conditional-empty-object-spread.ts`      |
+| `src/rules/no-conditional-spread/index.spec.ts`      | `src/rules/no-conditional-empty-object-spread.test.ts` |
+| `src/rules/no-known-value-widening/index.ts`         | `src/rules/no-known-value-widening.ts`                 |
+| `src/rules/no-known-value-widening/index.spec.ts`    | `src/rules/no-known-value-widening.test.ts`            |
+| `src/rules/no-unknown-returns/index.ts`              | `src/rules/no-unknown-returns.ts`                      |
+| `src/rules/no-unknown-returns/index.spec.ts`         | `src/rules/no-unknown-returns.test.ts`                 |
+| `src/rules/no-unknown-type-aliases/index.ts`         | `src/rules/no-unknown-type-aliases.ts`                 |
+| `src/rules/no-unknown-type-aliases/index.spec.ts`    | `src/rules/no-unknown-type-aliases.test.ts`            |
+| `src/rules/no-unsafe-dictionary-type/index.ts`       | `src/rules/no-unsafe-dictionary-type.ts`               |
+| `src/rules/no-unsafe-dictionary-type/index.spec.ts`  | `src/rules/no-unsafe-dictionary-type.test.ts`          |
 
 ## Derived Helpers
 

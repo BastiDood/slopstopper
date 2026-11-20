@@ -6,7 +6,7 @@ import { MERGE_EXCLUSIVE_BRANCHES } from './rules/merge-exclusive-branches/index
 import { NEEDLESS_TYPE_INTERSECTION } from './rules/needless-type-intersection/index.ts';
 import { NO_ALIAS_OBJECT_TYPE } from './rules/no-alias-object-type/index.ts';
 import { NO_ARRAY_FILTER_MAP } from './rules/no-array-filter-map/index.ts';
-import { NO_CONDITIONAL_EMPTY_OBJECT_SPREAD } from './rules/no-conditional-empty-object-spread/index.ts';
+import { NO_CONDITIONAL_SPREAD } from './rules/no-conditional-spread/index.ts';
 import { NO_DEFAULTED_QUERY_KEY } from './rules/no-defaulted-query-key/index.ts';
 import { NO_EQUALITY_CHAIN } from './rules/no-equality-chain/index.ts';
 import { NO_FLAT_MAP_NULLISH_FALLBACK } from './rules/no-flat-map-nullish-fallback/index.ts';
@@ -51,7 +51,7 @@ export default definePlugin({
 		'needless-type-intersection': NEEDLESS_TYPE_INTERSECTION,
 		'no-alias-object-type': NO_ALIAS_OBJECT_TYPE,
 		'no-array-filter-map': NO_ARRAY_FILTER_MAP,
-		'no-conditional-empty-object-spread': NO_CONDITIONAL_EMPTY_OBJECT_SPREAD,
+		'no-conditional-spread': NO_CONDITIONAL_SPREAD,
 		'no-defaulted-query-key': NO_DEFAULTED_QUERY_KEY,
 		'no-equality-chain': NO_EQUALITY_CHAIN,
 		'no-flat-map-nullish-fallback': NO_FLAT_MAP_NULLISH_FALLBACK,

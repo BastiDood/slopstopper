@@ -292,7 +292,7 @@ export const CORE = {
 			'slopstopper/needless-type-intersection': 'error',
 			'slopstopper/no-alias-object-type': 'error',
 			'slopstopper/no-array-filter-map': 'error',
-			'slopstopper/no-conditional-empty-object-spread': 'error',
+			'slopstopper/no-conditional-spread': 'error',
 			'slopstopper/no-equality-chain': 'error',
 			'slopstopper/no-flat-map-nullish-fallback': 'error',
 			'slopstopper/no-inferrable-return-type': 'error',
