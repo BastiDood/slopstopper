@@ -294,6 +294,7 @@ export const CORE = {
 			'slopstopper/no-array-filter-map': 'error',
 			'slopstopper/no-conditional-empty-object-spread': 'error',
 			'slopstopper/no-equality-chain': 'error',
+			'slopstopper/no-flat-map-nullish-fallback': 'error',
 			'slopstopper/no-inferrable-return-type': 'error',
 			'slopstopper/no-known-value-widening': 'error',
 			'slopstopper/no-multiple-optional-parameters': 'error',

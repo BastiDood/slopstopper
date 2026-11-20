@@ -9,6 +9,7 @@ import { NO_ARRAY_FILTER_MAP } from './rules/no-array-filter-map/index.ts';
 import { NO_CONDITIONAL_EMPTY_OBJECT_SPREAD } from './rules/no-conditional-empty-object-spread/index.ts';
 import { NO_DEFAULTED_QUERY_KEY } from './rules/no-defaulted-query-key/index.ts';
 import { NO_EQUALITY_CHAIN } from './rules/no-equality-chain/index.ts';
+import { NO_FLAT_MAP_NULLISH_FALLBACK } from './rules/no-flat-map-nullish-fallback/index.ts';
 import { NO_INFERRABLE_RETURN_TYPE } from './rules/no-inferrable-return-type/index.ts';
 import { NO_KNOWN_VALUE_WIDENING } from './rules/no-known-value-widening/index.ts';
 import { NO_MULTIPLE_OPTIONAL_PARAMETERS } from './rules/no-multiple-optional-parameters/index.ts';
@@ -53,6 +54,7 @@ export default definePlugin({
 		'no-conditional-empty-object-spread': NO_CONDITIONAL_EMPTY_OBJECT_SPREAD,
 		'no-defaulted-query-key': NO_DEFAULTED_QUERY_KEY,
 		'no-equality-chain': NO_EQUALITY_CHAIN,
+		'no-flat-map-nullish-fallback': NO_FLAT_MAP_NULLISH_FALLBACK,
 		'no-inferrable-return-type': NO_INFERRABLE_RETURN_TYPE,
 		'no-known-value-widening': NO_KNOWN_VALUE_WIDENING,
 		'no-multiple-optional-parameters': NO_MULTIPLE_OPTIONAL_PARAMETERS,
