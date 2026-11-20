@@ -31,6 +31,7 @@ import { NO_UNSAFE_DICTIONARY_TYPE } from './rules/no-unsafe-dictionary-type/ind
 import { NO_UNTYPED_EMPTY_INITIALIZER } from './rules/no-untyped-empty-initializer/index.ts';
 import { PREFER_CLASS_OVER_FACTORY } from './rules/prefer-class-over-factory/index.ts';
 import { PREFER_DE_MORGAN } from './rules/prefer-de-morgan/index.ts';
+import { PREFER_EARLY_RETURN } from './rules/prefer-early-return/index.ts';
 import { PREFER_PREFIX_INCREMENT } from './rules/prefer-prefix-increment/index.ts';
 import { PREFER_QUERY_KEY_CONTEXT } from './rules/prefer-query-key-context/index.ts';
 import { PREFER_SWITCH } from './rules/prefer-switch/index.ts';
@@ -76,6 +77,7 @@ export default definePlugin({
 		'no-untyped-empty-initializer': NO_UNTYPED_EMPTY_INITIALIZER,
 		'prefer-class-over-factory': PREFER_CLASS_OVER_FACTORY,
 		'prefer-de-morgan': PREFER_DE_MORGAN,
+		'prefer-early-return': PREFER_EARLY_RETURN,
 		'prefer-prefix-increment': PREFER_PREFIX_INCREMENT,
 		'prefer-query-key-context': PREFER_QUERY_KEY_CONTEXT,
 		'prefer-switch': PREFER_SWITCH,

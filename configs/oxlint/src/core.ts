@@ -313,6 +313,7 @@ export const CORE = {
 			'slopstopper/no-untyped-empty-initializer': 'error',
 			'slopstopper/prefer-class-over-factory': 'error',
 			'slopstopper/prefer-de-morgan': 'error',
+			'slopstopper/prefer-early-return': 'error',
 			'slopstopper/prefer-prefix-increment': 'error',
 			'slopstopper/prefer-switch': 'error',
 			'slopstopper/prefer-typeof-undefined': 'error',
