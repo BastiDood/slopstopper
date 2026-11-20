@@ -45,3 +45,8 @@ function addOperands(
 		operands.push(node);
 	}
 }
+
+/** Whether an expression without wrappers (see `unwrap`) is an `&&` or `||`. */
+export function isAndOr(node: ESTree.Expression) {
+	return node.type === 'LogicalExpression' && node.operator !== '??';
+}

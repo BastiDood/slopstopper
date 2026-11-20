@@ -299,6 +299,7 @@ export const CORE = {
 			'slopstopper/no-multiple-optional-parameters': 'error',
 			'slopstopper/no-negated-group': 'error',
 			'slopstopper/no-negated-quantifier-callback': 'error',
+			'slopstopper/no-non-boolean-logical': 'error',
 			'slopstopper/no-plain-template-literal': 'error',
 			'slopstopper/no-positional-scalars': 'error',
 			'slopstopper/no-private-modifier': 'error',

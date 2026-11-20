@@ -15,6 +15,7 @@ import { NO_MULTIPLE_OPTIONAL_PARAMETERS } from './rules/no-multiple-optional-pa
 import { NO_MUTATE_CALLBACK_CACHE_UPDATE } from './rules/no-mutate-callback-cache-update/index.ts';
 import { NO_NEGATED_GROUP } from './rules/no-negated-group/index.ts';
 import { NO_NEGATED_QUANTIFIER_CALLBACK } from './rules/no-negated-quantifier-callback/index.ts';
+import { NO_NON_BOOLEAN_LOGICAL } from './rules/no-non-boolean-logical/index.ts';
 import { NO_PLAIN_TEMPLATE_LITERAL } from './rules/no-plain-template-literal/index.ts';
 import { NO_POSITIONAL_SCALARS } from './rules/no-positional-scalars/index.ts';
 import { NO_PRIVATE_MODIFIER } from './rules/no-private-modifier/index.ts';
@@ -58,6 +59,7 @@ export default definePlugin({
 		'no-mutate-callback-cache-update': NO_MUTATE_CALLBACK_CACHE_UPDATE,
 		'no-negated-group': NO_NEGATED_GROUP,
 		'no-negated-quantifier-callback': NO_NEGATED_QUANTIFIER_CALLBACK,
+		'no-non-boolean-logical': NO_NON_BOOLEAN_LOGICAL,
 		'no-plain-template-literal': NO_PLAIN_TEMPLATE_LITERAL,
 		'no-positional-scalars': NO_POSITIONAL_SCALARS,
 		'no-private-modifier': NO_PRIVATE_MODIFIER,
