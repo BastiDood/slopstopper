@@ -11,8 +11,9 @@ import { outermostWrapper } from '#ast/members.ts';
  * Reports a `.flatMap` callback that returns `<value> ?? []`, as in `xs.flatMap(x => x?.y ?? [])`, where the empty array
  * fallback hides that a value is missing. The callback's return counts as either an arrow function's expression body
  * or the argument of a `return` statement, seen through TypeScript assertions. An explicit ternary such as
- * `xs.flatMap(x => (cond ? [x.y] : []))` stays unreported. There is no rewrite: the author must choose between a `.reduce`
- * that pushes only present values and an explicit ternary.
+ * `xs.flatMap(x => (cond ? [x.y] : []))` stays unreported. There is no rewrite. The author must choose a `.reduce` that
+ * pushes only present values into its one accumulator, a `for…of` loop for a callback with other side effects or several
+ * results, or an explicit ternary.
  */
 export const NO_FLAT_MAP_NULLISH_FALLBACK = defineRule({
 	meta: {
@@ -23,7 +24,7 @@ export const NO_FLAT_MAP_NULLISH_FALLBACK = defineRule({
 		},
 		messages: {
 			nullishFallback:
-				'`{{fallback}}` returns `[]` from `.flatMap` to hide a missing `{{value}}`. Push the present values into the accumulator of `.reduce<T[]>(…, [])` in an `if` that checks `{{value}}`. Pass the element type as the generic, so that `[]` does not infer `never[]`. An explicit ternary that checks `{{value}}` and returns `[]` also works.',
+				'`{{fallback}}` returns `[]` from `.flatMap` to hide a missing `{{value}}`. Push the present values into the accumulator of `.reduce<T[]>(…, [])` in an `if` that checks `{{value}}`. Pass the element type as the generic, so that `[]` does not infer `never[]`. Keep that callback to pushing into its one accumulator. Use a `for…of` loop when it has other side effects or builds several results. An explicit ternary that checks `{{value}}` and returns `[]` also works.',
 		},
 		schema: [],
 	},
