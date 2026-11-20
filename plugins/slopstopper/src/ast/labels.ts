@@ -77,6 +77,7 @@ export function keyName(key: ESTree.PropertyKey, computed: boolean) {
 export function listLabel(items: readonly string[], none: string) {
 	const last = items.at(-1);
 	if (typeof last === 'undefined') return none;
-	if (items.length <= 2) return items.join(' and ');
-	return `${items.slice(0, -1).join(', ')}, and ${last}`;
+	return items.length <= 2
+		? items.join(' and ')
+		: `${items.slice(0, -1).join(', ')}, and ${last}`;
 }

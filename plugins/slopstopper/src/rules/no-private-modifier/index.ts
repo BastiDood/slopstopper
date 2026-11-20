@@ -274,8 +274,9 @@ function isConvertible(members: readonly Member[]) {
 	}
 
 	if (fields > 0) return fields === 1 && methods + getters + setters === 0;
-	if (methods > 0) return getters + setters === 0 && implementations <= 1;
-	return getters <= 1 && setters <= 1;
+	return methods > 0
+		? getters + setters === 0 && implementations <= 1
+		: getters <= 1 && setters <= 1;
 }
 
 /** Collects the identifiers that read the class binding, skipping bindings that are ever reassigned. */

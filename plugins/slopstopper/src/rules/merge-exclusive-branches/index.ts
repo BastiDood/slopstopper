@@ -150,8 +150,7 @@ function readsOf(sourceCode: SourceCode, target: ESTree.Expression): Reads {
 /** The reads of two operands together: a `mutable` read wins over `members`, which wins over `fixed`. */
 function join(left: Reads, right: Reads) {
 	if (left === 'mutable' || right === 'mutable') return 'mutable';
-	if (left === 'members' || right === 'members') return 'members';
-	return 'fixed';
+	return left === 'members' || right === 'members' ? 'members' : 'fixed';
 }
 
 /**
@@ -285,8 +284,9 @@ function branch(sourceCode: SourceCode, statement: ESTree.IfStatement, split: ES
 	if (rest?.leading !== split) return null;
 
 	const kept = [[rest.start, test.range[1]], consequent.range] satisfies Range[];
-	if (dropsComment(sourceCode, { range: statement.range, kept })) return null;
-	return { text: `if (${rest.text}) ${body}`, hasRest: true };
+	return dropsComment(sourceCode, { range: statement.range, kept })
+		? null
+		: { text: `if (${rest.text}) ${body}`, hasRest: true };
 }
 
 /**

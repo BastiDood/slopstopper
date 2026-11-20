@@ -439,8 +439,10 @@ function rebaseOf(
 	fixes: Fix[],
 	kept: Range[],
 ) {
-	if ((typeAnnotation ?? null) !== null) return null;
-	return fixes.some(({ range }) => dropsComment(sourceCode, { range, kept })) ? null : fixes;
+	return (typeAnnotation ?? null) !== null ||
+		fixes.some(({ range }) => dropsComment(sourceCode, { range, kept }))
+		? null
+		: fixes;
 }
 
 /**
@@ -641,13 +643,13 @@ function sliceRead(
 	if (slice === null || !BINDABLE_NAME_REGEX.test(slice)) return null;
 
 	const wrapper = outermostWrapper(member);
-	if (isCallee(wrapper) || isWritten(wrapper)) return null;
-
-	return keptRewrite(sourceCode, [tableRange], {
-		range: member.range,
-		text: atomRead(table, slice),
-		slices: [slice],
-	});
+	return isCallee(wrapper) || isWritten(wrapper)
+		? null
+		: keptRewrite(sourceCode, [tableRange], {
+				range: member.range,
+				text: atomRead(table, slice),
+				slices: [slice],
+			});
 }
 
 /** The static name of a member's property, or `null` for a private name or a dynamic computed key. */

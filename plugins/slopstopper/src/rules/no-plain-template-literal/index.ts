@@ -107,8 +107,9 @@ function isInPrologue(statement: ESTree.ExpressionStatement) {
 
 /** The statements of a node that can open with a directive prologue: a program or a function body. */
 function prologueBody(node: ESTree.Node) {
-	if (node.type === 'Program') return node.body;
-	return node.type === 'BlockStatement' && isFunction(node.parent) ? node.body : null;
+	return node.type === 'Program' || (node.type === 'BlockStatement' && isFunction(node.parent))
+		? node.body
+		: null;
 }
 
 /** Whether a statement is a directive: a statement of one quoted string. */

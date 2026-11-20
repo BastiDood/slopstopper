@@ -73,12 +73,15 @@ function isAffirmable(
 	operands: ESTree.Expression[],
 	isCaseComparand: CaseComparand,
 ) {
-	if (chain.operator === '&&' && isCaseChain(isCaseComparand, '!==', operands)) return true;
-	return isSwappableTest(chain);
+	return (
+		(chain.operator === '&&' && isCaseChain(isCaseComparand, '!==', operands)) ||
+		isSwappableTest(chain)
+	);
 }
 
 /** Whether an operand counts as a negation: `!x`, `a !== b`, or `a != b`. */
 function isNegated(operand: ESTree.Expression) {
-	if (operand.type === 'UnaryExpression') return operand.operator === '!';
-	return operand.type === 'BinaryExpression' && isInequality(operand.operator);
+	return operand.type === 'UnaryExpression'
+		? operand.operator === '!'
+		: operand.type === 'BinaryExpression' && isInequality(operand.operator);
 }

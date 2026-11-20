@@ -256,8 +256,8 @@ function checkStatements(
 		}
 
 		const replacement = rewrite(sourceCode, { vertices, order });
-		if (replacement === null) return null;
-		return guarded && loose.some(({ range }) => isWithin(range, replacement.range))
+		return replacement === null ||
+			(guarded && loose.some(({ range }) => isWithin(range, replacement.range)))
 			? null
 			: replacement;
 	});

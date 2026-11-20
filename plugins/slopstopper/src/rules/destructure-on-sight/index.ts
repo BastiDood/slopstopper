@@ -246,12 +246,13 @@ function hasEveryProperty(
 	names: readonly string[],
 ) {
 	const type = typeAtLocation(services, id);
-	if (type === null) return false;
-
-	return unionMembers(type).every(member =>
-		names.every(
-			name => typeof services.checker.getPropertyOfType(member, name) !== 'undefined',
-		),
+	return (
+		type !== null &&
+		unionMembers(type).every(member =>
+			names.every(
+				name => typeof services.checker.getPropertyOfType(member, name) !== 'undefined',
+			),
+		)
 	);
 }
 
@@ -350,14 +351,14 @@ function propertyRead(reference: Reference, variableScope: Scope) {
 	}
 
 	const wrapper = outermostWrapper(member);
-	if (isCallee(wrapper) || isWriteTarget(wrapper)) return null;
-
-	return {
-		member,
-		name: member.property.name,
-		scope: from,
-		isNarrowing: isNarrowingTest(wrapper),
-	};
+	return isCallee(wrapper) || isWriteTarget(wrapper)
+		? null
+		: {
+				member,
+				name: member.property.name,
+				scope: from,
+				isNarrowing: isNarrowingTest(wrapper),
+			};
 }
 
 /**
@@ -424,8 +425,10 @@ function destructuring(sourceCode: SourceCode, rewrites: readonly Rewrite[]) {
 		for (const { scope } of reads) if (!scopes.includes(scope)) scopes.push(scope);
 		const isSafe = names.every(name => {
 			const local = localOf(name);
-			if (local === name && isReservedWord(name)) return false;
-			return scopes.every(scope => isFree(scope, local, variable));
+			return (
+				(local !== name || !isReservedWord(name)) &&
+				scopes.every(scope => isFree(scope, local, variable))
+			);
 		});
 
 		const token = sourceCode.getFirstToken(id);
@@ -453,6 +456,7 @@ function destructuring(sourceCode: SourceCode, rewrites: readonly Rewrite[]) {
  */
 function isFree(scope: Scope, name: string, variable: Variable) {
 	const found = findVariable(scope, name);
-	if (found !== null) return found === variable;
-	return !scope.through.some(({ identifier }) => identifier.name === name);
+	return found === null
+		? !scope.through.some(({ identifier }) => identifier.name === name)
+		: found === variable;
 }

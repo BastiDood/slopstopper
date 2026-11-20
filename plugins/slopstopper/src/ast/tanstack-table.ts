@@ -127,8 +127,11 @@ function isOptionsFactory(name: string) {
  */
 export function isTableType(services: TypeServices, node: ESTree.Node) {
 	const type = typeAtLocation(services, node);
-	if (type === null || isNeverOrTopType(services.checker, type)) return false;
-	return TABLE_PROPERTIES.every(
-		name => typeof services.checker.getPropertyOfType(type, name) !== 'undefined',
+	return (
+		type !== null &&
+		!isNeverOrTopType(services.checker, type) &&
+		TABLE_PROPERTIES.every(
+			name => typeof services.checker.getPropertyOfType(type, name) !== 'undefined',
+		)
 	);
 }

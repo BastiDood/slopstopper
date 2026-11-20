@@ -37,8 +37,9 @@ export const PREFER_WHILE_TRUE = defineRule({
 						}
 
 						const range = [node.range[0], closing.range[1]] satisfies Range;
-						if (dropsComment(sourceCode, { range, kept: [] })) return null;
-						return fixer.replaceTextRange(range, 'while (true)');
+						return dropsComment(sourceCode, { range, kept: [] })
+							? null
+							: fixer.replaceTextRange(range, 'while (true)');
 					},
 				});
 			},

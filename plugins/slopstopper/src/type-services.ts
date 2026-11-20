@@ -113,25 +113,25 @@ export interface TypeServices {
 export function typeServicesOf({ parserServices }: SourceCode) {
 	const { program, esTreeNodeToTSNodeMap } = parserServices;
 	if (
-		typeof program === 'object' &&
-		program !== null &&
-		'getTypeChecker' in program &&
-		typeof program.getTypeChecker === 'function' &&
-		typeof esTreeNodeToTSNodeMap === 'object' &&
-		esTreeNodeToTSNodeMap !== null &&
-		'get' in esTreeNodeToTSNodeMap &&
-		typeof esTreeNodeToTSNodeMap.get === 'function'
+		typeof program !== 'object' ||
+		program === null ||
+		!('getTypeChecker' in program) ||
+		typeof program.getTypeChecker !== 'function' ||
+		typeof esTreeNodeToTSNodeMap !== 'object' ||
+		esTreeNodeToTSNodeMap === null ||
+		!('get' in esTreeNodeToTSNodeMap) ||
+		typeof esTreeNodeToTSNodeMap.get !== 'function'
 	) {
-		// The checks confirm only the two entry points. The plugin declares the rest of their API itself so that it
-		// imports neither `typescript` nor `@typescript-eslint/utils`, and trusts typescript-eslint to provide it as declared.
-		// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Oxlint types `parserServices` as an untyped record.
-		const { program: typedProgram, esTreeNodeToTSNodeMap: nodeMap } = {
-			program,
-			esTreeNodeToTSNodeMap,
-		} as ParserServices;
-		return { program: typedProgram, checker: typedProgram.getTypeChecker(), nodeMap };
+		return null;
 	}
-	return null;
+	// The checks confirm only the two entry points. The plugin declares the rest of their API itself so that it
+	// imports neither `typescript` nor `@typescript-eslint/utils`, and trusts typescript-eslint to provide it as declared.
+	// oxlint-disable-next-line typescript/no-unsafe-type-assertion -- Oxlint types `parserServices` as an untyped record.
+	const { program: typedProgram, esTreeNodeToTSNodeMap: nodeMap } = {
+		program,
+		esTreeNodeToTSNodeMap,
+	} as ParserServices;
+	return { program: typedProgram, checker: typedProgram.getTypeChecker(), nodeMap };
 }
 
 /**

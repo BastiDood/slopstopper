@@ -112,9 +112,9 @@ function hasLiteralType(services: TypeServices, node: ESTree.Expression) {
  */
 function isLiteralType(checker: TypeChecker, type: Type) {
 	if (type.isUnion() || type.isIntersection()) return false;
-	if (typeof type.value !== 'undefined') return true;
 	return (
-		!isNeverOrTopType(checker, type) &&
-		checker.isTypeAssignableTo(type, checker.getBooleanType())
+		typeof type.value !== 'undefined' ||
+		(!isNeverOrTopType(checker, type) &&
+			checker.isTypeAssignableTo(type, checker.getBooleanType()))
 	);
 }

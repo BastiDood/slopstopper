@@ -272,8 +272,7 @@ function widensKnownValue(sourceCode: SourceCode, target: ESTree.TSType, value: 
 	const node = unwrap(value);
 	if (!hasKnownType(sourceCode, [], node)) return false;
 	const widening = wideningTarget(sourceCode, target);
-	if (widening === 'open dictionary') return !isEmptyObject(node);
-	return widening !== null;
+	return widening === 'open dictionary' ? !isEmptyObject(node) : widening !== null;
 }
 
 /**
@@ -419,8 +418,11 @@ function hasKnownArgumentType(
 			const called = calledFunction(sourceCode, expression.callee);
 			if (called === null) return false;
 			const { returnType } = called;
-			if (returnType === null || typeof returnType === 'undefined') return false;
-			return !isUnsafeValue(sourceCode, written(returnType.typeAnnotation));
+			return (
+				returnType !== null &&
+				typeof returnType !== 'undefined' &&
+				!isUnsafeValue(sourceCode, written(returnType.typeAnnotation))
+			);
 		}
 		case 'Identifier':
 			return hasKnownBindingType(sourceCode, visited, expression);

@@ -128,8 +128,10 @@ function isNumber(
 	services: TypeServices | null,
 	target: ESTree.IdentifierReference | ESTree.MemberExpression,
 ) {
-	if (services !== null && hasNumberType(services, target)) return true;
-	return target.type === 'Identifier' && isNumericCounter(sourceCode, target);
+	return (
+		(services !== null && hasNumberType(services, target)) ||
+		(target.type === 'Identifier' && isNumericCounter(sourceCode, target))
+	);
 }
 
 /** Whether the type checker resolves an expression to `number`, a number literal type, or a union of those. */

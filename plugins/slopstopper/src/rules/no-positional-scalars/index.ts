@@ -188,8 +188,7 @@ function parameterKinds(parameter: ESTree.ParamPattern): number | null {
 			const { left } = parameter;
 			if (left.type !== 'Identifier') return null;
 			const type = left.typeAnnotation?.typeAnnotation;
-			if (typeof type === 'object') return typeKinds(type);
-			return literalKind(parameter.right);
+			return typeof type === 'object' ? typeKinds(type) : literalKind(parameter.right);
 		}
 		case 'TSParameterProperty':
 			return parameterKinds(parameter.parameter);

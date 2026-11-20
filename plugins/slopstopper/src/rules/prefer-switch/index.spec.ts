@@ -334,11 +334,12 @@ function on(discriminant: string) {
 
 function mayChange(discriminant: string, output?: string) {
 	const error = { messageId: 'preferSwitchMayChange', data: { discriminant } };
-	if (typeof output === 'undefined') return [error];
-	return [
-		{
-			...error,
-			suggestions: [{ messageId: 'rewriteAsSwitch', data: { discriminant }, output }],
-		},
-	];
+	return typeof output === 'undefined'
+		? [error]
+		: [
+				{
+					...error,
+					suggestions: [{ messageId: 'rewriteAsSwitch', data: { discriminant }, output }],
+				},
+			];
 }

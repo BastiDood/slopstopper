@@ -39,40 +39,40 @@ export const NO_RENDER_SCOPED_TABLE_SCHEMA = defineRule({
 	},
 	create(context) {
 		const { sourceCode } = context;
-		if (isSvelteComponent(context.filename)) {
-			let isModuleScript = false;
+		if (!isSvelteComponent(context.filename)) {
 			return {
-				[SVELTE_SCRIPT_SELECTOR]() {
-					isModuleScript = false;
-				},
-				[SVELTE_MODULE_ATTRIBUTE_SELECTOR]() {
-					isModuleScript = true;
-				},
-				[`${SVELTE_SCRIPT_SELECTOR} CallExpression`](node) {
-					if (
-						isModuleScript ||
-						node.type !== 'CallExpression' ||
-						!isSchemaCall(sourceCode, node)
-					) {
-						return;
-					}
+				CallExpression(node) {
+					if (!isSchemaCall(sourceCode, node)) return;
+					const owner = renderingOwner(node);
+					if (owner === null) return;
 					context.report({
 						node,
-						messageId: 'instance',
-						data: { call: callLabel(sourceCode, node) },
+						messageId: 'render',
+						data: { call: callLabel(sourceCode, node), owner },
 					});
 				},
 			};
 		}
+		let isModuleScript = false;
 		return {
-			CallExpression(node) {
-				if (!isSchemaCall(sourceCode, node)) return;
-				const owner = renderingOwner(node);
-				if (owner === null) return;
+			[SVELTE_SCRIPT_SELECTOR]() {
+				isModuleScript = false;
+			},
+			[SVELTE_MODULE_ATTRIBUTE_SELECTOR]() {
+				isModuleScript = true;
+			},
+			[`${SVELTE_SCRIPT_SELECTOR} CallExpression`](node) {
+				if (
+					isModuleScript ||
+					node.type !== 'CallExpression' ||
+					!isSchemaCall(sourceCode, node)
+				) {
+					return;
+				}
 				context.report({
 					node,
-					messageId: 'render',
-					data: { call: callLabel(sourceCode, node), owner },
+					messageId: 'instance',
+					data: { call: callLabel(sourceCode, node) },
 				});
 			},
 		};
@@ -151,8 +151,9 @@ function isMemoCallback(fn: ESTree.Function | ESTree.ArrowFunctionExpression) {
 	const { parent } = fn;
 	if (parent.type !== 'CallExpression' || parent.arguments[0] !== fn) return false;
 	const callee = unwrap(parent.callee);
-	if (callee.type === 'Identifier') return callee.name === 'useMemo';
-	return methodName(callee) === 'useMemo';
+	return callee.type === 'Identifier'
+		? callee.name === 'useMemo'
+		: methodName(callee) === 'useMemo';
 }
 
 /**

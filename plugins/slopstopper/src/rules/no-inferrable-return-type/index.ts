@@ -151,12 +151,10 @@ function methodKeyOf(
  */
 function keyOf(services: TypeServices | null, key: ESTree.PropertyKey, computed: boolean) {
 	const staticKey = staticKeyOf(key, computed);
-	if (staticKey === null && computed && services !== null) {
-		const type = typeAtLocation(services, key);
-		const value = type?.value;
-		return typeof value === 'string' || typeof value === 'number' ? `.${value}` : null;
-	}
-	return staticKey;
+	if (staticKey !== null || !computed || services === null) return staticKey;
+	const type = typeAtLocation(services, key);
+	const value = type?.value;
+	return typeof value === 'string' || typeof value === 'number' ? `.${value}` : null;
 }
 
 /**
@@ -199,8 +197,9 @@ function inferrableReturnType(sourceCode: SourceCode, frame: Frame) {
 		default:
 			break;
 	}
-	if (frame.valueReturns > 1 || frame.recursive) return null;
-	return isSelfReferencing(sourceCode, node, body) ? null : returnType;
+	return frame.valueReturns > 1 || frame.recursive || isSelfReferencing(sourceCode, node, body)
+		? null
+		: returnType;
 }
 
 /** Whether the body references the function through its own name or the variable it initializes. */
