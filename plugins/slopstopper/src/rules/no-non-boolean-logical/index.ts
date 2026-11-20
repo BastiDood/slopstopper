@@ -100,14 +100,11 @@ function isAndOrAssignment(node: ESTree.Expression) {
  */
 function usesValue(services: TypeServices | null, node: ESTree.Expression): boolean {
 	const { parent } = node;
-	if (parent.type === 'LogicalExpression' && parent.operator !== '??') {
-		return parent.right === node && usesValue(services, parent);
-	}
-	return (
-		parent.type !== 'ExpressionStatement' &&
-		!readsTruthiness(node) &&
-		!isPredicateReturn(services, node)
-	);
+	return parent.type === 'LogicalExpression' && parent.operator !== '??'
+		? parent.right === node && usesValue(services, parent)
+		: parent.type !== 'ExpressionStatement' &&
+				!readsTruthiness(node) &&
+				!isPredicateReturn(services, node);
 }
 
 /**

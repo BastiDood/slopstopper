@@ -133,10 +133,9 @@ interface Spelling {
  * Otherwise the string escapes the cooked value.
  */
 function quote({ cooked, raw }: Spelling) {
-	if (TEMPLATE_ONLY_SPELLING_REGEX.test(raw)) {
-		return `'${cooked.replaceAll(STRING_ESCAPE_REGEX, escape)}'`;
-	}
-	return `'${raw}'`;
+	return TEMPLATE_ONLY_SPELLING_REGEX.test(raw)
+		? `'${cooked.replaceAll(STRING_ESCAPE_REGEX, escape)}'`
+		: `'${raw}'`;
 }
 
 /** The escape sequence of a character inside a single-quoted string. */

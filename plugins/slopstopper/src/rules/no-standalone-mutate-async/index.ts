@@ -138,10 +138,9 @@ function isAliasInitializer(wrapper: ESTree.Node) {
  */
 function isConcurrent(sourceCode: SourceCode, wrapper: ESTree.Node) {
 	const { parent } = wrapper;
-	if (parent?.type === 'CallExpression' && parent.callee === wrapper) {
-		return isConcurrentCall(sourceCode, outermostWrapper(parent));
-	}
-	return isMapCallback(sourceCode, wrapper);
+	return parent?.type === 'CallExpression' && parent.callee === wrapper
+		? isConcurrentCall(sourceCode, outermostWrapper(parent))
+		: isMapCallback(sourceCode, wrapper);
 }
 
 /**

@@ -68,10 +68,9 @@ function passesOf({ callee }: ESTree.CallExpression) {
 	if (partner === null) return null;
 	const outer = assertNotNull(methodTarget(callee));
 	const innerCall = unwrap(outer.object);
-	if (innerCall.type !== 'CallExpression' || methodName(innerCall.callee) !== partner) {
-		return null;
-	}
-	return { inner: assertNotNull(methodTarget(innerCall.callee)), outer } satisfies Passes;
+	return innerCall.type === 'CallExpression' && methodName(innerCall.callee) === partner
+		? ({ inner: assertNotNull(methodTarget(innerCall.callee)), outer } satisfies Passes)
+		: null;
 }
 
 /** The method that forms a reported pair with a method name: `filter` for `map`, `map` for `filter`, otherwise `null`. */

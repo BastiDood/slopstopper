@@ -47,12 +47,9 @@ export function isNullLiteral(node: ESTree.Expression) {
 
 /** Whether an expression is the global `undefined` or `void` of a literal, as in `void 0`. */
 export function isUndefined(sourceCode: SourceCode, node: ESTree.Expression) {
-	if (node.type === 'Identifier') {
-		return node.name === 'undefined' && sourceCode.isGlobalReference(node);
-	}
-	return (
-		node.type === 'UnaryExpression' &&
-		node.operator === 'void' &&
-		node.argument.type === 'Literal'
-	);
+	return node.type === 'Identifier'
+		? node.name === 'undefined' && sourceCode.isGlobalReference(node)
+		: node.type === 'UnaryExpression' &&
+				node.operator === 'void' &&
+				node.argument.type === 'Literal';
 }

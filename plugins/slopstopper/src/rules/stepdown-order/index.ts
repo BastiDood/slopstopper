@@ -911,9 +911,7 @@ function extentRange(sourceCode: SourceCode, { first, last }: Extent) {
 	}
 
 	const next = sourceCode.getTokenAfter(last);
-	if (bottom !== last && next !== null && next.loc.start.line <= bottom.loc.end.line) {
-		return null;
-	}
-
-	return [top.range[0], bottom.range[1]] satisfies Range;
+	return bottom !== last && next !== null && next.loc.start.line <= bottom.loc.end.line
+		? null
+		: ([top.range[0], bottom.range[1]] satisfies Range);
 }

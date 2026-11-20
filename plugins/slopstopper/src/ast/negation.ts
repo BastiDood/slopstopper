@@ -18,13 +18,12 @@ interface Edit {
  */
 export function isSwappableTest(node: ESTree.Expression) {
 	const { parent } = node;
-	if (parent.type === 'ConditionalExpression') return parent.test === node;
 	// An expression whose parent is an `if` is its test.
-	return (
-		parent.type === 'IfStatement' &&
-		parent.alternate !== null &&
-		parent.alternate.type !== 'IfStatement'
-	);
+	return parent.type === 'ConditionalExpression'
+		? parent.test === node
+		: parent.type === 'IfStatement' &&
+				parent.alternate !== null &&
+				parent.alternate.type !== 'IfStatement';
 }
 
 /**
@@ -178,26 +177,22 @@ export function negate(sourceCode: SourceCode, truthiness: boolean, operand: EST
 	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only a few of the several dozen expression types matter, so `default` covers the rest.
 	switch (operand.type) {
 		case 'UnaryExpression':
-			if (operand.operator === '!') {
-				return truthiness
-					? { start, end: start + 1, text: '' }
-					: { start, end: start, text: '!' };
-			}
-			break;
+			if (operand.operator !== '!') break;
+			return truthiness
+				? { start, end: start + 1, text: '' }
+				: { start, end: start, text: '!' };
 		case 'BinaryExpression': {
 			const flipped = flipEquality(operand.operator);
-			if (flipped !== null) {
-				const token = sourceCode.getFirstTokenBetween(
-					operand.left,
-					operand.right,
-					candidate => candidate.value === operand.operator,
-				);
-				if (token === null) {
-					throw new AssertionError('the operator token separates two operands');
-				}
-				return { start: token.range[0], end: token.range[1], text: flipped };
+			if (flipped === null) break;
+			const token = sourceCode.getFirstTokenBetween(
+				operand.left,
+				operand.right,
+				candidate => candidate.value === operand.operator,
+			);
+			if (token === null) {
+				throw new AssertionError('the operator token separates two operands');
 			}
-			break;
+			return { start: token.range[0], end: token.range[1], text: flipped };
 		}
 		default:
 			break;
@@ -209,10 +204,9 @@ export function negate(sourceCode: SourceCode, truthiness: boolean, operand: EST
 		return { start: position, end: position, text: '!' };
 	}
 
-	if (bindsLooserThanNot(operand.type)) {
-		return { start, end, text: `!(${sourceCode.getText(operand)})` };
-	}
-	return { start, end: start, text: '!' };
+	return bindsLooserThanNot(operand.type)
+		? { start, end, text: `!(${sourceCode.getText(operand)})` }
+		: { start, end: start, text: '!' };
 }
 
 /**

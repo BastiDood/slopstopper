@@ -120,19 +120,16 @@ function receiverOf(services: TypeServices | null, node: ESTree.Node) {
 	const declaration = declarationOf(node);
 	if (target === null || declaration === null) return null;
 	const { name, annotation, statement } = declaration;
-	if (
-		annotation === null ||
+	return annotation === null ||
 		isReadonlyType(annotation) ||
 		target.members.some(member => isAccessor(member) || setsPrototype(member))
-	) {
-		return null;
-	}
-	return {
-		...target,
-		name,
-		statement,
-		declared: declaredTypeOf(services, annotation),
-	} satisfies Receiver;
+		? null
+		: ({
+				...target,
+				name,
+				statement,
+				declared: declaredTypeOf(services, annotation),
+			} satisfies Receiver);
 }
 
 /**

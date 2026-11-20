@@ -111,10 +111,11 @@ function hasLiteralType(services: TypeServices, node: ESTree.Expression) {
  * `never`, or a top type such as `any`.
  */
 function isLiteralType(checker: TypeChecker, type: Type) {
-	if (type.isUnion() || type.isIntersection()) return false;
 	return (
-		typeof type.value !== 'undefined' ||
-		(!isNeverOrTopType(checker, type) &&
-			checker.isTypeAssignableTo(type, checker.getBooleanType()))
+		!type.isUnion() &&
+		!type.isIntersection() &&
+		(typeof type.value !== 'undefined' ||
+			(!isNeverOrTopType(checker, type) &&
+				checker.isTypeAssignableTo(type, checker.getBooleanType())))
 	);
 }

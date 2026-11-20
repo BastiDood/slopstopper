@@ -286,14 +286,13 @@ function placeholderBranchOf(
 		} satisfies PlaceholderBranch;
 	}
 	const no = valueOf(file, alternate);
-	if (isPlaceholder(sourceCode, no.value)) {
-		return {
-			branch: alternate,
-			placeholder: no,
-			value: consequent,
-		} satisfies PlaceholderBranch;
-	}
-	return null;
+	return isPlaceholder(sourceCode, no.value)
+		? ({
+				branch: alternate,
+				placeholder: no,
+				value: consequent,
+			} satisfies PlaceholderBranch)
+		: null;
 }
 
 /**
@@ -411,12 +410,11 @@ function wordingOf(
 	declared: string | null,
 ) {
 	const dropped = declared === null ? '' : ` and drop \`${declared}\``;
-	if (siblings.at(-1) === spread) {
-		return { ...collection, build: `once${dropped}`, rest: '' };
-	}
-	return {
-		...collection,
-		build: `up to the spread${dropped}`,
-		rest: `, then add the ${collection.members} that follow`,
-	};
+	return siblings.at(-1) === spread
+		? { ...collection, build: `once${dropped}`, rest: '' }
+		: {
+				...collection,
+				build: `up to the spread${dropped}`,
+				rest: `, then add the ${collection.members} that follow`,
+			};
 }
