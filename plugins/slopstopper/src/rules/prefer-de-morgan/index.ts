@@ -3,8 +3,7 @@ import { defineRule, type ESTree } from '@oxlint/plugins';
 import { caseComparandsOf } from '#ast/case-comparand.ts';
 import { type CaseComparand, isCaseChain } from '#ast/discriminant.ts';
 import { logicalOperands } from '#ast/logical-operands.ts';
-import { distributeNegation, isSwappableTest, negate } from '#ast/negation.ts';
-import { isInequality } from '#ast/operators.ts';
+import { distributeNegation, isNegated, isSwappableTest, negate } from '#ast/negation.ts';
 
 /**
  * Reports an `&&` or `||` chain whose negated operands (`!x`, `!==`, `!=`) outnumber what De Morgan's law leaves behind:
@@ -77,11 +76,4 @@ function isAffirmable(
 		(chain.operator === '&&' && isCaseChain(isCaseComparand, '!==', operands)) ||
 		isSwappableTest(chain)
 	);
-}
-
-/** Whether an operand counts as a negation: `!x`, `a !== b`, or `a != b`. */
-function isNegated(operand: ESTree.Expression) {
-	return operand.type === 'UnaryExpression'
-		? operand.operator === '!'
-		: operand.type === 'BinaryExpression' && isInequality(operand.operator);
 }

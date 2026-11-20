@@ -3,7 +3,7 @@ import type { ESTree, SourceCode } from '@oxlint/plugins';
 import { AssertionError, assertNotNull } from '#assert.ts';
 import { type CaseComparand, isCaseChain } from '#ast/discriminant.ts';
 import { logicalOperands } from '#ast/logical-operands.ts';
-import { flipEquality } from '#ast/operators.ts';
+import { flipEquality, isInequality } from '#ast/operators.ts';
 
 /** A text edit of the source: the range from `start` to `end` becomes `text`. */
 interface Edit {
@@ -161,6 +161,13 @@ export function distributableGroup(isCaseComparand: CaseComparand, node: ESTree.
 	}
 }
 
+/** Whether an operand counts as a negation: `!x`, `a !== b`, or `a != b`. */
+export function isNegated(operand: ESTree.Expression) {
+	return operand.type === 'UnaryExpression'
+		? operand.operator === '!'
+		: operand.type === 'BinaryExpression' && isInequality(operand.operator);
+}
+
 /**
  * The edit that negates one operand: drop the `!` of `!x` (or double it unless `truthiness` holds), flip an equality
  * operator, or prefix `!`. A prefixed `!` goes before the operand's own parentheses, or adds parentheses when the
@@ -208,11 +215,35 @@ export function negate(sourceCode: SourceCode, truthiness: boolean, operand: EST
 	return { start, end: start, text: '!' };
 }
 
-/** The opening parenthesis of the grouping parentheses that directly enclose a node, or `null` when none do. */
+/**
+ * The opening parenthesis of the grouping parentheses that directly enclose a node, or `null` when none do. The
+ * parentheses of an `if`, `while`, `do`, or `switch` around its test belong to the statement. So such a test counts
+ * as grouped only inside a second pair, as in `if ((x = read()))`.
+ */
 export function openingParenthesis(sourceCode: SourceCode, node: ESTree.Node) {
 	const opening = sourceCode.getTokenBefore(node);
 	const closing = sourceCode.getTokenAfter(node);
-	return opening?.value === '(' && closing?.value === ')' ? opening : null;
+	if (opening?.value !== '(' || closing?.value !== ')') return null;
+	if (!isStatementTest(node)) return opening;
+	const outer = sourceCode.getTokenBefore(opening);
+	const after = sourceCode.getTokenAfter(closing);
+	return outer?.value === '(' && after?.value === ')' ? opening : null;
+}
+
+/** Whether a node is the parenthesized test of an `if`, `while`, `do`, or `switch` statement. */
+function isStatementTest(node: ESTree.Node) {
+	const { parent } = node;
+	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only these statements put their own parentheses around a test, so `default` covers the rest.
+	switch (parent?.type) {
+		case 'IfStatement':
+		case 'WhileStatement':
+		case 'DoWhileStatement':
+			return parent.test === node;
+		case 'SwitchStatement':
+			return parent.discriminant === node;
+		default:
+			return false;
+	}
 }
 
 /** Whether an unparenthesized operand of a logical chain needs parentheses after a prefixed `!`. */
