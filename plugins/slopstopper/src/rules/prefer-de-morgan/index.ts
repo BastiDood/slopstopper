@@ -3,7 +3,7 @@ import { defineRule, type ESTree } from '@oxlint/plugins';
 import { caseComparandsOf } from '#ast/case-comparand.ts';
 import { type CaseComparand, isCaseChain } from '#ast/discriminant.ts';
 import { logicalOperands } from '#ast/logical-operands.ts';
-import { distributeNegation, isSwappableTest } from '#ast/negation.ts';
+import { distributeNegation, isSwappableTest, negate } from '#ast/negation.ts';
 import { isInequality } from '#ast/operators.ts';
 
 /**
@@ -53,7 +53,7 @@ export const PREFER_DE_MORGAN = defineRule({
 						fix: fixer =>
 							fixer.replaceText(
 								node,
-								`!(${distributeNegation(sourceCode, true, node)})`,
+								`!(${distributeNegation(sourceCode, node, operand => negate(sourceCode, true, operand))})`,
 							),
 					});
 				}

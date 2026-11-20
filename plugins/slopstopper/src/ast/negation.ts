@@ -1,8 +1,16 @@
 import type { ESTree, SourceCode } from '@oxlint/plugins';
 
 import { AssertionError } from '#assert.ts';
+import { type CaseComparand, isCaseChain } from '#ast/discriminant.ts';
 import { logicalOperands } from '#ast/logical-operands.ts';
 import { flipEquality } from '#ast/operators.ts';
+
+/** A text edit of the source: the range from `start` to `end` becomes `text`. */
+interface Edit {
+	start: number;
+	end: number;
+	text: string;
+}
 
 /**
  * Whether an expression is the whole test whose branches `no-negated-condition` swaps to remove a leading `!`: the test
@@ -49,16 +57,15 @@ export function readsTruthiness(node: ESTree.Expression) {
 }
 
 /**
- * The text of a logical chain with `&&` and `||` swapped and every operand negated, which De Morgan's law equates with
- * the negated chain. Edits the source in place, so that comments, grouping parentheses, and line breaks survive, and
- * keeps the operand order, so that the result evaluates the same operands and short-circuits at the same point. When
- * `truthiness` holds, only the truthiness of the result is read, so that `!x` may become `x`; otherwise it becomes
- * `!!x`, which keeps every operand a `boolean`.
+ * The text of a logical chain with `&&` and `||` swapped and every operand negated by `negateOperand`, which De Morgan's
+ * law equates with the negated chain. Edits the source in place, so that comments, grouping parentheses, and line
+ * breaks survive, and keeps the operand order, so that the result evaluates the same operands and short-circuits at the
+ * same point. Callers pass the edit of `negate`.
  */
 export function distributeNegation(
 	sourceCode: SourceCode,
-	truthiness: boolean,
 	chain: ESTree.LogicalExpression,
+	negateOperand: (operand: ESTree.Expression) => Edit,
 ) {
 	const { text } = sourceCode;
 	const joiner = chain.operator === '&&' ? '||' : '&&';
@@ -80,13 +87,31 @@ export function distributeNegation(
 			[, cursor] = token.range;
 		}
 
-		const { start, text: replacement, end } = negate(sourceCode, truthiness, operand);
+		const { start, text: replacement, end } = negateOperand(operand);
 		output += text.slice(cursor, start) + replacement;
 		cursor = end;
 		previous = operand;
 	}
 
 	return output + text.slice(cursor, chain.range[1]);
+}
+
+/**
+ * The chain that `no-negated-group` asks to distribute a `!` over, or `null` for any other expression. That is an `&&`
+ * or `||` chain, except an `||` chain that compares one discriminant with `===` against case comparands (see
+ * `isCaseChain`). `no-equality-chain` turns that chain into a `switch`. A distributed `!==` chain would draw
+ * `prefer-de-morgan` instead.
+ */
+export function distributableGroup(isCaseComparand: CaseComparand, node: ESTree.Expression) {
+	if (node.type !== 'LogicalExpression') return null;
+	switch (node.operator) {
+		case '&&':
+			return node;
+		case '||':
+			return isCaseChain(isCaseComparand, '===', logicalOperands(node, '||')) ? null : node;
+		case '??':
+			return null;
+	}
 }
 
 /**

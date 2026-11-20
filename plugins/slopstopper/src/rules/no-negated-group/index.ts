@@ -1,11 +1,11 @@
 import { defineRule, type ESTree } from '@oxlint/plugins';
 
 import { caseComparandsOf } from '#ast/case-comparand.ts';
-import { isCaseChain } from '#ast/discriminant.ts';
-import { logicalOperands } from '#ast/logical-operands.ts';
 import {
+	distributableGroup,
 	distributeNegation,
 	isSwappableTest,
+	negate,
 	openingParenthesis,
 	readsTruthiness,
 } from '#ast/negation.ts';
@@ -38,40 +38,25 @@ export const NO_NEGATED_GROUP = defineRule({
 		return {
 			UnaryExpression(node) {
 				const { operator, argument } = node;
-				if (
-					operator !== '!' ||
-					argument.type !== 'LogicalExpression' ||
-					argument.operator === '??' ||
-					isSwappableTest(node)
-				) {
-					return;
-				}
-
-				if (
-					argument.operator === '||' &&
-					isCaseChain(isCaseComparand, '===', logicalOperands(argument, '||'))
-				) {
-					return;
-				}
+				if (operator !== '!' || isSwappableTest(node)) return;
+				const group = distributableGroup(isCaseComparand, argument);
+				if (group === null) return;
 
 				context.report({
 					node,
 					messageId: 'noNegatedGroup',
 					fix(fixer) {
-						if (
-							dropsComment(sourceCode, { range: node.range, kept: [argument.range] })
-						) {
+						if (dropsComment(sourceCode, { range: node.range, kept: [group.range] })) {
 							return null;
 						}
 
-						const text = distributeNegation(
-							sourceCode,
-							readsTruthiness(node),
-							argument,
+						const truthiness = readsTruthiness(node);
+						const text = distributeNegation(sourceCode, group, operand =>
+							negate(sourceCode, truthiness, operand),
 						);
 						const needsParentheses =
 							openingParenthesis(sourceCode, node) === null &&
-							bindsTighter(node, argument.operator === '&&' ? '||' : '&&');
+							bindsTighter(node, group.operator === '&&' ? '||' : '&&');
 						return fixer.replaceText(node, needsParentheses ? `(${text})` : text);
 					},
 				});
