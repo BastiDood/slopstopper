@@ -26,7 +26,7 @@ OXLINT_RULE_TESTER.run('prefer-de-morgan', PREFER_DE_MORGAN, {
 			output: 'enum E { A, B } const v = !(x === E.A || x === E.B);',
 			errors: on(2, 1),
 		},
-		// The negated equality chain becomes the positive chain that `no-equality-chain` reports.
+		// The negated equality chain becomes the positive chain that `prefer-switch-lookup` reports.
 		{
 			code: 'const v = x !== 1 && x !== 2;',
 			output: 'const v = !(x === 1 || x === 2);',

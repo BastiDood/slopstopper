@@ -1,10 +1,10 @@
 # `slopstopper/prefer-switch`
 
-Reports an `if`/`else if` chain of two or more branches that compare the same value with `===` against two or more distinct case values, which reads better as a `switch` statement. Like `unicorn/prefer-switch`, the rule counts branches, and a branch may group comparisons with `||`. A branch `x === A && <rest>` also names case `A`, and its body checks the rest. Leave out `default` when the chain has no final `else`. Case values are the comparands that [`no-equality-chain`](../no-equality-chain/README.md#case-comparands) accepts, so comparisons against `null`, `undefined`, or other references do not count.
+Reports an `if`/`else if` chain of two or more branches that compare the same value with `===` against two or more distinct case values, which reads better as a `switch` statement. Like `unicorn/prefer-switch`, the rule counts branches, and a branch may group comparisons with `||`. A branch `x === A && <rest>` also names case `A`, and its body checks the rest. Leave out `default` when the chain has no final `else`. Case values are the comparands that [`prefer-switch-lookup`](../prefer-switch-lookup/README.md#case-comparands) accepts, so comparisons against `null`, `undefined`, or other references do not count.
 
 Adjacent `if` statements in one statement list form a chain too, as long as every consequent except the last always exits: a `return`, `throw`, `continue`, or `break`, alone or as the last statement of its block. A trailing guard `if (x !== A) <exit>` or `if (x !== A || <rest>) <exit>` counts as one more case `A`: the code after it is that case's body, and the guard's exit becomes `default`. The complement `if (x !== A)` of a last case `x === A` becomes `default` too. When a branch checks a rest, neither a trailing guard nor a complement becomes `default`, because it would also have to run when the rest fails.
 
-This rule owns every such decision on two or more distinct values; a split on one value belongs to [`merge-exclusive-branches`](../merge-exclusive-branches/README.md), and `||` tests inside the decision are not reported by [`no-equality-chain`](../no-equality-chain/README.md).
+This rule owns every such decision on two or more distinct values; a split on one value belongs to [`merge-exclusive-branches`](../merge-exclusive-branches/README.md), and `||` tests inside the decision are not reported by [`prefer-switch-lookup`](../prefer-switch-lookup/README.md).
 
 ## Examples
 

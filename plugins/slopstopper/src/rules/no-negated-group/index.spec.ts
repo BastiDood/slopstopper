@@ -7,7 +7,7 @@ const errors = [{ messageId: 'noNegatedGroup' }];
 
 OXLINT_RULE_TESTER.run('no-negated-group', NO_NEGATED_GROUP, {
 	valid: [
-		// `prefer-de-morgan` produces a negated `===` run on the way to `no-equality-chain`.
+		// `prefer-de-morgan` produces a negated `===` run on the way to `prefer-switch-lookup`.
 		'const v = !(x === 1 || x === 2);',
 		// `no-negated-condition` swaps the branches of an `if`-`else` instead.
 		'if (!(a && b)) {} else {}',

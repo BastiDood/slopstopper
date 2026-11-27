@@ -9,7 +9,7 @@ import { distributeNegation, isNegated, isSwappableTest, negate } from '#ast/neg
  * Reports an `&&` or `||` chain whose negated operands (`!x`, `!==`, `!=`) outnumber what De Morgan's law leaves behind:
  * one outer `!` plus one negation per positive operand. The rule reports only where another rule removes the outer `!`:
  * the whole test of an `if`-`else` or a ternary, which `no-negated-condition` flips, and a same-discriminant `!==` chain,
- * whose positive `===` chain `no-equality-chain` extracts into a named function. The rewrite keeps the operand order, so
+ * whose positive `===` chain `prefer-switch-lookup` extracts into a named function. The rewrite keeps the operand order, so
  * it evaluates the same operands and short-circuits at the same point.
  */
 export const PREFER_DE_MORGAN = defineRule({
@@ -63,7 +63,7 @@ export const PREFER_DE_MORGAN = defineRule({
 
 /**
  * Whether another rule removes the outer `!` of the rewrite: `no-negated-condition` swaps the branches when the chain is
- * the whole test of a ternary or of an `if` whose `else` is no `else if`, and `no-equality-chain` extracts the positive
+ * the whole test of a ternary or of an `if` whose `else` is no `else if`, and `prefer-switch-lookup` extracts the positive
  * `===` chain of a same-discriminant `!==` chain into a named function. Both positions also keep the result unchanged:
  * a test only reads the truthiness of the chain, and a chain of comparisons already produces a `boolean`.
  */

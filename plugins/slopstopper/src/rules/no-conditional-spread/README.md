@@ -127,7 +127,7 @@ The public type checker API also hides some types from the check:
 
 A key that only some members of a union declare, as in `A | B` where only `A` has `y`, also gets no suggestion. So does a key whose type differs between the members. The declaration narrows the variable to one member. The check reads the whole union.
 
-A negated test can turn a `!==` run into a `===` run. So `k !== 1 && k !== 2 && open ? {} : { v }` gives `if (k === 1 || k === 2 || !open)`, which [`no-equality-chain`](../no-equality-chain/README.md) reports. Every form of that negation draws some report. Extract the run into a named function first.
+A negated test can turn a `!==` run into a `===` run. So `k !== 1 && k !== 2 && open ? {} : { v }` gives `if (k === 1 || k === 2 || !open)`, which [`prefer-switch-lookup`](../prefer-switch-lookup/README.md) reports. Every form of that negation draws some report. Extract the run into a named function first.
 
 The rewrite is a suggestion, not a fix:
 

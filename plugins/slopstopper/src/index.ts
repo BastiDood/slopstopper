@@ -8,7 +8,6 @@ import { NO_ALIAS_OBJECT_TYPE } from './rules/no-alias-object-type/index.ts';
 import { NO_ARRAY_FILTER_MAP } from './rules/no-array-filter-map/index.ts';
 import { NO_CONDITIONAL_SPREAD } from './rules/no-conditional-spread/index.ts';
 import { NO_DEFAULTED_QUERY_KEY } from './rules/no-defaulted-query-key/index.ts';
-import { NO_EQUALITY_CHAIN } from './rules/no-equality-chain/index.ts';
 import { NO_FLAT_MAP_NULLISH_FALLBACK } from './rules/no-flat-map-nullish-fallback/index.ts';
 import { NO_INFERRABLE_RETURN_TYPE } from './rules/no-inferrable-return-type/index.ts';
 import { NO_KNOWN_VALUE_WIDENING } from './rules/no-known-value-widening/index.ts';
@@ -34,6 +33,7 @@ import { PREFER_DE_MORGAN } from './rules/prefer-de-morgan/index.ts';
 import { PREFER_EARLY_RETURN } from './rules/prefer-early-return/index.ts';
 import { PREFER_PREFIX_INCREMENT } from './rules/prefer-prefix-increment/index.ts';
 import { PREFER_QUERY_KEY_CONTEXT } from './rules/prefer-query-key-context/index.ts';
+import { PREFER_SWITCH_LOOKUP } from './rules/prefer-switch-lookup/index.ts';
 import { PREFER_SWITCH } from './rules/prefer-switch/index.ts';
 import { PREFER_TABLE_ATOMS } from './rules/prefer-table-atoms/index.ts';
 import { PREFER_TYPEOF_UNDEFINED } from './rules/prefer-typeof-undefined/index.ts';
@@ -54,7 +54,6 @@ export default definePlugin({
 		'no-array-filter-map': NO_ARRAY_FILTER_MAP,
 		'no-conditional-spread': NO_CONDITIONAL_SPREAD,
 		'no-defaulted-query-key': NO_DEFAULTED_QUERY_KEY,
-		'no-equality-chain': NO_EQUALITY_CHAIN,
 		'no-flat-map-nullish-fallback': NO_FLAT_MAP_NULLISH_FALLBACK,
 		'no-inferrable-return-type': NO_INFERRABLE_RETURN_TYPE,
 		'no-known-value-widening': NO_KNOWN_VALUE_WIDENING,
@@ -81,6 +80,7 @@ export default definePlugin({
 		'prefer-prefix-increment': PREFER_PREFIX_INCREMENT,
 		'prefer-query-key-context': PREFER_QUERY_KEY_CONTEXT,
 		'prefer-switch': PREFER_SWITCH,
+		'prefer-switch-lookup': PREFER_SWITCH_LOOKUP,
 		'prefer-table-atoms': PREFER_TABLE_ATOMS,
 		'prefer-typeof-undefined': PREFER_TYPEOF_UNDEFINED,
 		'prefer-while-true': PREFER_WHILE_TRUE,

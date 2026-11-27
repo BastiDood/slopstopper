@@ -498,7 +498,7 @@ OXLINT_RULE_TESTER.run('no-conditional-spread', NO_CONDITIONAL_SPREAD, {
 				},
 			],
 		},
-		// A case chain keeps its negation as a whole, which `no-equality-chain` turns into a `switch`.
+		// A case chain keeps its negation as a whole, which `prefer-switch-lookup` turns into a `switch`.
 		{
 			code: 'const update: Update = { title, ...(k === 1 || k === 2 ? {} : {s}) };',
 			errors: [

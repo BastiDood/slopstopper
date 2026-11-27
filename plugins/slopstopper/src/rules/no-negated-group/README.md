@@ -2,7 +2,7 @@
 
 Reports a `!` applied to an `&&` or `||` group, as in `!(a && b)` or `!(a || b)`. Distributing the negation over the operands with De Morgan's law reads better. When the condition guards a block, inverting it into an early return often reads best.
 
-The rule leaves to [`prefer-de-morgan`](../prefer-de-morgan/README.md) the `!(...)` that is the whole test of a ternary or of an `if` whose `else` is no `else if`, where `no-negated-condition` swaps the branches instead, and a negated `||` chain of `===` comparisons of one value against literals or constants, as in `!(x === 1 || x === 2)`, which [`no-equality-chain`](../no-equality-chain/README.md) extracts into a named function.
+The rule leaves to [`prefer-de-morgan`](../prefer-de-morgan/README.md) the `!(...)` that is the whole test of a ternary or of an `if` whose `else` is no `else if`, where `no-negated-condition` swaps the branches instead, and a negated `||` chain of `===` comparisons of one value against literals or constants, as in `!(x === 1 || x === 2)`, which [`prefer-switch-lookup`](../prefer-switch-lookup/README.md) extracts into a named function.
 
 ## Examples
 
@@ -30,7 +30,7 @@ if (!(a && b)) {
 } else {
 }
 
-// `no-equality-chain` extracts the chain into a named function.
+// `prefer-switch-lookup` extracts the chain into a named function.
 const w = !(x === 1 || x === 2);
 ```
 

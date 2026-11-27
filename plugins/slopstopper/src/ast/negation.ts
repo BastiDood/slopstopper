@@ -145,7 +145,7 @@ export function distributeNegation(
 /**
  * The chain that `no-negated-group` asks to distribute a `!` over, or `null` for any other expression. That is an `&&`
  * or `||` chain, except an `||` chain that compares one discriminant with `===` against case comparands (see
- * `isCaseChain`). `no-equality-chain` turns that chain into a `switch`. A distributed `!==` chain would draw
+ * `isCaseChain`). `prefer-switch-lookup` turns that chain into a `switch`. A distributed `!==` chain would draw
  * `prefer-de-morgan` instead.
  */
 export function distributableGroup(isCaseComparand: CaseComparand, node: ESTree.Expression) {

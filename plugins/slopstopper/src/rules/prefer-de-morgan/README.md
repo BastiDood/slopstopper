@@ -8,7 +8,7 @@ A bare `!(...)` reads no better than the negated operands, so the rule reports o
 
 - The whole test of an `if` with an `else` that is no `else if`. `no-negated-condition` then swaps the branches of `if (!(...)) {} else {}`.
 - The whole test of a ternary. `no-negated-condition` then swaps the branches of `!(...) ? a : b`.
-- An `&&` chain of `!==` comparisons of one value against literals or constants, anywhere. Constants count as in `no-equality-chain`, including its type-aware tier ([Case Comparands](../no-equality-chain/README.md#case-comparands)). The rewrite `x !== 1 && x !== 2` → `!(x === 1 || x === 2)` holds a positive chain that [`no-equality-chain`](../no-equality-chain/README.md) then extracts into a named function, as in `!isSmall(x)`.
+- An `&&` chain of `!==` comparisons of one value against literals or constants, anywhere. Constants count as in `prefer-switch-lookup`, including its type-aware tier ([Case Comparands](../prefer-switch-lookup/README.md#case-comparands)). The rewrite `x !== 1 && x !== 2` → `!(x === 1 || x === 2)` holds a positive chain that [`prefer-switch-lookup`](../prefer-switch-lookup/README.md) then extracts into a named function, as in `!isSmall(x)`.
 
 Guards without `else`, `if` tests followed by `else if`, loop conditions, values, returns, arguments, and chains nested in other chains are not reported. Parentheses around the whole test do not matter.
 

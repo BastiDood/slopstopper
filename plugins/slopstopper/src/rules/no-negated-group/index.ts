@@ -15,7 +15,7 @@ import { dropsComment } from '#ast/ranges.ts';
  * Reports a `!` applied to an `&&` or `||` group, as in `!(a && b)`, and distributes it with De Morgan's law into
  * `!a || !b`. The rule leaves two forms to `prefer-de-morgan`, which produces them on purpose: the whole test of a
  * ternary or of an `if` whose `else` is no `else if`, where `no-negated-condition` swaps the branches instead, and a
- * negated `===` run of one discriminant, which `no-equality-chain` extracts into a named function.
+ * negated `===` run of one discriminant, which `prefer-switch-lookup` extracts into a named function.
  */
 export const NO_NEGATED_GROUP = defineRule({
 	meta: {

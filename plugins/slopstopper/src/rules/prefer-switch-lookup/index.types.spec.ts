@@ -1,8 +1,8 @@
 import { eslintRule, TYPED_RULE_TESTER } from '#testing/eslint-rule-tester.ts';
 
-import { NO_EQUALITY_CHAIN } from './index.ts';
+import { PREFER_SWITCH_LOOKUP } from './index.ts';
 
-TYPED_RULE_TESTER.run('no-equality-chain', eslintRule(NO_EQUALITY_CHAIN), {
+TYPED_RULE_TESTER.run('prefer-switch-lookup', eslintRule(PREFER_SWITCH_LOOKUP), {
 	valid: [
 		// A union comparand names no single case, ...
 		'declare const x: string; declare const A: "a"; declare const U: "a" | "b"; const v = x === A || x === U;',
@@ -13,7 +13,12 @@ TYPED_RULE_TESTER.run('no-equality-chain', eslintRule(NO_EQUALITY_CHAIN), {
 		// Declared constants have no initializer, but their literal types name cases.
 		{
 			code: 'declare const x: unknown; declare const A: "a"; declare const T: true; const v = x === A || x === T;',
-			errors: [{ messageId: 'equalityChain', data: { discriminant: 'x', count: 2 } }],
+			errors: [{ messageId: 'switchChain', data: { discriminant: 'x', count: 2 } }],
+		},
+		// The same comparands name the keys of a table.
+		{
+			code: 'declare const A: "a"; declare const B: "b"; const T = [A, B]; const f = (x: "a" | "b") => T.includes(x);',
+			errors: [{ messageId: 'switchMembership', data: { table: 'array', count: 2 } }],
 		},
 	],
 });

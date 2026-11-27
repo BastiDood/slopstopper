@@ -59,7 +59,7 @@ export function equalityRuns(isCaseComparand: CaseComparand, operands: ESTree.Ex
 
 /**
  * Whether every operand compares one shared discriminant with `operator` against a case comparand (see `caseSide`): an
- * `===` run that `no-equality-chain` reports, or a `!==` chain that De Morgan's law turns into one.
+ * `===` run that `prefer-switch-lookup` reports, or a `!==` chain that De Morgan's law turns into one.
  */
 export function isCaseChain(
 	isCaseComparand: CaseComparand,
