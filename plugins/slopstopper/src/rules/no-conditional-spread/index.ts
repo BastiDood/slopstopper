@@ -1,11 +1,4 @@
-import {
-	defineRule,
-	type ESTree,
-	type Reference,
-	type Scope,
-	type SourceCode,
-	type Variable,
-} from '@oxlint/plugins';
+import { defineRule, type ESTree, type SourceCode, type Variable } from '@oxlint/plugins';
 
 import { onlyElement } from '#arrays.ts';
 import { firstConstInitializer, resolvedVariable } from '#ast/bindings.ts';
@@ -14,6 +7,7 @@ import { type CaseComparand, unwrap } from '#ast/discriminant.ts';
 import { messageLabel } from '#ast/labels.ts';
 import { isEmptyLiteral, isEmptyObject, isNullLiteral, isUndefined } from '#ast/literals.ts';
 import { isAndOr } from '#ast/logical-operands.ts';
+import { runsOnce } from '#ast/runs.ts';
 import { isSvelteComponent } from '#ast/svelte.ts';
 import { typeServicesOf } from '#type-services.ts';
 
@@ -353,44 +347,6 @@ function followedConst({ sourceCode, followsConsts }: FileContext, bare: ESTree.
  */
 function hasTemplate(filename: string) {
 	return isSvelteComponent(filename) || filename.endsWith('.astro');
-}
-
-/**
- * Whether a read evaluates once each time the scope of its variable runs. A read in a nested function can run any
- * number of times. So can a read in a loop inside that scope, as in
- * `const extra = c ? { v } : {}; for (const item of items) out.push({ ...item, ...extra });`. The one literal then
- * serves every run. Moving its initializer to the read would evaluate it on every run.
- */
-function runsOnce({ identifier, from }: Reference, scope: Scope) {
-	if (from.variableScope !== scope.variableScope) return false;
-	for (
-		let child: ESTree.Node = identifier;
-		child !== scope.block && child.parent !== null;
-		child = child.parent
-	) {
-		if (repeats(child.parent, child)) return false;
-	}
-	return true;
-}
-
-/**
- * Whether `parent` is a loop that runs `child` on every iteration: any child except a `for` init or a `for…in` or
- * `for…of` iterable. Any other parent runs `child` at most once.
- */
-function repeats(parent: ESTree.Node, child: ESTree.Node) {
-	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only loops run a child more than once, so `default` covers the rest.
-	switch (parent.type) {
-		case 'WhileStatement':
-		case 'DoWhileStatement':
-			return true;
-		case 'ForStatement':
-			return parent.init !== child;
-		case 'ForInStatement':
-		case 'ForOfStatement':
-			return parent.right !== child;
-		default:
-			return false;
-	}
 }
 
 /** Whether a variable is declared by an exported declaration, as in `export const x = …;`. */

@@ -5,7 +5,7 @@ import { assertNotNull } from '#assert.ts';
 import { unwrap } from '#ast/discriminant.ts';
 import { returnedCallback } from '#ast/functions.ts';
 import { callbackCall, methodName, methodTarget } from '#ast/known-arrays.ts';
-import { outermostWrapper } from '#ast/members.ts';
+import { outermostUse, outermostWrapper } from '#ast/members.ts';
 import { variableMethodOf } from '#ast/tanstack-mutations.ts';
 
 /**
@@ -89,24 +89,6 @@ function isTypeQueryName({ parent }: ESTree.Node) {
 			return true;
 		default:
 			return false;
-	}
-}
-
-/**
- * The outermost of the TypeScript assertions around an identifier (see `outermostWrapper`), or the identifier itself
- * when none wraps it. An optional chain never wraps a bare identifier.
- */
-function outermostUse(identifier: ESTree.Node) {
-	const { parent } = identifier;
-	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only TypeScript assertions wrap an identifier without changing its value, so `default` covers the rest.
-	switch (parent?.type) {
-		case 'TSNonNullExpression':
-		case 'TSAsExpression':
-		case 'TSSatisfiesExpression':
-		case 'TSTypeAssertion':
-			return outermostWrapper(parent);
-		default:
-			return identifier;
 	}
 }
 

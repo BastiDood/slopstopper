@@ -4,12 +4,30 @@ import type { ESTree } from '@oxlint/plugins';
  * Whether a member is the callee of a call or the tag of a tagged template, so that it reads a method. Expects the
  * outermost wrapper around the member (see `outermostWrapper`).
  */
-export function isCallee(wrapper: ESTree.Expression) {
+export function isCallee(wrapper: ESTree.Node) {
 	const { parent } = wrapper;
 	return (
-		(parent.type === 'CallExpression' && parent.callee === wrapper) ||
-		(parent.type === 'TaggedTemplateExpression' && parent.tag === wrapper)
+		(parent?.type === 'CallExpression' && parent.callee === wrapper) ||
+		(parent?.type === 'TaggedTemplateExpression' && parent.tag === wrapper)
 	);
+}
+
+/**
+ * The outermost of the TypeScript assertions around an identifier (see `outermostWrapper`), or the identifier itself
+ * when none wraps it. An optional chain never wraps a bare identifier.
+ */
+export function outermostUse(identifier: ESTree.Node) {
+	const { parent } = identifier;
+	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only TypeScript assertions wrap an identifier without changing its value, so `default` covers the rest.
+	switch (parent?.type) {
+		case 'TSNonNullExpression':
+		case 'TSAsExpression':
+		case 'TSSatisfiesExpression':
+		case 'TSTypeAssertion':
+			return outermostWrapper(parent);
+		default:
+			return identifier;
+	}
 }
 
 /**
