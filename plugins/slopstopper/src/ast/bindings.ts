@@ -8,6 +8,7 @@ import type {
 } from '@oxlint/plugins';
 
 import { onlyElement } from '#arrays.ts';
+import { unwrap } from '#ast/discriminant.ts';
 
 /**
  * Whether an identifier resolves to a local binding with exactly one definition and no write besides its
@@ -18,6 +19,26 @@ export function isUnwritten(sourceCode: SourceCode, identifier: ESTree.Identifie
 	if (variable === null) return false;
 	const definition = onlyElement(variable.defs);
 	return definition !== null && isLocalBinding(definition.type) && isNeverReassigned(variable);
+}
+
+/** Whether a definition binds a local name. Imports are live bindings that the exporting module can change. */
+function isLocalBinding(type: DefinitionType) {
+	switch (type) {
+		case 'Variable':
+		case 'Parameter':
+		case 'CatchClause':
+		case 'ClassName':
+		case 'FunctionName':
+			return true;
+		case 'ImportBinding':
+		case 'ImplicitGlobalVariable':
+			return false;
+	}
+}
+
+/** Whether no reference writes a variable besides its initialization. */
+export function isNeverReassigned({ references }: Variable) {
+	return references.every(reference => reference.init || !reference.isWrite());
 }
 
 /**
@@ -71,9 +92,23 @@ export function constInitializer({ node }: Definition) {
 	return parent.type === 'VariableDeclaration' && parent.kind === 'const' ? init : null;
 }
 
-/** Whether no reference writes a variable besides its initialization. */
-export function isNeverReassigned({ references }: Variable) {
-	return references.every(reference => reference.init || !reference.isWrite());
+/**
+ * Whether a variable is declared by an exported variable declaration, as in `export const x = …;`. Exported functions
+ * and classes, and names exported by `export { x }`, are not detected.
+ */
+export function isExportedVariable({ defs }: Variable) {
+	return defs.some(({ node }) => node.parent?.parent?.type === 'ExportNamedDeclaration');
+}
+
+/** The references to a variable other than its initialization, in source order. */
+export function readsOf({ references }: Variable) {
+	return references.filter(({ init }) => !init);
+}
+
+/** Whether an expression is the global with the given name, not a local binding that shadows it. */
+export function isGlobal(sourceCode: SourceCode, expression: ESTree.Expression, name: string) {
+	const node = unwrap(expression);
+	return node.type === 'Identifier' && node.name === name && sourceCode.isGlobalReference(node);
 }
 
 /** Whether a name resolves in the scope chain of a scope, or names a global that code in the scope reads. */
@@ -91,19 +126,4 @@ export function findVariable(scope: Scope, name: string) {
 		if (typeof variable !== 'undefined') return variable;
 	}
 	return null;
-}
-
-/** Whether a definition binds a local name. Imports are live bindings that the exporting module can change. */
-function isLocalBinding(type: DefinitionType) {
-	switch (type) {
-		case 'Variable':
-		case 'Parameter':
-		case 'CatchClause':
-		case 'ClassName':
-		case 'FunctionName':
-			return true;
-		case 'ImportBinding':
-		case 'ImplicitGlobalVariable':
-			return false;
-	}
 }

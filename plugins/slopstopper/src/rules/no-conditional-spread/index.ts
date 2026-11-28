@@ -1,7 +1,12 @@
-import { defineRule, type ESTree, type SourceCode, type Variable } from '@oxlint/plugins';
+import { defineRule, type ESTree, type SourceCode } from '@oxlint/plugins';
 
 import { onlyElement } from '#arrays.ts';
-import { firstConstInitializer, resolvedVariable } from '#ast/bindings.ts';
+import {
+	firstConstInitializer,
+	isExportedVariable,
+	readsOf,
+	resolvedVariable,
+} from '#ast/bindings.ts';
 import { caseComparandsOf } from '#ast/case-comparand.ts';
 import { type CaseComparand, unwrap } from '#ast/discriminant.ts';
 import { messageLabel } from '#ast/labels.ts';
@@ -332,8 +337,8 @@ function valueOf(file: FileContext, node: ESTree.Expression) {
 function followedConst({ sourceCode, followsConsts }: FileContext, bare: ESTree.Expression) {
 	if (!followsConsts || bare.type !== 'Identifier') return null;
 	const variable = resolvedVariable(sourceCode, bare);
-	if (variable === null || isExported(variable)) return null;
-	const read = onlyElement(variable.references.filter(({ init }) => !init));
+	if (variable === null || isExportedVariable(variable)) return null;
+	const read = onlyElement(readsOf(variable));
 	if (read === null) return null;
 	const init = firstConstInitializer(variable);
 	return init === null
@@ -347,11 +352,6 @@ function followedConst({ sourceCode, followsConsts }: FileContext, bare: ESTree.
  */
 function hasTemplate(filename: string) {
 	return isSvelteComponent(filename) || filename.endsWith('.astro');
-}
-
-/** Whether a variable is declared by an exported declaration, as in `export const x = …;`. */
-function isExported({ defs }: Variable) {
-	return defs.some(({ node }) => node.parent?.parent?.type === 'ExportNamedDeclaration');
 }
 
 /**

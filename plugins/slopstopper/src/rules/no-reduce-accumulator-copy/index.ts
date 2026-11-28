@@ -1,7 +1,12 @@
 import { defineRule, type ESTree, type SourceCode, type Variable } from '@oxlint/plugins';
 
 import { AssertionError, assertNotNull } from '#assert.ts';
-import { firstConstInitializer, isNeverReassigned, unvisitedVariable } from '#ast/bindings.ts';
+import {
+	firstConstInitializer,
+	isGlobal,
+	isNeverReassigned,
+	unvisitedVariable,
+} from '#ast/bindings.ts';
 import { unwrap } from '#ast/discriminant.ts';
 import { enclosingCallback } from '#ast/functions.ts';
 import {
@@ -209,12 +214,6 @@ function assignsFromAccumulator(
 				aliasesAccumulator(sourceCode, accumulator, [], source),
 		)
 	);
-}
-
-/** Whether an expression is the global with the given name, not a local binding that shadows it. */
-function isGlobal(sourceCode: SourceCode, expression: ESTree.Expression, name: string) {
-	const node = unwrap(expression);
-	return node.type === 'Identifier' && node.name === name && sourceCode.isGlobalReference(node);
 }
 
 /**

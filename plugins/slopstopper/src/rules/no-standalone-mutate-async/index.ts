@@ -2,10 +2,10 @@ import { defineRule, type ESTree, type Reference, type SourceCode } from '@oxlin
 
 import { onlyElement } from '#arrays.ts';
 import { assertNotNull } from '#assert.ts';
-import { unwrap } from '#ast/discriminant.ts';
+import { isGlobal } from '#ast/bindings.ts';
 import { returnedCallback } from '#ast/functions.ts';
 import { callbackCall, methodName, methodTarget } from '#ast/known-arrays.ts';
-import { outermostUse, outermostWrapper } from '#ast/members.ts';
+import { isTypeQueryName, outermostUse, outermostWrapper } from '#ast/members.ts';
 import { variableMethodOf } from '#ast/tanstack-mutations.ts';
 
 /**
@@ -80,18 +80,6 @@ export const NO_STANDALONE_MUTATE_ASYNC = defineRule({
 	},
 });
 
-/** Whether an identifier names a value in a type query, as in `typeof x` or `typeof x.y`. */
-function isTypeQueryName({ parent }: ESTree.Node) {
-	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only type queries and their qualified names hold such an identifier, so `default` covers the rest.
-	switch (parent?.type) {
-		case 'TSTypeQuery':
-		case 'TSQualifiedName':
-			return true;
-		default:
-			return false;
-	}
-}
-
 /** Whether a member is the target of an assignment. Expects the outermost wrapper around the member. */
 function isAssigned(wrapper: ESTree.Expression) {
 	const { parent } = wrapper;
@@ -153,14 +141,11 @@ function isCombinatorArgument(sourceCode: SourceCode, argument: ESTree.Expressio
 	const wrapper = outermostWrapper(argument);
 	const { parent } = wrapper;
 	if (parent.type !== 'CallExpression' || onlyElement(parent.arguments) !== wrapper) return false;
-	const name = methodName(parent.callee);
-	if (name === null || !isCombinator(name)) return false;
-	const { object: receiver } = assertNotNull(methodTarget(parent.callee));
-	const object = unwrap(receiver);
+	const target = methodTarget(parent.callee);
 	return (
-		object.type === 'Identifier' &&
-		object.name === 'Promise' &&
-		sourceCode.isGlobalReference(object)
+		target !== null &&
+		isCombinator(target.name) &&
+		isGlobal(sourceCode, target.object, 'Promise')
 	);
 }
 

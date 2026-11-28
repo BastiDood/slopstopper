@@ -30,6 +30,13 @@ export function outermostUse(identifier: ESTree.Node) {
 	}
 }
 
+/** Whether a name starts a type query, as `x` in `typeof x` or `typeof x.y`. */
+export function isTypeQueryName(name: ESTree.Node) {
+	let node = name;
+	while (node.parent?.type === 'TSQualifiedName' && node.parent.left === node) node = node.parent;
+	return node.parent?.type === 'TSTypeQuery';
+}
+
 /**
  * The outermost of the wrappers around an expression that do not change the `this` that a call through them sees, or
  * the expression itself when nothing wraps it.
