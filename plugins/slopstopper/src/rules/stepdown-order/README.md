@@ -97,6 +97,6 @@ The rule reports without fixing when:
 ## Limitations
 
 - Only function declarations and class methods are helpers. Functions assigned to variables (`const helper = () => {}`), getters, and setters are users only.
-- Only value references count. Type positions such as `typeof helper` or `ReturnType<typeof helper>` do not.
+- Only value references count. Type positions such as `typeof helper`, `typeof helper.length`, or `ReturnType<typeof helper>` do not.
 - In a class, only non-computed `this.name` and `ClassName.name` accesses count. `this['name']` and `this` inside a nested non-arrow function or nested class do not.
 - Each scope is fixed independently. Nested scopes can need more than one fix pass to settle.

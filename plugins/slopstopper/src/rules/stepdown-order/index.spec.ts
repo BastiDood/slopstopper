@@ -14,6 +14,10 @@ OXLINT_RULE_TESTER.run('stepdown-order', STEPDOWN_ORDER, {
 			code: 'function helper() { return 1; }\nfunction caller(value: ReturnType<typeof helper>) { return value; }',
 		},
 		{
+			name: 'type query of a member does not count as a use',
+			code: 'function helper() { return 1; }\nfunction caller(value: typeof helper.length) { return value; }',
+		},
+		{
 			name: 'type reference with the same name does not count as a use',
 			code: 'function helper() {}\ninterface helper { value: number }\nfunction caller(value: helper) { return value; }',
 		},

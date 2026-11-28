@@ -10,6 +10,7 @@ import {
 import { onlyElement } from '#arrays.ts';
 import { AssertionError, assertDefined } from '#assert.ts';
 import { isFunction } from '#ast/functions.ts';
+import { isTypeQueryName } from '#ast/members.ts';
 import { identifierName } from '#ast/property-keys.ts';
 import { isWithin } from '#ast/ranges.ts';
 
@@ -317,14 +318,14 @@ function valueUses(sourceCode: SourceCode, id: ESTree.BindingIdentifier) {
 /**
  * Whether a reference reads the runtime value rather than naming a type. The TS-ESLint scope manager behind Oxlint
  * exposes an `isValueReference` getter that Oxlint's types omit, and plain `eslint-scope` lacks it entirely, so only an
- * explicit `false` marks a type reference. A `typeof` query still counts as a value reference there, so it is excluded
- * by its parent node.
+ * explicit `false` marks a type reference. A `typeof` query, as in `typeof helper` or `typeof helper.length`, still
+ * counts as a value reference there, so it is excluded by its position (see `isTypeQueryName`).
  */
 function isValueUse(reference: Reference) {
 	return (
 		reference.isRead() &&
 		(!('isValueReference' in reference) || reference.isValueReference !== false) &&
-		reference.identifier.parent.type !== 'TSTypeQuery'
+		!isTypeQueryName(reference.identifier)
 	);
 }
 
