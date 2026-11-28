@@ -20,5 +20,11 @@ TYPED_RULE_TESTER.run('prefer-switch-lookup', eslintRule(PREFER_SWITCH_LOOKUP), 
 			code: 'declare const A: "a"; declare const B: "b"; const T = [A, B]; const f = (x: "a" | "b") => T.includes(x);',
 			errors: [{ messageId: 'switchMembership', data: { table: 'array', count: 2 } }],
 		},
+		// The parser of ESLint leaves an unannotated binding without `typeAnnotation`, and the `Set` rewrite still applies.
+		{
+			code: 'declare const a: string, b: string; const A = [a, b]; export const g = (x: string) => A.includes(x);',
+			output: 'declare const a: string, b: string; const A = new Set([a, b]); export const g = (x: string) => A.has(x);',
+			errors: [{ messageId: 'preferSet', data: { name: 'A' } }],
+		},
 	],
 });

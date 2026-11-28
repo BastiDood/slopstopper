@@ -1,6 +1,6 @@
 # `slopstopper/no-array-filter-map`
 
-Reports `xs.filter(f).map(g)` and `xs.map(f).filter(g)` on an array, which builds an intermediate array and walks the elements twice. The receiver counts as an array when it is an array literal, a `map`, `filter`, `flatMap`, `slice`, `concat`, `toSorted`, `toReversed`, or `toSpliced` call on a known array, a never-reassigned binding annotated as an array or tuple type, `Array<T>`, or `ReadonlyArray<T>`, or a `const` initialized with a known array. With type information, the receiver also counts when the type checker resolves the inner method to the standard one of `Array` or `ReadonlyArray`. Iterator helper pipelines are lazy already and stay unreported.
+Reports `xs.filter(f).map(g)` and `xs.map(f).filter(g)` on an array, which builds an intermediate array and walks the elements twice. The receiver counts as an array when it is an array literal, a `map`, `filter`, `flatMap`, `flat`, `slice`, `concat`, `toSorted`, `toReversed`, `toSpliced`, or `with` call on a known array, a never-reassigned binding annotated as an array or tuple type, `Array<T>`, or `ReadonlyArray<T>`, or a `const` initialized with a known array. With type information, the receiver also counts when the type checker resolves the inner method to the standard one of `Array` or `ReadonlyArray`. Iterator helper pipelines are lazy already and stay unreported.
 
 Do the work in one pass instead: a single loop or a single `.flatMap`, or lazy iterator helpers (`.values()`) where the runtime supports them.
 

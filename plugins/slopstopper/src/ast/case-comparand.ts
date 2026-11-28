@@ -84,7 +84,7 @@ function hasLiteralProperty({ properties }: ESTree.ObjectExpression, name: strin
  * Whether an expression is a literal that a `switch` case can name: a string, number, boolean, or bigint literal, a
  * template literal without expressions, or a negated number. `null` and regular expressions are excluded.
  */
-function isCaseLiteral(node: ESTree.Expression) {
+export function isCaseLiteral(node: ESTree.Expression) {
 	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only a few of the many expression types are literals, so `default` covers the rest.
 	switch (node.type) {
 		case 'Literal':

@@ -93,6 +93,28 @@ export function constInitializer({ node }: Definition) {
 }
 
 /**
+ * The name, variable, and reads in this file of a `const` declarator that binds one identifier, and whether it is
+ * exported (see `isExportedVariable`), which lets other modules read it too. Returns `null` when the declarator binds a
+ * pattern, belongs to a `let` or `var`, or has no read in this file.
+ */
+export function constReads(sourceCode: SourceCode, declarator: ESTree.VariableDeclarator) {
+	const { id, parent } = declarator;
+	if (
+		id.type !== 'Identifier' ||
+		parent.type !== 'VariableDeclaration' ||
+		parent.kind !== 'const'
+	) {
+		return null;
+	}
+	const variable = onlyElement(sourceCode.getDeclaredVariables(declarator));
+	if (variable === null) return null;
+	const reads = readsOf(variable);
+	return reads.length === 0
+		? null
+		: { id, variable, reads, exported: isExportedVariable(variable) };
+}
+
+/**
  * Whether a variable is declared by an exported variable declaration, as in `export const x = …;`. Exported functions
  * and classes, and names exported by `export { x }`, are not detected.
  */
@@ -103,6 +125,37 @@ export function isExportedVariable({ defs }: Variable) {
 /** The references to a variable other than its initialization, in source order. */
 export function readsOf({ references }: Variable) {
 	return references.filter(({ init }) => !init);
+}
+
+/**
+ * Whether code at a node declares or imports a value with the given name, which then shadows a global of that name. A
+ * type-only declaration or import names no value, so it shadows nothing.
+ */
+export function declaresValue(scope: Scope, name: string) {
+	return findVariable(scope, name)?.defs.some(isValueDefinition) === true;
+}
+
+/** Whether a definition binds a value, unlike an interface, a type alias, a type parameter, or a type-only import. */
+function isValueDefinition({ node }: Definition) {
+	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only type declarations and imports can be type-only, so `default` covers the rest.
+	switch (node.type) {
+		case 'TSInterfaceDeclaration':
+		case 'TSTypeAliasDeclaration':
+		case 'TSTypeParameter':
+			return false;
+		case 'ImportSpecifier':
+			return node.importKind !== 'type' && !isTypeOnlyImport(node.parent);
+		case 'ImportDefaultSpecifier':
+		case 'ImportNamespaceSpecifier':
+			return !isTypeOnlyImport(node.parent);
+		default:
+			return true;
+	}
+}
+
+/** Whether a node is an `import type` declaration. */
+function isTypeOnlyImport(declaration: ESTree.Node) {
+	return declaration.type === 'ImportDeclaration' && declaration.importKind === 'type';
 }
 
 /** Whether an expression is the global with the given name, not a local binding that shadows it. */

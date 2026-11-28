@@ -4,36 +4,74 @@ import {
 	type ESTree,
 	type Fixer,
 	type Options,
-	type Scope,
+	type Reference,
+	type SourceCode,
 	type Variable,
 } from '@oxlint/plugins';
 
 import { onlyElement } from '#arrays.ts';
+import { constReads, declaresValue } from '#ast/bindings.ts';
 import { caseComparandsOf } from '#ast/case-comparand.ts';
 import { decisionVisitor } from '#ast/decisions.ts';
-import { type CaseComparand, equalityRuns, unwrap } from '#ast/discriminant.ts';
-import { isKnownArrayExpression, methodTarget } from '#ast/known-arrays.ts';
+import { type CaseComparand, equalityRuns } from '#ast/discriminant.ts';
+import { type ArrayEvidence, arrayEvidence, mayBuildArray } from '#ast/known-arrays.ts';
 import { logicalOperands } from '#ast/logical-operands.ts';
 import { runsOnce } from '#ast/runs.ts';
 
-import { type CaseTable, caseTableOf, isDeclared, type TableKind, tableKindOf } from './tables.ts';
-import { type TableUse, tableUse } from './uses.ts';
+import {
+	caseValuesOf,
+	holdsHandlers,
+	type TableKind,
+	tableKindOf,
+	type TableShape,
+	tableShapeOf,
+} from './tables.ts';
+import { type TableUse, tableUse, usesOf, writesTable } from './uses.ts';
 
 /** What a case table does: test `membership`, look up `values`, or `dispatch` to the function it finds. */
 type Operation = 'membership' | 'values' | 'dispatch';
+
+type Limits = Record<Operation, number>;
 
 /**
  * The largest number of entries that each operation turns into a `switch`. Above it, an array or an `||` chain that
  * tests membership becomes a `Set`, and other tables are left alone. The README explains how the benchmark set these.
  */
-const DEFAULT_LIMITS = { membership: 16, values: 16, dispatch: 24 };
-
-type Limits = Record<Operation, number>;
+const DEFAULT_LIMITS = { membership: 16, values: 16, dispatch: 24 } satisfies Limits;
 
 /** What every check in a file reads: the limits, and the case comparand predicate (see `caseComparandsOf`). */
 interface Settings {
 	limits: Limits;
 	isCaseComparand: CaseComparand;
+}
+
+/** A `const` that binds a name to an initializer and is read in this file only (see `constReads`). */
+interface Binding {
+	id: ESTree.BindingIdentifier;
+	init: ESTree.Expression;
+	variable: Variable;
+	reads: Reference[];
+}
+
+/** A case table at or under its limit, which a `switch` replaces (see `lookupOf`). */
+interface SwitchLookup {
+	action: 'switch';
+	shape: TableShape;
+	operation: Operation;
+}
+
+/** A membership array above its limit, which a `Set` replaces (see `lookupOf`). */
+interface SetLookup {
+	action: 'set';
+	shape: TableShape;
+}
+
+type Lookup = SwitchLookup | SetLookup;
+
+/** A read of a table, and how it uses the table (see `tableUse`). */
+interface TableRead {
+	identifier: Reference['identifier'];
+	use: TableUse;
 }
 
 /**
@@ -42,7 +80,8 @@ interface Settings {
  * tests membership, looks up a value, or calls the function it finds. Each operation has a limit on the entries. Above
  * the `membership` limit, an array or a chain becomes a `Set` instead. An array that is not such a table, but that is
  * only searched with `.includes` more than once or inside a function or loop, becomes a `Set` too. The test of an `if`
- * in a decision that `prefer-switch` owns (see `decisionVisitor`) is left to that rule.
+ * in a decision that `prefer-switch` owns (see `decisionVisitor`) is left to that rule. An exported table stays for
+ * other modules, so each lookup of it in this file is reported instead (see `checkExportedTable`).
  */
 export const PREFER_SWITCH_LOOKUP = defineRule({
 	meta: {
@@ -58,16 +97,15 @@ export const PREFER_SWITCH_LOOKUP = defineRule({
 				'Replace this chain of {{count}} `===` comparisons with a `switch` on `{{discriminant}}` whose fall-through cases return `true`, extracted into a function.',
 			setChain:
 				'Replace this chain of {{count}} `===` comparisons on `{{discriminant}}` with one `.has` call on a module-level `Set`, since it exceeds the `membership` limit of {{limit}}.',
-			switchMembership:
-				'Replace this {{table}} of {{count}} entries with a `switch` whose fall-through cases return `true`, extracted into a function.',
-			switchValues:
-				'Replace this {{table}} of {{count}} entries with a `switch` that returns each value, extracted into a function.',
-			switchDispatch:
-				'Replace this {{table}} of {{count}} handlers with a `switch` whose cases call each handler, extracted into a function.',
+			switchMembership: `Replace this {{table}} of {{count}} entries with a \`switch\` ${switchCases('membership')}, extracted into a function.`,
+			switchValues: `Replace this {{table}} of {{count}} entries with a \`switch\` ${switchCases('values')}, extracted into a function.`,
+			switchDispatch: `Replace this {{table}} of {{count}} handlers with a \`switch\` ${switchCases('dispatch')}, extracted into a function.`,
+			switchExportedLookup:
+				'Replace this lookup in the exported table `{{name}}` of {{count}} entries with a `switch` {{how}}, extracted into a function. Other modules can keep reading the table.',
 			preferSet:
 				'`{{name}}` is only searched for membership. Make it a `Set` and call `.has`.',
 			suggestSet:
-				'Make `{{name}}` a `Set` and call `.has`. Suppress the diagnostic instead if `{{name}}` can be a string, whose `.includes` searches for a substring.',
+				'Make `{{name}}` a `Set` and call `.has`. Suppress the diagnostic instead if `{{name}}` can be a string, whose `.includes` searches for a substring, or an array that code changes through another name.',
 			hoistSet:
 				'Hoist this array of {{count}} values into a module-level `Set` and call `.has`, since it exceeds the `membership` limit of {{limit}}.',
 		},
@@ -108,15 +146,16 @@ export const PREFER_SWITCH_LOOKUP = defineRule({
 
 /** The configured limits merged over the defaults. Options are untrusted input, so non-number values are ignored. */
 function parseLimits(options: Readonly<Options>) {
-	const limits = { ...DEFAULT_LIMITS };
 	const [option] = options;
-	if (typeof option === 'object' && option !== null && !Array.isArray(option)) {
-		for (const operation of ['membership', 'values', 'dispatch'] as const) {
-			const value = option[operation];
-			if (typeof value === 'number') limits[operation] = value;
-		}
+	if (typeof option !== 'object' || option === null || Array.isArray(option)) {
+		return DEFAULT_LIMITS;
 	}
-	return limits;
+	const { membership, values, dispatch } = option;
+	return {
+		membership: typeof membership === 'number' ? membership : DEFAULT_LIMITS.membership,
+		values: typeof values === 'number' ? values : DEFAULT_LIMITS.values,
+		dispatch: typeof dispatch === 'number' ? dispatch : DEFAULT_LIMITS.dispatch,
+	} satisfies Limits;
 }
 
 /** Reports each run of `===` comparisons against one discriminant in the outermost `||` chain of a test. */
@@ -155,33 +194,103 @@ function checkChain(
 }
 
 /**
- * Reports a `const` that holds a case table whose every read is a lookup (see `tableUse`), or an array that is only
- * searched with `.includes` (see `checkSearchedArray`). An exported binding has reads in other modules, so it is skipped.
+ * Reports a `const` that holds a case table whose every read is a lookup (see `lookupOf`), or an array that is only
+ * searched with `.includes` (see `checkSearchedArray`). An exported table is left to `checkExportedTable`. The checks
+ * run from cheap to costly: the initializer's syntax (see `tableShapeOf` and `mayBuildArray`), the binding, each read,
+ * and only then the entries.
  */
 function checkBinding(context: Context, settings: Settings, declarator: ESTree.VariableDeclarator) {
-	const { id, init, parent } = declarator;
-	if (id.type !== 'Identifier' || init === null) return;
-	if (parent.type !== 'VariableDeclaration' || parent.kind !== 'const') return;
-	if (parent.parent.type === 'ExportNamedDeclaration') return;
-
+	const { init } = declarator;
+	if (init === null) return;
 	const { sourceCode } = context;
-	const variable = onlyElement(sourceCode.getDeclaredVariables(declarator));
-	if (variable === null) return;
-	const reads = variable.references.filter(({ init: initializes }) => !initializes);
-	if (reads.length === 0) return;
+	const shape = tableShapeOf(sourceCode, init);
+	if (shape === null && !mayBuildArray(init)) return;
+	const bound = constReads(sourceCode, declarator);
+	if (bound === null) return;
+	if (bound.exported) {
+		if (shape !== null) checkExportedTable(context, settings, shape, bound.reads);
+		return;
+	}
+	const uses = usesOf(sourceCode, shape?.kind ?? 'array', bound.reads);
+	if (uses === null) return;
+	const binding = { ...bound, init } satisfies Binding;
+	const lookup = shape === null ? null : lookupOf(sourceCode, settings, shape, uses);
+	if (lookup === null) {
+		checkSearchedArray(context, binding, uses);
+		return;
+	}
+	reportBoundLookup(context, binding, lookup, uses);
+}
 
-	const kind = tableKindOf(sourceCode.getScope(declarator), unwrap(init));
-	const table =
-		kind === null ? null : caseTableOf(sourceCode, settings.isCaseComparand, kind, init);
-	if (table !== null) {
-		const uses = reads.map(({ identifier }) => tableUse(sourceCode, table.kind, identifier));
-		const operation = operationOf(table, uses);
-		if (operation !== null) {
-			reportTable(context, settings, { table, operation, uses, declarator, name: id.name });
-			return;
+/**
+ * Reports each lookup in this file of an exported case table that a `switch` replaces (see `lookupOf`). Other modules
+ * can read the table in any way, so the table stays, reads that are no lookup are skipped, and no table becomes a
+ * `Set`. A read that changes the table (see `writesTable`) shows that it is no constant, so nothing is reported. Only
+ * the reads that the `switch` replaces are reported, so neither a guard around a dispatch call nor a membership test of
+ * a value table is.
+ */
+function checkExportedTable(
+	context: Context,
+	settings: Settings,
+	shape: TableShape,
+	reads: readonly Reference[],
+) {
+	const { sourceCode } = context;
+	const tableReads: TableRead[] = [];
+	for (const { identifier } of reads) {
+		const use = tableUse(sourceCode, shape.kind, identifier);
+		if (use === null) {
+			if (writesTable(shape.kind, identifier)) return;
+		} else {
+			tableReads.push({ identifier, use });
 		}
 	}
-	checkSearchedArray(context, declarator, variable);
+	const lookup = lookupOf(
+		sourceCode,
+		settings,
+		shape,
+		tableReads.map(({ use }) => use),
+	);
+	if (lookup?.action !== 'switch') return;
+	const { operation } = lookup;
+	for (const { identifier, use } of tableReads) {
+		if (replacesUse(operation, use)) {
+			context.report({
+				node: identifier,
+				messageId: 'switchExportedLookup',
+				data: { name: identifier.name, count: shape.entries, how: switchCases(operation) },
+			});
+		}
+	}
+}
+
+/** Whether the `switch` that replaces a table of the given operation replaces a read of it. */
+function replacesUse(operation: Operation, { kind }: TableUse) {
+	switch (kind) {
+		case 'membership':
+		case 'includes':
+			return operation === 'membership';
+		case 'value':
+		case 'guard':
+			return operation === 'values';
+		case 'call':
+			return operation === 'dispatch';
+		case 'size':
+		case 'type':
+			return false;
+	}
+}
+
+/** How a report describes the cases of the `switch` that replaces a table of the given operation. */
+function switchCases(operation: Operation) {
+	switch (operation) {
+		case 'membership':
+			return 'whose fall-through cases return `true`';
+		case 'values':
+			return 'that returns each value';
+		case 'dispatch':
+			return 'whose cases call each handler';
+	}
 }
 
 /** Reports a table literal written where it is used, as in `['a', 'b'].includes(k)`. A bound table is left to `checkBinding`. */
@@ -190,51 +299,78 @@ function checkInline(
 	settings: Settings,
 	node: ESTree.ArrayExpression | ESTree.ObjectExpression | ESTree.NewExpression,
 ) {
-	const { sourceCode } = context;
-	const kind = tableKindOf(sourceCode.getScope(node), node);
+	const kind = tableKindOf(node);
 	if (kind === null) return;
+	const { sourceCode } = context;
 	const use = tableUse(sourceCode, kind, node);
 	if (use === null) return;
-	const table = caseTableOf(sourceCode, settings.isCaseComparand, kind, node);
-	if (table === null) return;
-	const operation = operationOf(table, [use]);
-	if (operation === null) return;
-
-	const { limits } = settings;
-	if (table.entries <= limits[operation]) {
-		context.report({
-			node,
-			messageId: switchMessage(operation),
-			data: { table: tableName(table.kind), count: table.entries },
-		});
-	} else if (operation === 'membership' && table.kind === 'array') {
-		context.report({
-			node,
-			messageId: 'hoistSet',
-			data: { count: table.entries, limit: limits.membership },
-		});
+	const shape = tableShapeOf(sourceCode, node);
+	if (shape === null) return;
+	const lookup = lookupOf(sourceCode, settings, shape, [use]);
+	if (lookup === null) return;
+	switch (lookup.action) {
+		case 'switch':
+			reportSwitch(context, node, lookup);
+			return;
+		case 'set':
+			context.report({
+				node,
+				messageId: 'hoistSet',
+				data: { count: lookup.shape.entries, limit: settings.limits.membership },
+			});
 	}
 }
 
 /**
- * What a table does, judged by every read of it, or `null` when a read fits no operation or only reads the size or the
- * type. A table that holds only functions and whose found value is called dispatches, and its membership tests guard
- * the call. Otherwise a value read makes it a value table, and only membership tests make it a membership table.
+ * What replaces a table, judged by every read of it, or `null` when nothing does. A table at or under its limit
+ * becomes a `switch` when its entries fit cases, and a dispatch table must also hold handlers. Above its limit, only an
+ * array that tests membership remains, and it becomes a `Set`. The limit is checked before the entries.
  */
-function operationOf({ holdsFunctions }: CaseTable, uses: readonly (TableUse | null)[]) {
+function lookupOf(
+	sourceCode: SourceCode,
+	{ limits, isCaseComparand }: Settings,
+	shape: TableShape,
+	uses: readonly TableUse[],
+) {
+	const operation = operationOf(uses);
+	if (operation === null) return null;
+	if (shape.entries <= limits[operation]) {
+		const values = caseValuesOf(isCaseComparand, shape);
+		if (values === null) return null;
+		return operation === 'dispatch' && !holdsHandlers(sourceCode, values)
+			? null
+			: ({ action: 'switch', shape, operation } satisfies SwitchLookup);
+	}
+	if (shape.kind !== 'array' || operation !== 'membership') return null;
+	return caseValuesOf(isCaseComparand, shape) === null
+		? null
+		: ({ action: 'set', shape } satisfies SetLookup);
+}
+
+/**
+ * What a table does, judged by every read of it, or `null` when the reads only read the size or the type. A table
+ * whose found value is called dispatches, and its membership tests and guards protect the call; a value read beside a
+ * call rules it out. Otherwise a value read or a guard makes it a value table, and only membership tests make it a
+ * membership table.
+ */
+function operationOf(uses: readonly TableUse[]) {
 	let calls = false;
 	let values = false;
+	let guards = false;
 	let membership = false;
-	for (const use of uses) {
-		if (use === null) return null;
-		switch (use.kind) {
+	for (const { kind } of uses) {
+		switch (kind) {
 			case 'call':
 				calls = true;
 				break;
 			case 'value':
 				values = true;
 				break;
+			case 'guard':
+				guards = true;
+				break;
 			case 'membership':
+			case 'includes':
 				membership = true;
 				break;
 			case 'size':
@@ -242,37 +378,33 @@ function operationOf({ holdsFunctions }: CaseTable, uses: readonly (TableUse | n
 				break;
 		}
 	}
-	if (calls) return holdsFunctions && !values ? 'dispatch' : null;
-	if (values) return 'values';
+	if (calls) return values ? null : 'dispatch';
+	if (values || guards) return 'values';
 	return membership ? 'membership' : null;
 }
 
-/** The facts that a report of a bound table reads. */
-interface BoundTable {
-	table: CaseTable;
-	operation: Operation;
-	uses: readonly (TableUse | null)[];
-	declarator: ESTree.VariableDeclarator;
-	name: string;
+/** Reports a bound case table as a `switch`, or a bound membership array above its limit as a `Set`. */
+function reportBoundLookup(
+	context: Context,
+	binding: Binding,
+	lookup: Lookup,
+	uses: readonly TableUse[],
+) {
+	switch (lookup.action) {
+		case 'switch':
+			reportSwitch(context, binding.id, lookup);
+			return;
+		case 'set':
+			reportSet(context, binding, includesMembers(uses), 'fresh');
+	}
 }
 
-/** Reports a bound table at or under its limit as a `switch`, or a membership array above it as a `Set`. */
-function reportTable(
-	context: Context,
-	{ limits }: Settings,
-	{ table, operation, uses, declarator, name }: BoundTable,
-) {
-	if (table.entries <= limits[operation]) {
-		context.report({
-			node: declarator.id,
-			messageId: switchMessage(operation),
-			data: { table: tableName(table.kind), count: table.entries },
-		});
-		return;
-	}
-	if (operation !== 'membership' || table.kind !== 'array') return;
-	const includes = uses.map(use => (use?.kind === 'membership' ? use.includes : null));
-	reportSet(context, { declarator, name, includes, proven: true });
+function reportSwitch(context: Context, node: ESTree.Node, { shape, operation }: SwitchLookup) {
+	context.report({
+		node,
+		messageId: switchMessage(operation),
+		data: { table: tableName(shape.kind), count: shape.entries },
+	});
 }
 
 /** How a report names the container of a table. */
@@ -302,145 +434,85 @@ function switchMessage(operation: Operation) {
 
 /**
  * Reports an array that is not a case table but is only searched with `A.includes(x)`, when the search runs more than
- * once: there are several reads, or the one read can run repeatedly (see `runsOnce`).
+ * once: there are several reads, or the one read can run repeatedly (see `runsOnce`). The initializer must build an
+ * array (see `arrayEvidence`). The reads are checked first, because that check is cheaper.
  */
-function checkSearchedArray(
-	context: Context,
-	declarator: ESTree.VariableDeclarator,
-	{ references, scope }: Variable,
-) {
-	const { id, init } = declarator;
-	if (id.type !== 'Identifier' || init === null) return;
-	const { sourceCode } = context;
-	const proven = isKnownArrayExpression(sourceCode, init);
-	if (!proven && !buildsArray(sourceCode.getScope(declarator), unwrap(init))) return;
-	const reads = references.filter(({ init: initializes }) => !initializes);
-	const includes = reads.map(({ identifier }) => {
-		const use = tableUse(sourceCode, 'array', identifier);
-		return use?.kind === 'membership' ? use.includes : null;
-	});
-	if (includes.some(property => property === null)) return;
-	const only = onlyElement(reads);
-	if (only !== null && runsOnce(only, scope)) return;
-	reportSet(context, { declarator, name: id.name, includes, proven });
+function checkSearchedArray(context: Context, binding: Binding, uses: readonly TableUse[]) {
+	const members = includesMembers(uses);
+	if (members === null) return;
+	const only = onlyElement(binding.reads);
+	if (only !== null && runsOnce(only, binding.variable.scope)) return;
+	const evidence = arrayEvidence(context.sourceCode, binding.init);
+	if (evidence !== null) reportSet(context, binding, members, evidence);
 }
 
-/**
- * Whether an expression builds an array by its shape alone: `new Array(…)`, `Array(…)`, `Array.from(…)`,
- * `Array.of(…)`, or a call of a method that returns an array on arrays, whatever its receiver. A string's `concat` or
- * `slice` has the same name, so the receiver can still be no array.
- */
-function buildsArray(scope: Scope, node: ESTree.Expression) {
-	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only `new` and calls build an array, so `default` covers the rest.
-	switch (node.type) {
-		case 'NewExpression':
-		case 'CallExpression': {
-			const callee = unwrap(node.callee);
-			if (callee.type === 'Identifier') {
-				return callee.name === 'Array' && !isDeclared(scope, 'Array');
-			}
-			if (node.type === 'NewExpression') return false;
-			const target = methodTarget(callee);
-			if (target === null) return false;
-			const { object, name } = target;
-			return object.type === 'Identifier' && object.name === 'Array'
-				? isArrayFactory(name)
-				: returnsArray(name);
-		}
-		default:
-			return false;
+/** The member of every `A.includes(k)` read, or `null` when some read tests membership another way or does not. */
+function includesMembers(uses: readonly TableUse[]) {
+	const members: ESTree.MemberExpression[] = [];
+	for (const use of uses) {
+		if (use.kind !== 'includes') return null;
+		members.push(use.member);
 	}
-}
-
-function isArrayFactory(name: string) {
-	switch (name) {
-		case 'from':
-		case 'of':
-			return true;
-		default:
-			return false;
-	}
-}
-
-function returnsArray(name: string) {
-	switch (name) {
-		case 'concat':
-		case 'copyWithin':
-		case 'fill':
-		case 'filter':
-		case 'flat':
-		case 'flatMap':
-		case 'map':
-		case 'reverse':
-		case 'slice':
-		case 'sort':
-		case 'splice':
-		case 'toReversed':
-		case 'toSorted':
-		case 'toSpliced':
-		case 'with':
-			return true;
-		default:
-			return false;
-	}
-}
-
-/**
- * An array that should be a `Set`: its declarator and name, the `.includes` property of each read (`null` for a read
- * that tests membership another way), and whether the initializer is `proven` to be an array (see
- * `isKnownArrayExpression`).
- */
-interface SetCandidate {
-	declarator: ESTree.VariableDeclarator;
-	name: string;
-	includes: readonly (
-		| ESTree.Expression
-		| ESTree.IdentifierName
-		| ESTree.PrivateIdentifier
-		| null
-	)[];
-	proven: boolean;
+	return members;
 }
 
 /**
  * Reports an array that should be a `Set`. The rewrite wraps the initializer in `new Set(…)` and renames every
  * `.includes` to `.has`, which compares the same way (SameValueZero). It exists only when every read is an `.includes`
- * call and the binding has no type annotation, which would no longer fit. It is an autofix for a proven array, and a
- * suggestion when only the method name says that the initializer builds an array.
+ * call, the binding has no type annotation, which would no longer fit, and `Set` names the global. It is an autofix
+ * for an array that no other name holds, and a suggestion when the initializer can be a string or another name's
+ * array (see `arrayEvidence`).
  */
-function reportSet(context: Context, { declarator, name, includes, proven }: SetCandidate) {
-	const { id, init } = declarator;
-	const descriptor = { node: id, messageId: 'preferSet', data: { name } } as const;
-	const properties = includes.filter(property => property !== null);
-	if (init === null || id.typeAnnotation !== null || properties.length !== includes.length) {
+function reportSet(
+	context: Context,
+	{ id, init }: Binding,
+	members: readonly ESTree.MemberExpression[] | null,
+	evidence: ArrayEvidence,
+) {
+	const { sourceCode } = context;
+	const descriptor = { node: id, messageId: 'preferSet', data: { name: id.name } } as const;
+	const annotated = (id.typeAnnotation ?? null) !== null;
+	if (members === null || annotated || declaresValue(sourceCode.getScope(init), 'Set')) {
 		context.report(descriptor);
 		return;
 	}
-	if (proven) {
-		context.report({ ...descriptor, fix: fixer => setRewrite(fixer, init, properties) });
-		return;
+	switch (evidence) {
+		case 'fresh':
+			context.report({
+				...descriptor,
+				fix: fixer => setRewrite(sourceCode, fixer, init, members),
+			});
+			return;
+		case 'possible':
+			context.report({
+				...descriptor,
+				suggest: [
+					{
+						messageId: 'suggestSet',
+						data: { name: id.name },
+						fix: fixer => setRewrite(sourceCode, fixer, init, members),
+					},
+				],
+			});
 	}
-	context.report({
-		...descriptor,
-		suggest: [
-			{
-				messageId: 'suggestSet',
-				data: { name },
-				fix: fixer => setRewrite(fixer, init, properties),
-			},
-		],
-	});
 }
 
-/** Wraps an array initializer in `new Set(…)` and renames each `.includes` property to `.has`. */
+/**
+ * Wraps an array initializer in `new Set(…)` and renames each `.includes` to `.has`. A computed key such as
+ * `['includes']` keeps its quotes.
+ */
 function setRewrite(
+	sourceCode: SourceCode,
 	fixer: Fixer,
 	init: ESTree.Expression,
-	properties: readonly (ESTree.Expression | ESTree.IdentifierName | ESTree.PrivateIdentifier)[],
+	members: readonly ESTree.MemberExpression[],
 ) {
 	return [
 		fixer.insertTextBefore(init, 'new Set('),
 		fixer.insertTextAfter(init, ')'),
-		...properties.map(property => fixer.replaceText(property, 'has')),
+		...members.map(({ property, computed }) => {
+			const quote = computed ? sourceCode.getText(property).charAt(0) : '';
+			return fixer.replaceText(property, `${quote}has${quote}`);
+		}),
 	];
 }
