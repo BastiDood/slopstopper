@@ -144,4 +144,4 @@ Apply the suggestion when neither holds. Otherwise, suppress the diagnostic.
 - A binding other than a same-file `const` is not followed. That covers an import, a `let`, and a parameter.
 - An alias is not resolved: a `const` whose initializer is only another name, as in `const extra = inner;`, is not followed further. A placeholder or fallback inside a followed initializer can still name a `const`.
 - A `const` that other code also reads is not followed. Other reads can guard the spread, as in `x === null ? null : { ...x }`, or fill the `const`, as in `const defaults: Options = {}; if (c) defaults.a = 1; ({ ...(overrides ?? defaults) })`. That code builds the result the way this rule recommends.
-- An exported `const` is not followed. Neither is any `const` in a Svelte or Astro component, whose template can read it.
+- An exported `const` is not followed, whether `export const`, `export { x }`, or `export default x` exports it. Neither is any `const` in a Svelte or Astro component, whose template can read it.

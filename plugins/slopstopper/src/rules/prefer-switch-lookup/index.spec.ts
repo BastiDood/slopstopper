@@ -78,6 +78,11 @@ OXLINT_RULE_TESTER.run('prefer-switch-lookup tables', PREFER_SWITCH_LOOKUP, {
 		'export const A = list.map(f); const g = (x: string) => A.includes(x);',
 		// A local `Object` shadows the global, so its `hasOwn` is no membership test.
 		'function f(Object: { hasOwn(o: unknown, k: string): boolean }) { const T = { a: 1, b: 2 }; return Object.hasOwn(T, k); }',
+		// An array exported by name gets no `Set` rewrite, which would change the value that other modules import.
+		{
+			code: "const A = ['a', 'b', 'c']; export { A }; const f = (x: string) => A.includes(x);",
+			options: [{ membership: 2 }],
+		},
 		// A write in this file shows that an exported table is no constant.
 		'export const T = { a: 1, b: 2 }; export function set(k: string, v: number) { T[k] = v; } export const get = (k: string) => T[k];',
 		"export const S = new Set(['a', 'b']); S.add(k); export const has = (x: string) => S.has(x);",
@@ -252,6 +257,20 @@ OXLINT_RULE_TESTER.run('prefer-switch-lookup tables', PREFER_SWITCH_LOOKUP, {
 		{
 			code: 'const H = { a: () => 1, b: () => 2 }; export const h = H[k]; h();',
 			errors: table('switchValues', 'object', 2),
+		},
+		// A table exported by name or as the default export stays for other modules too.
+		{
+			code: "const A = ['a', 'b']; export { A as NAMES }; const f = (x: string) => A.includes(x);",
+			errors: exported('A', 2, 'whose fall-through cases return `true`'),
+		},
+		{
+			code: 'const T = { a: 1, b: 2 }; export default T; const v = T[k];',
+			errors: exported('T', 2, 'that returns each value'),
+		},
+		// A `[key, value]` pair of a `Map` can carry `as const`.
+		{
+			code: "const M = new Map([['a', 1] as const, ['b', 2] as const]); const v = M.get(k);",
+			errors: table('switchValues', '`Map`', 2),
 		},
 		// An exported table stays for other modules, so each lookup of it in this file is reported instead.
 		{

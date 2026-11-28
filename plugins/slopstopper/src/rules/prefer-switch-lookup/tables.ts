@@ -190,10 +190,15 @@ export function holdsHandlers(sourceCode: SourceCode, values: readonly ESTree.Ex
 	return values.every(value => isHandler(sourceCode, value));
 }
 
-/** The key and value of a `Map` entry written as `[key, value]`, or `null` for any other element. */
+/**
+ * The key and value of a `Map` entry written as `[key, value]`, also through `as const` or `satisfies` (see `unwrap`),
+ * or `null` for any other element.
+ */
 function pairOf(element: ESTree.ArrayExpression['elements'][number]) {
-	const pair = expressionElement(element);
-	if (pair?.type !== 'ArrayExpression' || pair.elements.length !== 2) return null;
+	const entry = expressionElement(element);
+	if (entry === null) return null;
+	const pair = unwrap(entry);
+	if (pair.type !== 'ArrayExpression' || pair.elements.length !== 2) return null;
 	const [key, value] = pair.elements.map(expressionElement);
 	return key === null ||
 		typeof key === 'undefined' ||

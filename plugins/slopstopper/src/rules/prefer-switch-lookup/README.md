@@ -1,6 +1,14 @@
 # `slopstopper/prefer-switch-lookup`
 
-Reports a constant lookup that reads better, and usually runs faster, as a `switch` in its own function: an `||` chain of `===` comparisons against one value, or an array, `Set`, `Map`, or object literal whose keys a `switch` case can name. The rule sorts each table by what the code does with it (it tests membership, looks up a value, or dispatches to a handler), and each of these operations has a limit on the number of entries. Above the limit, a membership test against an array or a chain becomes a `Set` instead. An array that holds other values, and that is only searched with `.includes`, becomes a `Set` too.
+Reports a constant lookup that reads better as a `switch` in its own function, which usually also runs faster. The lookup is one of these:
+
+- An `||` chain of `===` comparisons against one value.
+- An array, `Set`, `Map`, or object literal whose keys a `switch` case can name.
+
+The rule sorts each table by what the code does with it: test membership, look up a value, or dispatch to a handler. Each of these operations has a limit on the number of entries.
+
+- Above the limit, a membership test against an array or a chain becomes a `Set` instead.
+- An array that holds other values, and that is only searched with `.includes`, becomes a `Set` too.
 
 ## Examples
 
@@ -87,23 +95,48 @@ Each option is the largest number of entries that the rule turns into a `switch`
 
 ## Tables
 
-A table is one of these literals, written where it is used or bound to a `const`:
+A table is one of these literals with at least one entry, written where it is used or bound to a `const`:
 
 - An array literal whose every element is a [case comparand](#case-comparands), with or without `as const`.
-- `new Set([...])` of case comparands, or `new Map([[key, value], ...])` whose every key is a case comparand, also when the array argument carries `as const` or `satisfies`. A local class that shadows `Set` or `Map` does not count.
+- `new Set([...])` of case comparands, or `new Map([[key, value], ...])` whose every key is a case comparand. The array argument and each `[key, value]` pair can carry `as const` or `satisfies`. A local class that shadows `Set` or `Map` does not count.
 - An object literal with static keys and no spreads, accessors, or `__proto__` key. A computed key counts when it is a string or number literal, as in `{ ['a']: 1 }`, since it names the same key as a plain one. Any other computed key, such as `[E.A]`, rules the table out.
 
-A table without entries has no case for a `switch`, so it is not reported as one.
+### Values
 
-A value of a `Map` or object must fit a `case` that returns it: a literal other than a regular expression, a template literal without expressions, a negated number, an identifier, a static member of an identifier, or a function. An object or array literal, a call, or `new` builds a new value on every evaluation, which a `case` would do on every call, so a table that holds one is not reported.
+A value of a `Map` or object must fit a `case` that returns it:
 
-A bound table must be a `const`, and every read of it must be a lookup from the options table, `.length` or `.size`, or a `typeof` type query, as in `(typeof CLASSES)[number]`. Any other read, such as iteration, a static member read like `K.A`, `K['A']`, `K[-1]`, or `K[true]`, a write, or passing the table on, leaves it alone, because a `switch` cannot replace it. A key read through a name, as in `K[A]` or `K[E.A]`, is a lookup, even when the name holds a constant.
+- **Fits:** a literal other than a regular expression, a template literal without expressions, a negated number, an identifier, a static member of an identifier, or a function.
+- **Does not fit:** an object or array literal, a call, or `new`. Each builds a new value on every evaluation, which a `case` would do on every call. A table that holds one is not reported.
 
-A table dispatches once one of its found values is called, as long as every value can be a function. A function expression, a name, and a static member can hold one: a declared function, an imported or undeclared name, an alias, and a wrapper call such as `const g = memoize(f)` all count. Only a literal, or a `const` whose initializer is a literal, a template, an operator, or an object or array literal, is known to hold no function, so such a value rules dispatch out. Its `in` and `has` tests then guard the call, and so does a found value that is only tested: the test of an `if`, a loop, or a conditional, the operand of `!`, the left side of `&&`, a comparison with `null` or `undefined`, or a `typeof` compared with a string, as in `H[k] && H[k]()` or `const h = H[k]; if (!h) throw …; h()`. A table that is called but holds other values, or whose found value is also read some other way, is not reported. Otherwise, any value read or test makes it a value table, and a table with only membership tests is a membership table.
+### Reads
+
+A bound table must be a `const`. Each read of it decides whether a `switch` can replace it:
+
+- **Lookups:** the reads in the [options table](#options). A key read through a name, as in `K[A]` or `K[E.A]`, is a lookup, even when the name holds a constant.
+- **Size and type reads:** `.length`, `.size`, and a `typeof` type query, as in `(typeof CLASSES)[number]`. These do not stop the report.
+- **Other reads:** iteration, a write, passing the table on, or a static member read such as `K.A`, `K['A']`, `K[-1]`, or `K[true]`. Any of these leaves the table alone, because a `switch` cannot replace it.
+
+### Operations
+
+The reads decide which operation a table performs:
+
+- **Dispatch:** one of the found values is called, and every value can be a function. A function expression, a name, or a static member can hold a function. This covers a declared function, an imported or undeclared name, an alias, and a wrapper call such as `const g = memoize(f)`.
+- **No dispatch:** a literal holds no function, and neither does a `const` whose initializer is a literal, a template, an operator, or an object or array literal. A table that holds such a value and is called is not reported. Neither is a table whose found value is called and also read some other way.
+- **Guards:** an `in` or `has` test guards a dispatch call. So does a found value that is only tested: the test of an `if`, a loop, or a conditional, the operand of `!`, the left side of `&&`, a comparison with `null` or `undefined`, or a `typeof` compared with a string. For example, `H[k] && H[k]()` and `const h = H[k]; if (!h) throw …; h()` both dispatch.
+- **Values:** any other value read or test makes the table a value table.
+- **Membership:** a table with only membership tests is a membership table.
 
 ## Exported Tables
 
-Other modules can read an exported table in any way, such as iterating it, so the rule never asks to remove one. Instead, it reports each lookup of the table in its own file that a local `switch` replaces, and the export stays for the other modules. The operation and the limit come from the lookups in the file, and reads that are no lookup are skipped. A write in the file, such as `T[k] = v`, `delete T.a`, `A.push(x)`, `S.add(x)`, or `M.set(k, v)`, shows that the table is no constant, so none of its lookups is reported. Only the reads that the `switch` replaces are reported: for a dispatch table, the calls, and not the `in` or `has` tests that guard them; for a value table, the value reads, and not the membership tests beside them. An exported table above its limit, and an exported array that is no case table, get no `Set` advice, because other modules can depend on the array itself.
+A table counts as exported when `export const` declares it, or when `export { T }` or `export default T` names it.
+
+Other modules can read an exported table in any way, such as iterating it, so the rule never asks to remove one. Instead, it reports each lookup of the table in its own file that a local `switch` replaces. The export stays for the other modules.
+
+- **Operation and limit:** these come from the lookups in the file. Reads that are no lookup are skipped.
+- **Writes:** a write in the file shows that the table is no constant, so none of its lookups is reported. Examples are `T[k] = v`, `delete T.a`, `A.push(x)`, `S.add(x)`, and `M.set(k, v)`.
+- **Reported reads:** only the reads that the `switch` replaces. For a dispatch table, these are the calls, not the `in` or `has` tests that guard them. For a value table, these are the value reads, not the membership tests beside them.
+- **Found values:** a found value that is bound to an exported `const` counts as a value read, since other modules can read it without calling it.
+- **No `Set` advice:** an exported table above its limit, and an exported array that is no case table, are left alone. Other modules can depend on the array itself.
 
 ```ts
 export const CLASSES = ['low', 'medium', 'high'] as const;
@@ -113,20 +146,30 @@ export type Class = (typeof CLASSES)[number];
 const rank = (c: Class) => CLASSES.indexOf(c);
 ```
 
-A found value that is bound to an exported `const` counts as a value read, since other modules can read it without calling it.
-
 ## Above the Limit
 
 - An `||` chain longer than the `membership` limit is reported as a `Set` of the values with one `.has` call.
-- A bound array above the `membership` limit is reported as a `Set`. When every read is an `.includes` call, the binding has no type annotation, and no local or imported value named `Set` shadows the global, the autofix wraps the initializer in `new Set(…)` and renames each `.includes` to `.has`, keeping the quotes of a computed key such as `['includes']`. Both compare with SameValueZero, and the literal is held by no other name, so the fix preserves behavior.
+- A bound array above the `membership` limit is reported as a `Set`. The autofix wraps the initializer in `new Set(…)` and renames each `.includes` to `.has`, keeping the quotes of a computed key such as `['includes']`. Both methods compare with `SameValueZero`, and no other name holds the literal, so the fix preserves behavior. It needs all of these:
+  - Every read is an `.includes` call.
+  - The binding has no type annotation.
+  - No local or imported value named `Set` shadows the global.
 - An inline array above the limit is reported, and the message asks to hoist it into a module-level `Set`.
 - A `Set`, `Map`, or object above its limit is left alone.
 
 ## Arrays of Other Values
 
-An array that is no table, such as `[a, b]` or `rows.map(row => row.id)`, is reported as a `Set` when every read is `A.includes(x)` and the search runs more than once: there are several reads, or the one read sits in a function or a loop. The initializer must build an array, or name one.
+An array that is no table, such as `[a, b]` or `rows.map(row => row.id)`, is reported as a `Set` when all of these hold:
 
-The rewrite is the same as above. It is an autofix when the initializer builds an array that no other name holds: an array literal, `new Array`, `Array`, `Array.from`, `Array.of`, or a method that returns a new array, such as `map`, `filter`, `slice`, `flat`, or `with`, on a known array. It is a suggestion in the other cases, where a `Set` copy can behave differently:
+- Every read is `A.includes(x)`.
+- The search runs more than once: there are several reads, or the one read sits in a function or a loop.
+- The initializer builds an array, or names one.
+
+The rewrite is the same as above. It is an autofix when the initializer builds an array that no other name holds:
+
+- An array literal, `new Array`, `Array`, `Array.from`, or `Array.of`.
+- A method that returns a new array, such as `map`, `filter`, `slice`, `flat`, or `with`, on a known array.
+
+It is a suggestion in the other cases, where a `Set` copy can behave differently:
 
 - The initializer names an array that another binding holds, as in `const KNOWN = ITEMS`. A `Set` copy stops seeing later changes through `ITEMS`.
 - It calls `sort`, `reverse`, `fill`, or `copyWithin`, which return their receiver, so another name can hold the same array.
@@ -142,11 +185,14 @@ A key counts when a `switch` case can name it:
 - A member `E.A` of a same-file `enum E`.
 - A member `K.A` of a same-file `const K` object literal, optionally `as const`, whose property `A` is such a literal.
 
-Comparisons against `null`, `undefined`, or other references guard or narrow a value instead of naming a case, so `x === null || x === y` is not reported. Neither is `x === A || y === A`, which compares two values against one constant.
+These do not count:
+
+- `null`, `undefined`, and other references, which guard or narrow a value instead of naming a case. So `x === null || x === y` is not reported.
+- One constant compared with two values, as in `x === A || y === A`.
 
 ## Type Information
 
-With typescript-eslint type information, a comparand also counts when its type is a single literal type: a string, number, or bigint literal, `true`, `false`, or an enum member. This covers imported and declared constants, as in `declare const A: 'a'`. Unions such as `boolean` or a whole enum, `any`, `unknown`, and `never` do not count.
+With `typescript-eslint` type information, a comparand also counts when its type is a single literal type: a string, number, or bigint literal, `true`, `false`, or an enum member. This covers imported and declared constants, as in `declare const A: 'a'`. Unions such as `boolean` or a whole enum, `any`, `unknown`, and `never` do not count.
 
 ## Negated Chains
 
@@ -262,4 +308,4 @@ A project whose lookups mostly reuse runtime strings, or whose keys share long p
 - Only contiguous runs count in a chain. An operand that does not fit ends the run, and the next comparison can start a new one, so one chain can hold several runs on different values. Each run is reported once, and nested `||` chains count as one chain.
 - The test of an `if` in a decision that [`prefer-switch`](../prefer-switch/README.md) owns is left to that rule, also when `prefer-switch` skips the decision because of an unlabeled `break`.
 - `k in O` and `O[k]` also find inherited keys such as `toString`, which a `switch` does not. Check that the looked-up keys cannot name an inherited property before rewriting.
-- A bound `let` is not reported. An exported table is reported only through its lookups in its own file (see [Exported Tables](#exported-tables)). A table exported through `export { T }` or `export default T` is not reported at all, since the rule detects only `export const`.
+- A bound `let` is not reported. An exported table is reported only through its lookups in its own file (see [Exported Tables](#exported-tables)).

@@ -77,6 +77,7 @@ OXLINT_RULE_TESTER.run('no-conditional-spread', NO_CONDITIONAL_SPREAD, {
 		'const defaults: Options = {}; if (flag) defaults.a = 1; const result = { ...(overrides ?? defaults) };',
 		// An exported `const` has reads in other modules.
 		'export const devTools = isDev ? { trace: true } : {}; export const request = { url, ...devTools };',
+		'const devTools = isDev ? { trace: true } : {}; export { devTools }; export const request = { url, ...devTools };',
 		// A component template can read the `const` where Oxlint cannot see it.
 		{
 			code: 'const extra = flag ? { trace: true } : {}; const request = { url, ...extra };',

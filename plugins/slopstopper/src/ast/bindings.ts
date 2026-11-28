@@ -115,11 +115,28 @@ export function constReads(sourceCode: SourceCode, declarator: ESTree.VariableDe
 }
 
 /**
- * Whether a variable is declared by an exported variable declaration, as in `export const x = …;`. Exported functions
- * and classes, and names exported by `export { x }`, are not detected.
+ * Whether a variable is exported: declared by an exported variable declaration, as in `export const x = …;`, or named
+ * by `export { x }` or `export default x`. An exported function or class declaration is not detected.
  */
-export function isExportedVariable({ defs }: Variable) {
-	return defs.some(({ node }) => node.parent?.parent?.type === 'ExportNamedDeclaration');
+export function isExportedVariable({ defs, references }: Variable) {
+	return (
+		defs.some(({ node }) => node.parent?.parent?.type === 'ExportNamedDeclaration') ||
+		references.some(({ identifier }) => isExportName(identifier))
+	);
+}
+
+/** Whether an identifier names a local variable that an `export { x }` or `export default x` exports. */
+function isExportName(identifier: ESTree.Node) {
+	const { parent } = identifier;
+	// oxlint-disable-next-line typescript/switch-exhaustiveness-check -- Only export specifiers and default exports export a local name, so `default` covers the rest.
+	switch (parent?.type) {
+		case 'ExportSpecifier':
+			return parent.local === identifier;
+		case 'ExportDefaultDeclaration':
+			return parent.declaration === identifier;
+		default:
+			return false;
+	}
 }
 
 /** The references to a variable other than its initialization, in source order. */
